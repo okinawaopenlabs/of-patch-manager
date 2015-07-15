@@ -1,19 +1,3 @@
-/*
- *   Copyright 2015 Okinawa Open Laboratory, General Incorporated Association
- *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- */
-
 package org.okinawaopenlabs.ofpm.business;
 
 import static org.okinawaopenlabs.constants.ErrorMessage.*;
@@ -876,20 +860,6 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			throw new RuntimeException(String.format(COULD_NOT_DELETE, "patchWiring=" + link));
 		}
 
-		/* delete internal mac address */
-		for (PortData portData : link.getLink()) {
-			Map<String, Object> portMap = dao.getPortInfoFromPortName(
-					conn,
-					portData.getDeviceName(),
-					portData.getPortName());
-			Map<String, Object> nghbrPortMap = dao.getNeighborPortFromPortRid(conn, (String)portMap.get("rid"));
-			if (nghbrPortMap != null) {
-				dao.deleteInternalMac(conn,
-									(String) nghbrPortMap.get("deviceName"),
-									(int) nghbrPortMap.get("number"));
-			}
-		}
-
 		Map<String, Object> txPatchMap = patchMapList.get(0);
 		Map<String, Object> rxPatchMap = patchMapList.get(patchMapList.size() - 1);
 		/* calc patch band width */
@@ -927,50 +897,61 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 				alreadyProcCable.add(outCableRid);
 			}
 		}
+
+		Map<String, Object> txOfpsMap = dao.getDeviceInfoFromDeviceRid(conn, (String)txPatchMap.get("parent"));
+		Map<String, Object> txInPortMap = dao.getPortInfoFromPortRid(conn, (String)txPatchMap.get("in"));
+
+		Map<String, Object> rxOfpsMap = dao.getDeviceInfoFromDeviceRid(conn, (String)rxPatchMap.get("parent"));
+		Map<String, Object> rxOutPortMap = dao.getPortInfoFromPortRid(conn, (String)rxPatchMap.get("out"));
+
 		/* make flow edge-switch tx side */
-		Map<String, Object> txOfpsMap = null;
-		Map<String, Object> txInPortMap = null;
 		{
-			txOfpsMap = dao.getDeviceInfoFromDeviceRid(conn, (String)txPatchMap.get("parent"));
 			String dpid  = (String)txOfpsMap.get("datapathId");
 			String ofcIp = (String)txOfpsMap.get("ofcIp");
 
-			txInPortMap = dao.getPortInfoFromPortRid(conn, (String)txPatchMap.get("in"));
 			Map<String, Object> flow = new HashMap<String, Object>();
 			flow.put("datapathId", dpid);
 			flow.put("inPort", txInPortMap.get("number"));
 			flow.put("dropFlg", true);
 			reducedFlows.add(ofcIp, flow);
 
-			Map<String, Object> txOutPortMap = dao.getPortInfoFromPortRid(conn, (String)txPatchMap.get("out"));
-			flow = new HashMap<String, Object>();
-			flow.put("datapathId", dpid);
-			flow.put("inPort", txOutPortMap.get("number"));
-			flow.put("dropFlg", true);
-			reducedFlows.add(ofcIp, flow);
+			List<String> rxInterMacList = dao.getInternalMacListFromDeviceNameInPort(
+					conn,
+					(String)rxOfpsMap.get("name"),
+					((Integer)rxOutPortMap.get("number")).toString());
+			for (String rxInterMac : rxInterMacList) {
+				flow = new HashMap<String, Object>();
+				flow.put("datapathId", dpid);
+				flow.put("srcMac", rxInterMac);
+				flow.put("dropFlg", true);
+				reducedFlows.add(ofcIp, flow);
+			}
 		}
+
 		/* make flow edge-switch rx side */
-		Map<String, Object> rxOfpsMap = null;
-		Map<String, Object> rxOutPortMap = null;
 		{
-			rxOfpsMap = dao.getDeviceInfoFromDeviceRid(conn, (String)rxPatchMap.get("parent"));
 			String dpid  = (String)rxOfpsMap.get("datapathId");
 			String ofcIp = (String)rxOfpsMap.get("ofcIp");
 
-			rxOutPortMap = dao.getPortInfoFromPortRid(conn, (String)rxPatchMap.get("out"));
 			Map<String, Object> flow = new HashMap<String, Object>();
 			flow.put("datapathId", dpid);
 			flow.put("inPort", rxOutPortMap.get("number"));
 			flow.put("dropFlg", true);
 			reducedFlows.add(ofcIp, flow);
 
-			Map<String, Object> rxInPortMap = dao.getPortInfoFromPortRid(conn, (String)rxPatchMap.get("in"));
-			flow = new HashMap<String, Object>();
-			flow.put("datapathId", dpid);
-			flow.put("inPort", rxInPortMap.get("number"));
-			flow.put("dropFlg", true);
-			reducedFlows.add(ofcIp, flow);
+			List<String> txInterMacList = dao.getInternalMacListFromDeviceNameInPort(
+					conn,
+					(String)txOfpsMap.get("name"),
+					((Integer)txInPortMap.get("number")).toString());
+			for (String txInterMac : txInterMacList) {
+				flow = new HashMap<String, Object>();
+				flow.put("datapathId", dpid);
+				flow.put("srcMac", txInterMac);
+				flow.put("dropFlg", true);
+				reducedFlows.add(ofcIp, flow);
+			}
 		}
+
 		/* make flow internal switch */
 		{
 			List<String> txInterMacList = dao.getInternalMacListFromDeviceNameInPort(
@@ -1004,6 +985,21 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 				}
 			}
 		}
+
+		/* delete internal mac address */
+		for (PortData portData : link.getLink()) {
+			Map<String, Object> portMap = dao.getPortInfoFromPortName(
+					conn,
+					portData.getDeviceName(),
+					portData.getPortName());
+			Map<String, Object> nghbrPortMap = dao.getNeighborPortFromPortRid(conn, (String)portMap.get("rid"));
+			if (nghbrPortMap != null) {
+				dao.deleteInternalMac(conn,
+									(String) nghbrPortMap.get("deviceName"),
+									(int) nghbrPortMap.get("number"));
+			}
+		}
+
 		return;
 	}
 
