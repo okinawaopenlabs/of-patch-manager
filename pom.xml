@@ -97,11 +97,22 @@
 		<artifactId>orientdb-graphdb</artifactId>
 		<version>2.0.11</version>
 	</dependency>
+	<dependency>
+		<groupId>mockit</groupId>
+		<artifactId>jmockit</artifactId>
+		<version>0.999.4</version>
+		<scope>test</scope>
+	</dependency>
+	<dependency>
+		<groupId>junit</groupId>
+		<artifactId>junit</artifactId>
+		<version>4.11</version>
+		<scope>test</scope>
+	</dependency>	
   </dependencies>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.test.skip>true</maven.test.skip>
   </properties>
 
   <build>
