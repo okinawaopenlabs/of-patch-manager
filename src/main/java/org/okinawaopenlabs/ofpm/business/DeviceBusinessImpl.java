@@ -104,6 +104,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 			conn = utils.getConnection(false);
 
 			Dao dao = new DaoImpl(utils);
+			// TODO add parameter deviceInfo.getLocation() and deviceInfo.getTenant() in createNodeInfo
 			int status = dao.createNodeInfo(
 					conn,
 					deviceInfo.getDeviceName(),
