@@ -104,6 +104,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 			conn = utils.getConnection(false);
 
 			Dao dao = new DaoImpl(utils);
+			// TODO add parameter deviceInfo.getLocation() and deviceInfo.getTenant() in createNodeInfo
 			int status = dao.createNodeInfo(
 					conn,
 					deviceInfo.getDeviceName(),
@@ -368,7 +369,14 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 				dev.setDeviceName((String) infoMap.get("name"));
 				dev.setDeviceType((String) infoMap.get("type"));
 				dev.setDatapathId((String) infoMap.get("datapathId"));
-				dev.setOfcIp((String) infoMap.get("ofcIp"));
+				dev.setLocation((String) infoMap.get("location"));
+				dev.setTenant((String) infoMap.get("tenant"));
+				if(infoMap.containsKey("ip") && infoMap.containsKey("port")){
+					dev.setOfcIp(((String)infoMap.get("ip") + ":" + (String)infoMap.get("port").toString()));
+				}
+//				StringBuilder str_buil = new StringBuilder();
+//				str_buil.append((String) infoMap.get("ip"));
+//				str_buil.append((String) infoMap.get("port"));
 				result.add(dev);
 			}
 

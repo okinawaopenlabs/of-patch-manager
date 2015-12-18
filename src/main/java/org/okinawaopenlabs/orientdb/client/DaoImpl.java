@@ -680,8 +680,14 @@ public class DaoImpl implements Dao {
 			logger.trace(String.format("%s(conn=%s) - start", fname, conn));
 		}
 		List<Map<String, Object>> maps = null;
+		List<Map<String, Object>> rent_resource_maps = null;
 		try {
-			maps = utilsJdbc.query(conn, SQL_GET_NODE_INFO_LIST, new MapListHandler());
+			maps = utilsJdbc.query(conn, SQL_GET_NODE_INFO_LIST_FM_SYS, new MapListHandler());
+			rent_resource_maps = utilsJdbc.query(conn, SQL_GET_NODE_INFO_LIST_FM_RENT, new MapListHandler());
+
+			for(Map<String, Object> rent_res: rent_resource_maps){
+				maps.add(rent_res);
+			}
 			return maps;
 		} catch (Exception e){
 			throw new SQLException(e.getMessage());

@@ -26,6 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 public class Node implements Cloneable {
 	private String deviceName;
 	private String deviceType;
+	private String location;
+	private String tenant;
 
 	public String getDeviceName() {
 		return deviceName;
@@ -39,6 +41,18 @@ public class Node implements Cloneable {
 	}
 	public void setDeviceType(String deviceType) {
 		this.deviceType = deviceType;
+	}
+	public String getLocation() {
+		return location;
+	}
+	public void setLocation(String location) {
+		this.location = location;
+	}
+	public String getTenant() {
+		return tenant;
+	}
+	public void setTenant(String tenant) {
+		this.tenant = tenant;
 	}
 
 	@Override
