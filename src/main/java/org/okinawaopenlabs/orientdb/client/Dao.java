@@ -320,7 +320,7 @@ public interface Dao {
 	 * @param ofcIp
 	 * @return
 	 */
-	int createNodeInfo(Connection conn, String deviceName, String deviceType, String datapathId, String ofcIp) throws SQLException;
+	int createNodeInfo(Connection conn, String deviceName, String deviceType, String location, String tenant, String datapathId, String ofcIp) throws SQLException;
 
 	/**
 	 * Update DeviceInfo.
@@ -448,4 +448,13 @@ public interface Dao {
 	 * @throws SQLException
 	 */
 	String getPortBandFromDeviceNamePortName(Connection conn, String deviceName, String portName) throws SQLException;
+
+	/**
+	 * Get ofc rid from ofcIp
+	 * @param conn
+	 * @param ofcIp
+	 * @return
+	 * @throws SQLException
+	 */
+	String getOfcRid(Connection conn, String ofcIp) throws SQLException;
 }

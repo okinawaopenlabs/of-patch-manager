@@ -24,6 +24,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.NumberUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -31,7 +33,11 @@ import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 
 import static org.okinawaopenlabs.constants.ErrorMessage.*;
+import static org.okinawaopenlabs.constants.OfpmDefinition.ENABLE_DEVICE_TYPES;
+import static org.okinawaopenlabs.constants.OfpmDefinition.STATUS_NOTFOUND;
 import static org.okinawaopenlabs.constants.OrientDBDefinition.*;
+
+import org.okinawaopenlabs.ofpm.exception.ValidateException;
 import org.okinawaopenlabs.ofpm.utils.OFPMUtils;
 import org.okinawaopenlabs.orientdb.utils.handlers.MapListHandler;
 
@@ -747,17 +753,165 @@ public class DaoImpl implements Dao {
 	}
 
 	@Override
-	public int createNodeInfo(Connection conn, String deviceName, String deviceType, String datapathId, String ofcIp) throws SQLException {
+	public int createNodeInfo(Connection conn, String deviceName, String deviceType, String location, String tenant, String datapathId, String ofcIp) throws SQLException {
 		final String fname = "createNodeInfo";
 		if (logger.isTraceEnabled()) {
-			logger.trace(String.format("%s(conn=%s, deviceName=%s, deviceType=%s, datapathId=%s, ofcIp=%s) - start", fname, conn, deviceName, deviceType, datapathId, ofcIp));
+			logger.trace(String.format("%s(conn=%s, deviceName=%s, deviceType=%s, location=%s, tenant=%s, datapathId=%s, ofcIp=%s) - start", fname, conn, deviceName, deviceType, location, tenant, datapathId, ofcIp));
 		}
 		int ret = DB_RESPONSE_STATUS_OK;
 		try {
-			Object[] params = {deviceName, deviceType, datapathId, ofcIp};
+			Object[] params = {deviceName, location};
 			int nRecords = utilsJdbc.update(conn, SQL_INSERT_NODE_INFO, params);
 			if (nRecords == 0) {
 				return DB_RESPONSE_STATUS_EXIST;
+			}
+
+			ret = createResourceInfo(conn, deviceName, deviceType, datapathId, tenant, ofcIp);
+			
+			return ret;
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("%s(ret=%s) - end", fname, ret));
+			}
+		}
+	}
+
+	public String getResourceRidFromNodeRid(Connection conn, String nodeRid, String deviceType) throws SQLException {
+		final String fname = "getResourceRidFromNodeRid";
+		if (logger.isTraceEnabled()) {
+			logger.trace(String.format("%s(conn=%s, nodeRid=%s, deviceType=%s) - start", fname, conn, nodeRid, deviceType));
+		}
+		String ret = null;
+
+		try {
+			String sql = null;
+			if (ArrayUtils.contains(SYSTEM_RESOURCE_TYPES, deviceType)) {
+				sql = SQL_GET_STSTEM_RESOURCE_RID_FROM_NODE_RID;
+			} else {
+				sql = SQL_GET_RENT_RESOURCE_RID_FROM_NODE_RID;
+			}
+			
+			List<Map<String, Object>> records = utilsJdbc.query(
+					conn,
+					sql,
+					new MapListHandler("rid"),
+					nodeRid);
+			if (records != null && !records.isEmpty() && records.get(0) != null) {
+				ret = (String) records.get(0).get("rid");
+			}
+			return ret;
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("%s(ret=%s) - end", fname, ret));
+			}
+		}
+	}
+	
+	public int createResourceInfo(Connection conn, String deviceName, String deviceType, String datapathId, String tenant, String ofcIp) throws SQLException {
+		final String fname = "createResourceInfo";
+		if (logger.isTraceEnabled()) {
+			logger.trace(String.format("%s(conn=%s, deviceName=%s, deviceType=%s, tenant=%s, datapathId=%s, ofcIp=%s) - start", fname, conn, deviceName, deviceType, tenant, datapathId, ofcIp));
+		}
+		int ret = DB_RESPONSE_STATUS_OK;
+		try {
+			String nodeRid = this.getNodeRidFromDeviceName(conn, deviceName);
+			if (StringUtils.isBlank(nodeRid)) {
+				return DB_RESPONSE_STATUS_NOT_FOUND;
+			}
+			
+			String sql = null;
+			if (ArrayUtils.contains(SYSTEM_RESOURCE_TYPES, deviceType)) {
+				sql = SQL_INSERT_SYSTEM_RESOURCE_INFO;
+			} else {
+				sql = SQL_INSERT_RENT_RESOURCE_INFO;
+			}
+//			Object[] params = {nodeRid, deviceType, tenant};
+//			int nRecords = utilsJdbc.update(conn, sql, params);
+			sql = sql.replaceFirst("\\?", nodeRid);
+			sql = sql.replaceFirst("\\?", deviceType);
+			sql = sql.replaceFirst("\\?", tenant);
+			int nRecords = utilsJdbc.update(conn, sql);
+			if (nRecords == 0) {
+				return DB_RESPONSE_STATUS_EXIST;
+			}
+
+			if (ArrayUtils.contains(SYSTEM_RESOURCE_TYPES, deviceType)) {
+				String resourceRid = this.getResourceRidFromNodeRid(conn, nodeRid, deviceType);
+				ret = this.createOfsInfo(conn, resourceRid, datapathId, ofcIp);
+			}
+			
+			return ret;
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("%s(ret=%s) - end", fname, ret));
+			}
+		}
+	}
+
+	public int createOfsInfo(Connection conn, String resourceRid, String datapathId, String ofcIp) throws SQLException {
+		final String fname = "createOfsInfo";
+		if (logger.isTraceEnabled()) {
+			logger.trace(String.format("%s(conn=%s, resourceRid=%s, datapathId=%s, ofcIp=%s) - start", fname, conn, resourceRid, datapathId, ofcIp));
+		}
+		int ret = DB_RESPONSE_STATUS_OK;
+		try {
+			if (!StringUtils.isBlank(datapathId) && !StringUtils.isBlank(ofcIp)) {
+				String ofcRid = this.getOfcRid(conn, ofcIp);
+				if (StringUtils.isBlank(ofcRid)) {
+					return DB_RESPONSE_STATUS_NOT_FOUND;
+				}
+//				Object[] params = {datapathId, resourceRid, ofcRid};
+//				int nRecords = utilsJdbc.update(conn, SQL_INSERT_OFS_INFO, params);
+				String sql = SQL_INSERT_OFS_INFO;
+				sql = sql.replaceFirst("\\?", datapathId);
+				sql = sql.replaceFirst("\\?", resourceRid);
+				sql = sql.replaceFirst("\\?", ofcRid);
+				int nRecords = utilsJdbc.update(conn, sql);
+
+				if (nRecords == 0) {
+					return DB_RESPONSE_STATUS_EXIST;
+				}					
+			}
+
+			return ret;
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("%s(ret=%s) - end", fname, ret));
+			}
+		}
+	}
+	
+	@Override
+	public String getOfcRid(Connection conn, String ofcIp) throws SQLException {
+		final String fname = "getOfcRid";
+		if (logger.isTraceEnabled()) {
+			logger.trace(String.format("%s(conn=%s, ofcIp=%s) - start", fname, conn, ofcIp));
+		}
+
+		String ret = null;
+		try {
+			String[] ofc = ofcIp.split(":", 0);
+			String ip = ofc[0];
+			if(!this.isNum(ofc[1])) {
+				return null;
+			}
+			int port = Integer.parseInt(ofc[1]);
+
+			List<Map<String, Object>> records = utilsJdbc.query(
+					conn,
+					SQL_GET_OFC_RID_FROM_IP_AND_PORT,
+					new MapListHandler("rid"),
+					ip, port);
+			if (records != null && !records.isEmpty() && records.get(0) != null) {
+				ret = (String) records.get(0).get("rid");
 			}
 			return ret;
 		} catch (Exception e) {
@@ -769,6 +923,15 @@ public class DaoImpl implements Dao {
 		}
 	}
 
+	public boolean isNum(String number) {
+	    try {
+	        Integer.parseInt(number);
+	        return true;
+	    } catch (NumberFormatException e) {
+	        return false;
+	    }
+	}
+	
 	@Override
 	public int updateNodeInfo(Connection conn, String keyDeviceName, String deviceName, String datapathId, String ofcIp) throws SQLException {
 		final String fname = "updateNodeInfo";

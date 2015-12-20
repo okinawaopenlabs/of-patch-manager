@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.gson.JsonSyntaxException;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import org.okinawaopenlabs.ofpm.exception.ValidateException;
@@ -104,11 +106,22 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 			conn = utils.getConnection(false);
 
 			Dao dao = new DaoImpl(utils);
-			// TODO add parameter deviceInfo.getLocation() and deviceInfo.getTenant() in createNodeInfo
+
+			if (!StringUtils.isBlank(deviceInfo.getOfcIp())) {
+				String ofcRid = dao.getOfcRid(conn, deviceInfo.getOfcIp());
+				if (StringUtils.isBlank(ofcRid)) {
+					res.setStatus(STATUS_NOTFOUND);
+					res.setMessage(String.format(NOT_FOUND, deviceInfo.getOfcIp()));
+					return res.toJson();
+				}
+			}
+
 			int status = dao.createNodeInfo(
 					conn,
 					deviceInfo.getDeviceName(),
 					deviceInfo.getDeviceType(),
+					deviceInfo.getLocation(),
+					deviceInfo.getTenant(),
 					deviceInfo.getDatapathId(),
 					deviceInfo.getOfcIp());
 

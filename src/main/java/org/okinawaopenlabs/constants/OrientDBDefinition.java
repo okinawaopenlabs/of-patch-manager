@@ -29,7 +29,12 @@ public class OrientDBDefinition {
 	public static final String NODE_TYPE_EX_SWITCH = "ExSwitch";
 	public static final String NODE_TYPE_LEAF = "Leaf";
 	public static final String NODE_TYPE_SPINE = "Spine";
+	
+	public static final String NODE_TYPE_AGGREGATE_SW = "Aggregate_Switch";
+	public static final String NODE_TYPE_SITES_SW = "Sites_Switch";
 
+	public static final String[] SYSTEM_RESOURCE_TYPES = {NODE_TYPE_LEAF, NODE_TYPE_SPINE, NODE_TYPE_AGGREGATE_SW, NODE_TYPE_SITES_SW};
+	
 	/* DB Response */
 	public static final int DB_RESPONSE_STATUS_OK = 200;
 	public static final int DB_RESPONSE_STATUS_EXIST = 210;
@@ -46,13 +51,18 @@ public class OrientDBDefinition {
 	/* select */
 //	public static final String SQL_GET_NODE_INFO_LIST = "select @rid.asString(), name, type, datapathId, ofcIp, from node";
 	public static final String SQL_GET_NODE_INFO_LIST_FM_SYS = "select system_resource_id.node_id.name as name, system_resource_id.node_id.location as location, system_resource_id.type as type, system_resource_id.tenant as tenant, dpid as datapathId, ofc_id.ip as ip, ofc_id.port as port from ofs";
-	public static final String SQL_GET_NODE_INFO_LIST_FM_RENT = "select node_id.name as name, node_id.location as location, type, tenant from rent_resource";
+	public static final String SQL_GET_NODE_INFO_LIST_FM_RENT = "select node_id.name as name, node_id.location as location, type, tenant from rentResource";
 	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_NAME = "select @rid.asString(), name, type, datapathId, ofcIp from node where name=?";
 	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_RID  = "select @rid.asString(), name, type, datapathId, ofcIp from node where @rid=?";
-	public static final String SQL_GET_NODE_RID_FROM_DEVICENAME   = "select @rid.asString() from node where name=?";
+	public static final String SQL_GET_NODE_RID_FROM_DEVICENAME   = "select @rid.asString() as rid from node where name=?";
 	public static final String SQL_GET_DEVICENAME_FROM_DATAPATHID = "select name from node where datapathId = ?";
 	public static final String SQL_GET_DEVICE_INFO_FROM_DEVICERID = "select name, type, datapathId, ofcIp from node where @RID = ?";
 
+	public static final String SQL_GET_STSTEM_RESOURCE_RID_FROM_NODE_RID   = "select @rid.asString() from systemResource where node_id=?";
+	public static final String SQL_GET_RENT_RESOURCE_RID_FROM_NODE_RID   = "select @rid.asString() from rentResource where node_id=?";
+
+	public static final String SQL_GET_OFC_RID_FROM_IP_AND_PORT   = "select @rid.asString() from ofc where ip=? and port=?";
+	
 	public static final String SQL_GET_PORT_INFO_FROM_PORTRID    = "select @rid.asString(), name, number, deviceName from port where @RID = ?";
 	public static final String SQL_GET_PORT_INFO_FROM_DEVICENAME = "select @rid.asString(), name, number, deviceName from port where deviceName=?";
 	public static final String SQL_GET_PORT_INFO_FROM_PORT_NAME  = "select @rid.asString(), name, number, deviceName from port where name = ? and deviceName = ?";
@@ -106,8 +116,8 @@ public class OrientDBDefinition {
 			"select out.@rid.asString() as rid, out.name as name, out.deviceName as deviceName, out.number as number from cable where in.@RID = ?";
 
 	/* insert */
-	public static final String SQL_INSERT_NODE      = "create vertex node set name = '%s', type = '%s', datapathId = '%s', ofcIp = '%s'";
-	public static final String SQL_INSERT_NODE_INFO = "create vertex node set name = ?, type = ?, datapathId = ?, ofcIp = ?";
+	public static final String SQL_INSERT_NODE      = "create vertex node set name = '%s', type = '%s'";
+	public static final String SQL_INSERT_NODE_INFO = "create vertex node set name = ?, location = ?";
 	public static final String SQL_INSERT_PORT      = "create vertex port set name = '%s', number = %s, band = %s, deviceName = '%s'";
 	public static final String SQL_INSERT_PORT_INFO = "create vertex port set name = ?, number = ?, band = ?, deviceName = ?";
 	public static final String SQL_INSERT_UBUS  = "create edge ubus from ? to ? set used = ?";
@@ -115,6 +125,9 @@ public class OrientDBDefinition {
 	public static final String SQL_INSERT_CABLE = "create edge cable from ? to ? set used = 0";
 	public static final String SQL_INSERT_PATCH_WIRING_2 = "insert into patchWiring(in, out, parent, inDeviceName, inPortName, outDeviceName, outPortName, sequence) values (?, ?, ?, ?, ?, ?, ?, ?)";
 	public static final String SQL_INSERT_INTERNALMAC = "insert into internalMacMap(deviceName, inPort, srcMac, dstMac, internalMac) values (?, ?, ?, ?, ?)";
+	public static final String SQL_INSERT_SYSTEM_RESOURCE_INFO = "insert into systemResource(node_id, type, tenant) values (?, '?', '?')";
+	public static final String SQL_INSERT_RENT_RESOURCE_INFO = "insert into rentResource(node_id, type, tenant) values (?, '?', '?')";
+	public static final String SQL_INSERT_OFS_INFO = "insert into ofs(dpid, system_resource_id, ofc_id) values ('?', ?, ?)";
 
 	/* delete */
 	public static final String SQL_DELETE_NODE_FROM_NODERID = "delete vertex node where @RID = ?";

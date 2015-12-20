@@ -61,10 +61,10 @@ public class OfpmDefinition {
 	/* Define validation parameters */
 	public static final int COLLECT_NUMBER_OF_DEVICE_NAMES_IN_LINK = 2;
 	public static final String[] ENABLE_OFP_FLAGS    = {"true", "false"};
-	public static final String[] ENABLE_DEVICE_TYPES = {"Server", "Switch", "ExSwitch", "Leaf", "Spine"};
+	public static final String[] ENABLE_DEVICE_TYPES = {"Server", "Switch", "Leaf", "Spine", "Aggregate_Switch", "Sites_Switch"};
 	public static final String CSV_SPLIT_REGEX = ",";
 	public static final String REGEX_NUMBER = "[0-9]+";
-	public static final String REGEX_DATAPATH_ID = "[0-9a-fA-F]{1,16}";
+	public static final String REGEX_DATAPATH_ID = "0x[0-9a-fA-F]{1,16}";
 
 	/* Define max macaddress value */
 	public static final long MIN_MACADDRESS_VALUE = -140737488355329L;
