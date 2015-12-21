@@ -1012,29 +1012,59 @@ public class DaoImpl implements Dao {
 		}
 		int ret = DB_RESPONSE_STATUS_OK;
 		try {
-			String nodeRid = this.getNodeRidFromDeviceName(conn, deviceName);
-			if (StringUtils.isBlank(nodeRid)) {
+			Map<String, Object> deviceMap = this.getNodeInfoFromDeviceName(conn, deviceName);
+			if (deviceMap == null) {
 				ret = DB_RESPONSE_STATUS_NOT_FOUND;
 				return ret;
 			}
 
-			boolean contain = this.isDeviceNameContainedIntoPatchWiring(conn, deviceName);
-			if (contain) {
-				ret = DB_RESPONSE_STATUS_FORBIDDEN;
-				return ret;
-			}
+			String nodeRid = (String)deviceMap.get("rid");
 
-			contain = this.isNodeRidContainedIntoPatchWiring(conn, nodeRid);
-			if (contain) {
-				ret = DB_RESPONSE_STATUS_FORBIDDEN;
-				return ret;
-			}
+// TODO
+//			boolean contain = this.isDeviceNameContainedIntoPatchWiring(conn, deviceName);
+//			if (contain) {
+//				ret = DB_RESPONSE_STATUS_FORBIDDEN;
+//				return ret;
+//			}
+
+// TODO
+//			contain = this.isNodeRidContainedIntoPatchWiring(conn, nodeRid);
+//			if (contain) {
+//				ret = DB_RESPONSE_STATUS_FORBIDDEN;
+//				return ret;
+//			}
 
 			Object[] params = {deviceName};
 			utilsJdbc.update(
 					conn,
 					SQL_DELETE_PORT_FROM_DEVICENAME,
 					params);
+
+			if (ArrayUtils.contains(SYSTEM_RESOURCE_TYPES, (String)deviceMap.get("type"))) {
+				String sql = SQL_DELETE_OFS_FROM_RID;
+				sql = sql.replaceFirst("\\?", (String)deviceMap.get("ofs_rid"));
+				int nRecord = utilsJdbc.update(conn, sql);
+				if (nRecord != 1) {
+					ret = DB_RESPONSE_STATUS_FAIL;
+					return ret;
+				}
+
+				sql = SQL_DELETE_SYSTEM_RESOURCE_FROM_RID;
+				sql = sql.replaceFirst("\\?", (String)deviceMap.get("system_resource_rid"));
+				nRecord = utilsJdbc.update(conn, sql);
+				if (nRecord != 1) {
+					ret = DB_RESPONSE_STATUS_FAIL;
+					return ret;
+				}
+			} else {
+				String sql = SQL_DELETE_RENT_RESOURCE_FROM_RID;
+				sql = sql.replaceFirst("\\?", (String)deviceMap.get("rent_resource_rid"));
+				int nRecord = utilsJdbc.update(conn, sql);
+				if (nRecord != 1) {
+					ret = DB_RESPONSE_STATUS_FAIL;
+					return ret;
+				}
+			}
 
 			String sql = SQL_DELETE_NODE_FROM_NODERID;
 			sql = sql.replaceFirst("\\?", nodeRid);
@@ -1043,6 +1073,7 @@ public class DaoImpl implements Dao {
 				ret = DB_RESPONSE_STATUS_FAIL;
 				return ret;
 			}
+
 			return ret;
 		} catch (Exception e) {
 			throw new SQLException(e.getMessage());

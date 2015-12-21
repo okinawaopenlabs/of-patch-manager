@@ -49,8 +49,8 @@ public class OrientDBDefinition {
 	public static final String SQL_NODE_KEY_FLAG = "ofpFlag";
 
 	/* select */
-	public static final String SQL_GET_NODE_INFO_LIST_FM_SYS = "select system_resource_id.node_id.@rid.asString() as rid, system_resource_id.node_id.name as name, system_resource_id.node_id.location as location, system_resource_id.type as type, system_resource_id.tenant as tenant, dpid as datapathId, ofc_id.ip as ip, ofc_id.port as port from ofs";
-	public static final String SQL_GET_NODE_INFO_LIST_FM_RENT = "select system_resource_id.node_id.@rid.asString() as rid, node_id.name as name, node_id.location as location, type, tenant from rentResource";
+	public static final String SQL_GET_NODE_INFO_LIST_FM_SYS = "select system_resource_id.node_id.@rid.asString() as rid, system_resource_id.asString() as system_resource_rid, @rid.asString() as ofs_rid, system_resource_id.node_id.name as name, system_resource_id.node_id.location as location, system_resource_id.type as type, system_resource_id.tenant as tenant, dpid as datapathId, ofc_id.ip as ip, ofc_id.port as port from ofs";
+	public static final String SQL_GET_NODE_INFO_LIST_FM_RENT = "select system_resource_id.node_id.@rid.asString() as rid, @rid.asString() as rent_resource_rid, node_id.name as name, node_id.location as location, type, tenant from rentResource";
 	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_NAME = "select @rid.asString(), name, type from node where name=?";
 	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_NAME_FM_SYS = "select system_resource_id.node_id.@rid.asString() as rid, system_resource_id.node_id.name as name, system_resource_id.node_id.location as location, system_resource_id.type as type, system_resource_id.tenant as tenant, dpid as datapathId, ofc_id.ip as ip, ofc_id.port as port from ofs where system_resource_id.node_id.name=?";
 	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_NAME_FM_RENT = "select system_resource_id.node_id.@rid.asString() as rid, node_id.name as name, node_id.location as location, type, tenant from rentResource where node_id.name=?";
@@ -132,6 +132,9 @@ public class OrientDBDefinition {
 
 	/* delete */
 	public static final String SQL_DELETE_NODE_FROM_NODERID = "delete vertex node where @RID = ?";
+	public static final String SQL_DELETE_SYSTEM_RESOURCE_FROM_RID = "delete systemResource where @RID = ?";
+	public static final String SQL_DELETE_OFS_FROM_RID = "delete ofs where @RID = ?";
+	public static final String SQL_DELETE_RENT_RESOURCE_FROM_RID = "delete rentResource where @RID = ?";
 	public static final String SQL_DELETE_PORT_FROM_PORTRID = "delete vertex port where @RID = ?";
 	public static final String SQL_DELETE_PORT_FROM_DEVICENAME = "delete vertex port where deviceName = ?";
 	public static final String SQL_DELETE_BUS_FROM_ONE_PORTRID = "delete edge bus where out = ? or in = ?";
