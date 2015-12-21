@@ -85,4 +85,40 @@ public interface DeviceBusiness {
 	 * @return response entity Json String
 	 */
 	public String getConnectedPortInfo(String deviceName);
+
+	/**
+	 * Create Ofc business Logic
+	 * @param newOfcInfoJson String
+	 * @return response entity Json String
+	 */	
+	public String createOfc(String newOfcInfoJson);
+
+	/**
+	 * delete Ofc business Logic
+	 * @param ofcIpPort String
+	 * @return response entity Json String
+	 */	
+	public String deleteOfc(String ofcIpPort);
+
+	/**
+	 * Update Ofc business Logic
+	 * @param ofcIpPort String
+	 * @param updateOfcInfoJson String
+	 * @return response entity Json String
+	 */	
+	public String updateOfc(String ofcIpPort, String updateOfcInfoJson);
+
+	/**
+	 * Read ofces list from db.
+	 * @return
+	 */
+	public String readOfcList();
+
+	/**
+	 * Read ofc from db.
+	 * @param ofcIpPort
+	 * @return
+	 */
+	public String readOfc(String ofcIpPort);
+
 }

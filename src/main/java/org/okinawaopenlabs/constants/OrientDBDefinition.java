@@ -70,6 +70,7 @@ public class OrientDBDefinition {
 	public static final String SQL_GET_PORT_RID_FROM_DEVICENAME_PORTNAME  = "select @rid.asString() from port where name = ? and deviceName = ?";
 	public static final String SQL_GET_PORTRID_FROM_DEVICENAME_PORTNUMBER = "select @rid.asString() from port where deviceName = ? and number = ?";
 	public static final String SQL_GET_PORT_BAND_FROM_DEVICENAME_PORTNAME  = "select band from port where name = ? and deviceName = ?";
+	public static final String SQL_GET_OFC_INFO_LIST = "select ip, port from ofc";
 
 	public static final String SQL_GET_CABLE_FROM_IN_PORTRID =
 			"select in.deviceName as inDeviceName, in.name as inPortName, in.number as inPortNumber, "

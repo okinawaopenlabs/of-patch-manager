@@ -44,6 +44,8 @@ import org.okinawaopenlabs.ofpm.json.device.PortInfoCreateJsonIn;
 import org.okinawaopenlabs.ofpm.json.device.PortInfoUpdateJsonIn;
 import org.okinawaopenlabs.ofpm.json.device.DeviceManagerGetConnectedPortInfoJsonOut.ResultData;
 import org.okinawaopenlabs.ofpm.json.device.DeviceManagerGetConnectedPortInfoJsonOut.ResultData.LinkData;
+import org.okinawaopenlabs.ofpm.json.device.OfcInfo;
+import org.okinawaopenlabs.ofpm.json.device.OfcInfoListReadJsonOut;
 import org.okinawaopenlabs.ofpm.utils.Config;
 import org.okinawaopenlabs.ofpm.utils.ConfigImpl;
 import org.okinawaopenlabs.ofpm.utils.OFPMUtils;
@@ -745,5 +747,71 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 			linkData.setOfpFlag(OFP_FLAG_FALSE);
 		}
 		resultData.addLinkData(linkData);
+	}
+
+	@Override
+	public String createOfc(String newOfcInfoJson) {
+		BaseResponse res = new BaseResponse();
+		res.setStatus(STATUS_CREATED);
+		return res.toJson();
+	}
+
+	@Override
+	public String deleteOfc(String ofcIpPort) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String updateOfc(String ofcIpPort, String updateOfcInfoJson) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String readOfcList() {
+		String fname = "readOfcList";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s() - start", fname));
+		}
+		OfcInfoListReadJsonOut res = new OfcInfoListReadJsonOut();
+		res.setStatus(STATUS_SUCCESS);
+
+		ConnectionUtilsJdbc utils = null;
+		Connection conn = null;
+		try {
+			utils = new ConnectionUtilsJdbcImpl();
+			conn  = utils.getConnection(true);
+
+			Dao dao = new DaoImpl(utils);
+			List<Map<String, Object>> infoMapList = dao.getOfcInfoList(conn);
+
+			List<OfcInfo> result = new ArrayList<OfcInfo>();
+			for (Map<String, Object> infoMap : infoMapList) {
+				OfcInfo ofc = new OfcInfo();
+				ofc.setIp((String) infoMap.get("ip"));
+				ofc.setPort((Integer) infoMap.get("port"));
+				result.add(ofc);
+			}
+
+			res.setResult(result);
+			return res.toJson();
+		} catch (SQLException | RuntimeException e) {
+			OFPMUtils.logErrorStackTrace(logger, e);
+    		res.setStatus(STATUS_INTERNAL_ERROR);
+    		res.setMessage(e.getMessage());
+    		return res.toJson();
+		} finally {
+			utils.close(conn);
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+		}
+	}
+
+	@Override
+	public String readOfc(String ofcIpPort) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
