@@ -133,9 +133,9 @@ public class OrientDBDefinition {
 
 	/* delete */
 	public static final String SQL_DELETE_NODE_FROM_NODERID = "delete vertex node where @RID = ?";
-	public static final String SQL_DELETE_SYSTEM_RESOURCE_FROM_RID = "delete systemResource where @RID = ?";
-	public static final String SQL_DELETE_OFS_FROM_RID = "delete ofs where @RID = ?";
-	public static final String SQL_DELETE_RENT_RESOURCE_FROM_RID = "delete rentResource where @RID = ?";
+	public static final String SQL_DELETE_SYSTEM_RESOURCE_FROM_RID = "delete from systemResource where @RID = ?";
+	public static final String SQL_DELETE_OFS_FROM_RID = "delete from ofs where @RID = ?";
+	public static final String SQL_DELETE_RENT_RESOURCE_FROM_RID = "delete from rentResource where @RID = ?";
 	public static final String SQL_DELETE_PORT_FROM_PORTRID = "delete vertex port where @RID = ?";
 	public static final String SQL_DELETE_PORT_FROM_DEVICENAME = "delete vertex port where deviceName = ?";
 	public static final String SQL_DELETE_BUS_FROM_ONE_PORTRID = "delete edge bus where out = ? or in = ?";
