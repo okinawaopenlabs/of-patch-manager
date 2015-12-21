@@ -1501,4 +1501,24 @@ public class DaoImpl implements Dao {
 			}
 		}
 	}
+
+	@Override
+	public List<Map<String, Object>> getOfcInfoList(Connection conn) throws SQLException {
+		final String fname = "getOfcInfoList";
+		if (logger.isTraceEnabled()){
+			logger.trace(String.format("%s(conn=%s) - start", fname, conn));
+		}
+		List<Map<String, Object>> maps = null;
+//		List<Map<String, Object>> rent_resource_maps = null;
+		try {
+			maps = utilsJdbc.query(conn, SQL_GET_OFC_INFO_LIST, new MapListHandler());
+			return maps;
+		} catch (Exception e){
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()){
+				logger.trace(String.format("%s(ret=%s) - end", fname, maps));
+			}
+		}	
+	}
 }

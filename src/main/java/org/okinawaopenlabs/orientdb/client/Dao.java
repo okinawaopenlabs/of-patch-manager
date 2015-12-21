@@ -457,4 +457,12 @@ public interface Dao {
 	 * @throws SQLException
 	 */
 	String getOfcRid(Connection conn, String ofcIp) throws SQLException;
+
+	/**
+	 * Get OfcInfo list in db.
+	 * @param conn
+	 * @return
+	 * @throws SQLException
+	 */	
+	List<Map<String, Object>> getOfcInfoList(Connection conn) throws SQLException;
 }
