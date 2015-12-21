@@ -64,9 +64,9 @@ public class OrientDBDefinition {
 
 	public static final String SQL_GET_OFC_RID_FROM_IP_AND_PORT   = "select @rid.asString() from ofc where ip=? and port=?";
 	
-	public static final String SQL_GET_PORT_INFO_FROM_PORTRID    = "select @rid.asString(), name, number, deviceName from port where @RID = ?";
-	public static final String SQL_GET_PORT_INFO_FROM_DEVICENAME = "select @rid.asString(), name, number, deviceName from port where deviceName=?";
-	public static final String SQL_GET_PORT_INFO_FROM_PORT_NAME  = "select @rid.asString(), name, number, deviceName from port where name = ? and deviceName = ?";
+	public static final String SQL_GET_PORT_INFO_FROM_PORTRID    = "select @rid.asString(), name, number, band, deviceName from port where @RID = ?";
+	public static final String SQL_GET_PORT_INFO_FROM_DEVICENAME = "select @rid.asString(), name, number, band, deviceName from port where deviceName=?";
+	public static final String SQL_GET_PORT_INFO_FROM_PORT_NAME  = "select @rid.asString(), name, number, band, deviceName from port where name = ? and deviceName = ?";
 	public static final String SQL_GET_PORT_RID_FROM_DEVICENAME_PORTNAME  = "select @rid.asString() from port where name = ? and deviceName = ?";
 	public static final String SQL_GET_PORTRID_FROM_DEVICENAME_PORTNUMBER = "select @rid.asString() from port where deviceName = ? and number = ?";
 	public static final String SQL_GET_PORT_BAND_FROM_DEVICENAME_PORTNAME  = "select band from port where name = ? and deviceName = ?";

@@ -41,12 +41,14 @@ import org.okinawaopenlabs.ofpm.json.device.DeviceInfoReadJsonOut;
 import org.okinawaopenlabs.ofpm.json.device.DeviceInfoUpdateJsonIn;
 import org.okinawaopenlabs.ofpm.json.device.DeviceManagerGetConnectedPortInfoJsonOut;
 import org.okinawaopenlabs.ofpm.json.device.PortInfoCreateJsonIn;
+import org.okinawaopenlabs.ofpm.json.device.PortInfoListReadJsonOut;
 import org.okinawaopenlabs.ofpm.json.device.PortInfoUpdateJsonIn;
 import org.okinawaopenlabs.ofpm.json.device.DeviceManagerGetConnectedPortInfoJsonOut.ResultData;
 import org.okinawaopenlabs.ofpm.json.device.DeviceManagerGetConnectedPortInfoJsonOut.ResultData.LinkData;
 import org.okinawaopenlabs.ofpm.json.device.OfcInfo;
 import org.okinawaopenlabs.ofpm.json.device.OfcInfoListReadJsonOut;
 import org.okinawaopenlabs.ofpm.json.device.OfcInfoReadJsonOut;
+import org.okinawaopenlabs.ofpm.json.device.PortInfo;
 import org.okinawaopenlabs.ofpm.utils.Config;
 import org.okinawaopenlabs.ofpm.utils.ConfigImpl;
 import org.okinawaopenlabs.ofpm.utils.OFPMUtils;
@@ -495,7 +497,73 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 				logger.debug(String.format("%s(ret=%s) - end", fname, res));
 			}
 		}
+	}
 
+	@Override
+	public String readPortList(String deviceName) {
+		String fname = "readPortList";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(deviceName=%s) - start", fname, deviceName));
+		}
+		PortInfoListReadJsonOut res = new PortInfoListReadJsonOut();
+		res.setStatus(STATUS_SUCCESS);
+
+		/* PHASE 1: json -> obj and validation check */
+		PortInfoCreateJsonIn portInfo = null;
+		try {
+			BaseValidate.checkStringBlank(deviceName);
+		} catch (JsonSyntaxException e) {
+			OFPMUtils.logErrorStackTrace(logger, e);
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(INVALID_JSON);
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		} catch (ValidateException e) {
+			OFPMUtils.logErrorStackTrace(logger, e);
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+
+		/* PHASE 2: */
+		ConnectionUtilsJdbc utils = null;
+		Connection conn = null;
+		try {
+			utils = new ConnectionUtilsJdbcImpl();
+			conn  = utils.getConnection(true);
+
+			Dao dao = new DaoImpl(utils);
+			List<Map<String, Object>> infoMapList = dao.getPortInfoListFromDeviceName(conn, deviceName); 
+
+			List<PortInfo> result = new ArrayList<PortInfo>();
+			for (Map<String, Object> infoMap : infoMapList) {
+				PortInfo port = new PortInfo();
+				port.setPortName((String) infoMap.get("name"));
+				port.setPortNumber((Integer) infoMap.get("number"));
+				port.setBand((String) infoMap.get("band"));
+				result.add(port);
+			}
+
+			res.setResult(result);
+			return res.toJson();
+		} catch (SQLException | RuntimeException e) {
+			OFPMUtils.logErrorStackTrace(logger, e);
+    		res.setStatus(STATUS_INTERNAL_ERROR);
+    		res.setMessage(e.getMessage());
+    		return res.toJson();
+		} finally {
+			utils.close(conn);
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+		}
 	}
 
 	public String deletePort(String deviceName, String portName) {

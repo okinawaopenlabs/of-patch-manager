@@ -62,6 +62,13 @@ public interface DeviceBusiness {
 	public String createPort(String deviceName, String newPortInfoJson);
 
 	/**
+	 * read Port list business Logic
+	 * @param newPortInfoJson String
+	 * @return response entity Json String
+	 */
+	public String readPortList(String deviceName);
+
+	/**
 	 * delete Port business Logic
 	 * @param deviceName String
 	 * @param portName String

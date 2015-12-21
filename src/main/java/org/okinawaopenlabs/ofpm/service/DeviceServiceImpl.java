@@ -166,6 +166,28 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
+	public Response readPortList(String deviceName) {
+		final String fname = "readPortList";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(deviceName=%s) - start", fname, deviceName));
+		}
+
+		this.injector = Guice.createInjector(new AbstractModule() {
+			@Override
+			protected void configure() {
+				bind(DeviceBusiness.class).to(DeviceBusinessImpl.class);
+			}
+		});
+		DeviceServiceImpl main = this.injector.getInstance(DeviceServiceImpl.class);
+		String resDeviceBiz = main.deviceBiz.readPortList(deviceName);
+
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
+		}
+		return Response.ok(resDeviceBiz).type(MediaType.APPLICATION_JSON_TYPE).build();
+	}
+
+	@Override
 	public Response deletePort(String deviceName, String portName) {
 		final String fname = "deletePort";
 		if (logger.isDebugEnabled()) {

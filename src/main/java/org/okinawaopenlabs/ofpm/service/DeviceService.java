@@ -98,6 +98,15 @@ public interface DeviceService {
 	public Response createPort(@PathParam("deviceName") String deviceName, @RequestBody String newPortInfoJson);
 
 	/**
+	 * Read ports list.
+	 * @return
+	 */
+	@GET
+	@Path("/port/{deviceName}")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Response readPortList(@PathParam("deviceName") String deviceName);
+	
+	/**
 	 * Delete Port
 	 * @param deviceName String
 	 * @param portName String
