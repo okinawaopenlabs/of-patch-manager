@@ -341,6 +341,11 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 			dev.setDeviceType((String) infoMap.get("type"));
 			dev.setDatapathId((String) infoMap.get("datapathId"));
 			dev.setOfcIp((String) infoMap.get("ofcIp"));
+			dev.setLocation((String) infoMap.get("location"));
+			dev.setTenant((String) infoMap.get("tenant"));
+			if(infoMap.containsKey("ip") && infoMap.containsKey("port")){
+				dev.setOfcIp(((String)infoMap.get("ip") + ":" + (String)infoMap.get("port").toString()));
+			}
 
 			res.setResult(dev);
 			res.setStatus(STATUS_SUCCESS);
@@ -387,9 +392,9 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 				if(infoMap.containsKey("ip") && infoMap.containsKey("port")){
 					dev.setOfcIp(((String)infoMap.get("ip") + ":" + (String)infoMap.get("port").toString()));
 				}
-//				StringBuilder str_buil = new StringBuilder();
-//				str_buil.append((String) infoMap.get("ip"));
-//				str_buil.append((String) infoMap.get("port"));
+//				StringBuilder str_build = new StringBuilder();
+//				str_build.append((String) infoMap.get("ip"));
+//				str_build.append((String) infoMap.get("port"));
 				result.add(dev);
 			}
 

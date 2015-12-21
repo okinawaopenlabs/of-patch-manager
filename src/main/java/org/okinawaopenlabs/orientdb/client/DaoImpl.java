@@ -38,6 +38,7 @@ import static org.okinawaopenlabs.constants.OfpmDefinition.STATUS_NOTFOUND;
 import static org.okinawaopenlabs.constants.OrientDBDefinition.*;
 
 import org.okinawaopenlabs.ofpm.exception.ValidateException;
+import org.okinawaopenlabs.ofpm.json.device.DeviceInfo;
 import org.okinawaopenlabs.ofpm.utils.OFPMUtils;
 import org.okinawaopenlabs.orientdb.utils.handlers.MapListHandler;
 
@@ -659,17 +660,22 @@ public class DaoImpl implements Dao {
 
 	@Override
 	public Map<String, Object> getNodeInfoFromDeviceName(Connection conn, String deviceName) throws SQLException {
-		final String fname = "getDeviceInfo";
+		final String fname = "getNodeInfoFromDeviceName";
 		if (logger.isTraceEnabled()){
 			logger.trace(String.format("%s(conn=%s, deviceName=%s) - start", fname, conn, deviceName));
 		}
 		Map<String, Object> map = null;
 		try {
-			List<Map<String, Object>> maps = utilsJdbc.query(conn, SQL_GET_NODE_INFO_FROM_DEVICE_NAME, new MapListHandler(), deviceName);
-			if (!maps.isEmpty()) {
-				map = maps.get(0);
+			List<Map<String, Object>> infoMapList = this.getNodeInfoList(conn);
+
+			for (Map<String, Object> infoMap : infoMapList) {
+				if (deviceName.contentEquals((String) infoMap.get("name"))) {
+					return infoMap;
+				}
 			}
-			return map;
+
+			// not found.
+			return null;
 		} catch (Exception e){
 			throw new SQLException(e.getMessage());
 		} finally {
