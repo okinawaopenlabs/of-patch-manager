@@ -264,6 +264,8 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 					conn,
 					deviceName,
 					newDeviceInfo.getDeviceName(),
+					newDeviceInfo.getLocation(),
+					newDeviceInfo.getTenant(),
 					newDeviceInfo.getDatapathId(),
 					newDeviceInfo.getOfcIp());
 

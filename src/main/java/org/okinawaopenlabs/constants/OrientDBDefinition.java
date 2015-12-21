@@ -49,11 +49,11 @@ public class OrientDBDefinition {
 	public static final String SQL_NODE_KEY_FLAG = "ofpFlag";
 
 	/* select */
-	public static final String SQL_GET_NODE_INFO_LIST_FM_SYS = "select system_resource_id.node_id.name as name, system_resource_id.node_id.location as location, system_resource_id.type as type, system_resource_id.tenant as tenant, dpid as datapathId, ofc_id.ip as ip, ofc_id.port as port from ofs";
-	public static final String SQL_GET_NODE_INFO_LIST_FM_RENT = "select node_id.name as name, node_id.location as location, type, tenant from rentResource";
+	public static final String SQL_GET_NODE_INFO_LIST_FM_SYS = "select system_resource_id.node_id.@rid.asString() as rid, system_resource_id.node_id.name as name, system_resource_id.node_id.location as location, system_resource_id.type as type, system_resource_id.tenant as tenant, dpid as datapathId, ofc_id.ip as ip, ofc_id.port as port from ofs";
+	public static final String SQL_GET_NODE_INFO_LIST_FM_RENT = "select system_resource_id.node_id.@rid.asString() as rid, node_id.name as name, node_id.location as location, type, tenant from rentResource";
 	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_NAME = "select @rid.asString(), name, type from node where name=?";
-	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_NAME_FM_SYS = "select system_resource_id.node_id.name as name, system_resource_id.node_id.location as location, system_resource_id.type as type, system_resource_id.tenant as tenant, dpid as datapathId, ofc_id.ip as ip, ofc_id.port as port from ofs where system_resource_id.node_id.name=?";
-	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_NAME_FM_RENT = "select node_id.name as name, node_id.location as location, type, tenant from rentResource where node_id.name=?";
+	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_NAME_FM_SYS = "select system_resource_id.node_id.@rid.asString() as rid, system_resource_id.node_id.name as name, system_resource_id.node_id.location as location, system_resource_id.type as type, system_resource_id.tenant as tenant, dpid as datapathId, ofc_id.ip as ip, ofc_id.port as port from ofs where system_resource_id.node_id.name=?";
+	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_NAME_FM_RENT = "select system_resource_id.node_id.@rid.asString() as rid, node_id.name as name, node_id.location as location, type, tenant from rentResource where node_id.name=?";
 	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_RID  = "select @rid.asString(), name, type, datapathId, ofcIp from node where @rid=?";
 	public static final String SQL_GET_NODE_RID_FROM_DEVICENAME   = "select @rid.asString() as rid from node where name=?";
 	public static final String SQL_GET_DEVICENAME_FROM_DATAPATHID = "select name from node where datapathId = ?";
@@ -140,7 +140,7 @@ public class OrientDBDefinition {
 	public static final String SQL_DELETE_INTERNALMAC_FROM_DEVICE_NAME_PORT_NAME = "delete from internalMacMap where deviceName=? and inPort=?";
 
 	/* update */
-	public static final String SQL_UPDATE_NODE_INFO_FROM_RID = "update node set name = ?, datapathId = ? , ofcIp = ? where @RID = ?";
+	public static final String SQL_UPDATE_NODE_INFO_FROM_RID = "update node set name = '?', datapathId = '?' , location = '?', tenant = '?', ofcIp = ? where @RID = ?";
 	public static final String SQL_UPDATE_PORT_INFO_FROM_RID = "update port set name = ?, number = ?, band = ?, where @RID = ?";
 	public static final String SQL_UPDATE_PORT_DEVICENAME = "update port set deviceName = ? where deviceName = ?";
 	public static final String SQL_UPDATE_CALBE_LINK_USED_VALUE_FROM_PORT_RID = "update link set used = ? where out.@class='port' and in.@class='port' and (in.@RID = ? or out.@RID = ?)";

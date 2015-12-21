@@ -939,7 +939,7 @@ public class DaoImpl implements Dao {
 	}
 	
 	@Override
-	public int updateNodeInfo(Connection conn, String keyDeviceName, String deviceName, String datapathId, String ofcIp) throws SQLException {
+	public int updateNodeInfo(Connection conn, String keyDeviceName, String deviceName, String location,String tenant, String datapathId, String ofcIp) throws SQLException {
 		final String fname = "updateNodeInfo";
 		if (logger.isTraceEnabled()) {
 			logger.trace(String.format("%s(conn=%s, keyDeviceName=%s, newDeviceName=%s, datapathId=%s, ofcIp=%s) - start", fname, conn, keyDeviceName, deviceName, datapathId, ofcIp));
@@ -956,24 +956,43 @@ public class DaoImpl implements Dao {
 			if (StringUtils.isBlank(deviceName)) {
 				deviceName = (String)current.get("name");
 			}
+			if (StringUtils.isBlank(location)) {
+				location = (String)current.get("location");
+			}
+			if (StringUtils.isBlank(tenant)) {
+				tenant = (String)current.get("tenant");
+			}
 			if (StringUtils.isBlank(datapathId)) {
 				datapathId = (String)current.get("datapathId");
 			}
 			if (StringUtils.isBlank(ofcIp)) {
 				ofcIp = (String)current.get("ofcIp");
 			}
+			String ofcRid = this.getOfcRid(conn, ofcIp);
+			if (StringUtils.isBlank(ofcRid)) {
+				ret = DB_RESPONSE_STATUS_NOT_FOUND;
+				return ret;
+			}
 
-			Object[] params = {deviceName, datapathId, ofcIp, nodeRid};
-			int result = utilsJdbc.update(conn, SQL_UPDATE_NODE_INFO_FROM_RID, params);
+//			Object[] params = {deviceName, datapathId, location, tenant, ofcRid, nodeRid};
+//			int result = utilsJdbc.update(conn, SQL_UPDATE_NODE_INFO_FROM_RID, params);
+			String sql = SQL_UPDATE_NODE_INFO_FROM_RID;
+			sql = sql.replaceFirst("\\?", deviceName);
+			sql = sql.replaceFirst("\\?", datapathId);
+			sql = sql.replaceFirst("\\?", location);
+			sql = sql.replaceFirst("\\?", tenant);
+			sql = sql.replaceFirst("\\?", ofcRid);
+			sql = sql.replaceFirst("\\?", nodeRid);
+			int result = utilsJdbc.update(conn, sql);
 			if (result == 0) {
 				ret = DB_RESPONSE_STATUS_EXIST;
 				return ret;
 			}
-
-			Object[] updDevNamePara = {deviceName, keyDeviceName};
-			utilsJdbc.update(conn, SQL_UPDATE_PORT_DEVICENAME, updDevNamePara);
-			utilsJdbc.update(conn, SQL_UPDATE_PATCH_WIRING_INDEVICENAME,  updDevNamePara);
-			utilsJdbc.update(conn, SQL_UPDATE_PATCH_WIRING_OUTDEVICENAME, updDevNamePara);
+//TODO
+//			Object[] updDevNamePara = {deviceName, keyDeviceName};
+//			utilsJdbc.update(conn, SQL_UPDATE_PORT_DEVICENAME, updDevNamePara);
+//			utilsJdbc.update(conn, SQL_UPDATE_PATCH_WIRING_INDEVICENAME,  updDevNamePara);
+//			utilsJdbc.update(conn, SQL_UPDATE_PATCH_WIRING_OUTDEVICENAME, updDevNamePara);
 
 			return ret;
 		} catch (Exception e){
