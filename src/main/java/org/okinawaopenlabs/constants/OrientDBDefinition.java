@@ -122,8 +122,7 @@ public class OrientDBDefinition {
 	public static final String SQL_INSERT_NODE_INFO = "create vertex node set name = ?, location = ?";
 	public static final String SQL_INSERT_PORT      = "create vertex port set name = '%s', number = %s, band = %s, deviceName = '%s'";
 	public static final String SQL_INSERT_PORT_INFO = "create vertex port set name = ?, number = ?, band = ?, deviceName = ?";
-	public static final String SQL_INSERT_UBUS  = "create edge ubus from ? to ? set used = ?";
-	public static final String SQL_INSERT_DBUS  = "create edge dbus from ? to ? set used = ?";
+	public static final String SQL_INSERT_BUS  = "create edge bus from ? to ? set used = ?";
 	public static final String SQL_INSERT_CABLE = "create edge cable from ? to ? set used = 0";
 	public static final String SQL_INSERT_PATCH_WIRING_2 = "insert into patchWiring(in, out, parent, inDeviceName, inPortName, outDeviceName, outPortName, sequence) values (?, ?, ?, ?, ?, ?, ?, ?)";
 	public static final String SQL_INSERT_INTERNALMAC = "insert into internalMacMap(deviceName, inPort, srcMac, dstMac, internalMac) values (?, ?, ?, ?, ?)";

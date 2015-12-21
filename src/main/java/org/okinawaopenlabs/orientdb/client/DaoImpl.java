@@ -1127,7 +1127,7 @@ public class DaoImpl implements Dao {
 				used = 0L;
 			}
 
-			String sql = SQL_INSERT_UBUS;
+			String sql = SQL_INSERT_BUS;
 			sql = sql.replaceFirst("\\?", portRid);
 			sql = sql.replaceFirst("\\?", devRid);
 			sql = sql.replaceFirst("\\?", used.toString());
@@ -1137,7 +1137,7 @@ public class DaoImpl implements Dao {
 				return ret;
 			}
 
-			sql = SQL_INSERT_DBUS;
+			sql = SQL_INSERT_BUS;
 			sql = sql.replaceFirst("\\?", devRid);
 			sql = sql.replaceFirst("\\?", portRid);
 			sql = sql.replaceFirst("\\?", used.toString());
