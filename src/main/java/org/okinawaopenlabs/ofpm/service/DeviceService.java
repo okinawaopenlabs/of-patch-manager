@@ -171,10 +171,9 @@ public interface DeviceService {
 	 */
 	@GET
 	@Path("/ofc/{ofcIpPort}")
-	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Response readOfc(@RequestBody String ofcIpPort);
-	
+	public Response readOfc(@PathParam("ofcIpPort") String ofcIpPort);
+
 	// other service
 	/**
 	 * get Port which connected device

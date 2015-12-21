@@ -19,12 +19,15 @@ package org.okinawaopenlabs.ofpm.json.device;
 import java.lang.reflect.Type;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 
 import org.apache.commons.lang3.StringUtils;
 
 public class OfcInfo implements Cloneable {
+	@SerializedName("ofcIp")
 	private String ip;
+	@SerializedName("ofcPort")
 	private Integer port;
 
 	public String getIp() {

@@ -120,5 +120,4 @@ public interface DeviceBusiness {
 	 * @return
 	 */
 	public String readOfc(String ofcIpPort);
-
 }

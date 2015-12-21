@@ -46,6 +46,7 @@ import org.okinawaopenlabs.ofpm.json.device.DeviceManagerGetConnectedPortInfoJso
 import org.okinawaopenlabs.ofpm.json.device.DeviceManagerGetConnectedPortInfoJsonOut.ResultData.LinkData;
 import org.okinawaopenlabs.ofpm.json.device.OfcInfo;
 import org.okinawaopenlabs.ofpm.json.device.OfcInfoListReadJsonOut;
+import org.okinawaopenlabs.ofpm.json.device.OfcInfoReadJsonOut;
 import org.okinawaopenlabs.ofpm.utils.Config;
 import org.okinawaopenlabs.ofpm.utils.ConfigImpl;
 import org.okinawaopenlabs.ofpm.utils.OFPMUtils;
@@ -811,7 +812,49 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 
 	@Override
 	public String readOfc(String ofcIpPort) {
-		// TODO Auto-generated method stub
-		return null;
+		String fname = "readOfc";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s() - start", fname));
+		}
+		OfcInfoReadJsonOut res = new OfcInfoReadJsonOut();
+		res.setStatus(STATUS_SUCCESS);
+
+		ConnectionUtilsJdbc utils = null;
+		Connection conn = null;
+		try {
+			utils = new ConnectionUtilsJdbcImpl();
+			conn  = utils.getConnection(true);
+
+			Dao dao = new DaoImpl(utils);
+			List<Map<String, Object>> infoMapList = dao.getOfcInfoList(conn);
+
+			for (Map<String, Object> infoMap : infoMapList) {
+				
+				String[] ofc = ofcIpPort.split(":", 0);
+				String ip = ofc[0];
+				int port = Integer.parseInt(ofc[1]);
+				
+				if (ip.equals((String) infoMap.get("ip")) && (port == (Integer) infoMap.get("port"))) {
+					OfcInfo ofcInfo = new OfcInfo();
+					ofcInfo.setIp((String) infoMap.get("ip"));
+					ofcInfo.setPort((Integer) infoMap.get("port"));
+					res.setResult(ofcInfo);
+					return res.toJson();
+				}
+			}
+			
+    		res.setStatus(STATUS_NOTFOUND);
+			return res.toJson();
+		} catch (SQLException | RuntimeException e) {
+			OFPMUtils.logErrorStackTrace(logger, e);
+    		res.setStatus(STATUS_INTERNAL_ERROR);
+    		res.setMessage(e.getMessage());
+    		return res.toJson();
+		} finally {
+			utils.close(conn);
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+		}
 	}
 }
