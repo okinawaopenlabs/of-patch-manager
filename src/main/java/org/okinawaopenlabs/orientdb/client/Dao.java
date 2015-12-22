@@ -356,7 +356,7 @@ public interface Dao {
 	 * @param deviceName
 	 * @return
 	 */
-	int createPortInfo(Connection conn, String portName, Integer portNumber, String band, String deviceName) throws SQLException;
+	int createPortInfo(Connection conn, String portName, Integer portNumber, Integer band, String deviceName) throws SQLException;
 
 	/**
 	 * Update PortInfo
@@ -369,7 +369,7 @@ public interface Dao {
 	 * @return
 	 * @throws SQLException
 	 */
-	int updatePortInfo(Connection conn, String keyPortName, String keyDeviceName, String portName, Integer portNumber, String band) throws SQLException;
+	int updatePortInfo(Connection conn, String keyPortName, String keyDeviceName, String portName, Integer portNumber, Integer band) throws SQLException;
 
 	/**
 	 * Delete PortInfo

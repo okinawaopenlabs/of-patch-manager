@@ -190,9 +190,8 @@ public interface DeviceService {
 	 * @return Http Response
 	 */
 	@GET
-	@Path("/connectedPort")
-	@Consumes({ MediaType.APPLICATION_FORM_URLENCODED })
+	@Path("/connectedPort/{deviceName}")
 	@Produces({ MediaType.APPLICATION_JSON })
-	Response getConnectedPortInfo(@QueryParam("deviceName") String deviceName);
+	Response getConnectedPortInfo(@PathParam("deviceName") String deviceName);
 
 }

@@ -521,17 +521,19 @@ public class DaoImpl implements Dao {
 		int ret = DB_RESPONSE_STATUS_OK;
 		try {
 			boolean contain = false;
-			contain = this.isContainsPatchWiringFromDeviceNamePortName(conn, deviceName0, portName0);
-			if (contain) {
-				ret = DB_RESPONSE_STATUS_USED;
-				return ret;
-			}
+// TODO
+//			contain = this.isContainsPatchWiringFromDeviceNamePortName(conn, deviceName0, portName0);
+//			if (contain) {
+//				ret = DB_RESPONSE_STATUS_USED;
+//				return ret;
+//			}
 
-			contain = this.isContainsPatchWiringFromDeviceNamePortName(conn, deviceName1, portName1);
-			if (contain) {
-				ret = DB_RESPONSE_STATUS_USED;
-				return ret;
-			}
+// TODO
+//			contain = this.isContainsPatchWiringFromDeviceNamePortName(conn, deviceName1, portName1);
+//			if (contain) {
+//				ret = DB_RESPONSE_STATUS_USED;
+//				return ret;
+//			}
 
 			String port0Rid = this.getPortRidFromDeviceNamePortName(conn, deviceName0, portName0);
 			if (StringUtils.isBlank(port0Rid)) {
@@ -544,17 +546,19 @@ public class DaoImpl implements Dao {
 				return ret;
 			}
 
-			contain = this.isPortRidContainedIntoPatchWiring(conn, port0Rid);
-			if (contain) {
-				ret = DB_RESPONSE_STATUS_USED;
-				return ret;
-			}
+// TODO
+//			contain = this.isPortRidContainedIntoPatchWiring(conn, port0Rid);
+//			if (contain) {
+//				ret = DB_RESPONSE_STATUS_USED;
+//				return ret;
+//			}
 
-			contain = this.isPortRidContainedIntoPatchWiring(conn, port1Rid);
-			if (contain) {
-				ret = DB_RESPONSE_STATUS_USED;
-				return ret;
-			}
+// TODO
+//			contain = this.isPortRidContainedIntoPatchWiring(conn, port1Rid);
+//			if (contain) {
+//				ret = DB_RESPONSE_STATUS_USED;
+//				return ret;
+//			}
 
 			String sql = SQL_DELETE_CABLE_FROM_ONE_PORTRID;
 			sql = sql.replaceFirst("\\?", port0Rid);
@@ -1086,10 +1090,10 @@ public class DaoImpl implements Dao {
 	}
 
 	@Override
-	public int createPortInfo(Connection conn, String portName, Integer portNumber, String band, String deviceName) throws SQLException {
+	public int createPortInfo(Connection conn, String portName, Integer portNumber, Integer band, String deviceName) throws SQLException {
 		final String fname = "createPortInfo";
 		if (logger.isTraceEnabled()) {
-			logger.trace(String.format("%s(conn=%s, portName=%s, portNumber=%s, deviceName=%s) - start", fname, conn, portName, portNumber, deviceName));
+			logger.trace(String.format("%s(conn=%s, portName=%s, portNumber=%s, band=%s, deviceName=%s) - start", fname, conn, portName, portNumber, band, deviceName));
 		}
 		int ret = DB_RESPONSE_STATUS_OK;
 		try {
@@ -1158,10 +1162,10 @@ public class DaoImpl implements Dao {
 	}
 
 	@Override
-	public int updatePortInfo(Connection conn, String keyPortName, String keyDeviceName, String portName, Integer portNumber, String band) throws SQLException {
+	public int updatePortInfo(Connection conn, String keyPortName, String keyDeviceName, String portName, Integer portNumber, Integer band) throws SQLException {
 		final String fname = "updatePortInfo";
 		if (logger.isTraceEnabled()) {
-			logger.trace(String.format("%s(conn=%s, keyPortName=%s, keyDeviceName=%s, portName=%s, portNumber=%s) - start", fname, conn, keyPortName, keyDeviceName, portName, portNumber));
+			logger.trace(String.format("%s(conn=%s, keyPortName=%s, keyDeviceName=%s, portName=%s, portNumber=%s, band=%s) - start", fname, conn, keyPortName, keyDeviceName, portName, portNumber, band));
 		}
 		int ret = DB_RESPONSE_STATUS_OK;
 		try {
@@ -1181,8 +1185,8 @@ public class DaoImpl implements Dao {
 			if (portNumber == null) {
 				portNumber = (Integer)current.get("portNumber");
 			}
-			if (StringUtils.isBlank(band)) {
-				band = (String)current.get("band");
+			if (band == null) {
+				band = (Integer)current.get("band");
 			}
 
 			Object[] params = {portName, portNumber, band, portRid};
@@ -1353,7 +1357,7 @@ public class DaoImpl implements Dao {
 
 	@Override
 	public Map<String, Object> getNeighborPortFromPortRid(Connection conn, String portRid) throws SQLException {
-		final String fname = "getPortInfoListFromDeviceName";
+		final String fname = "getNeighborPortFromPortRid";
 		if (logger.isTraceEnabled()){
 			logger.trace(String.format("%s(conn=%s, portRid=%s) - start", fname, portRid));
 		}
