@@ -547,7 +547,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 				PortInfo port = new PortInfo();
 				port.setPortName((String) infoMap.get("name"));
 				port.setPortNumber((Integer) infoMap.get("number"));
-				port.setBand((String) infoMap.get("band"));
+				port.setBand((Integer) infoMap.get("band"));
 				result.add(port);
 			}
 

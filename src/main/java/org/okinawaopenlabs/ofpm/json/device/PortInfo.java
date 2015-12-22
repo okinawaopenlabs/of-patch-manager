@@ -24,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 public class PortInfo implements Cloneable {
 	private String portName;
 	private Integer portNumber;
-	private String band;
+	private Integer band;
 
 	@Override
 	public boolean equals(Object obj) {
@@ -34,7 +34,7 @@ public class PortInfo implements Cloneable {
 		PortInfo other = (PortInfo)obj;
 		if (!StringUtils.equals(other.portName,  this.portName)) return false;
 		if (!ObjectUtils.equals(other.portNumber, this.portNumber)) return false;
-		if (!StringUtils.equals(other.band,  this.band)) return false;
+		if (!ObjectUtils.equals(other.band,  this.band)) return false;
 		return true;
 	}
 	@Override
@@ -60,11 +60,9 @@ public class PortInfo implements Cloneable {
 			return null;
 		}
 		newObj.portNumber = this.portNumber;
+		newObj.band = this.band;
 		if (this.portName != null) {
 			newObj.portName = new String(this.portName);
-		}
-		if (this.band != null) {
-			newObj.band = new String(this.band);
 		}
 		return newObj;
 	}
@@ -87,11 +85,10 @@ public class PortInfo implements Cloneable {
 	public void setPortNumber(Integer portNumber) {
 		this.portNumber = portNumber;
 	}
-	public String getBand() {
+	public Integer getBand() {
 		return band;
 	}
-	public void setBand(String band) {
+	public void setBand(Integer band) {
 		this.band = band;
 	}
-
 }
