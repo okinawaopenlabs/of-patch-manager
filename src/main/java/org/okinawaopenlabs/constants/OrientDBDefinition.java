@@ -129,6 +129,7 @@ public class OrientDBDefinition {
 	public static final String SQL_INSERT_SYSTEM_RESOURCE_INFO = "insert into systemResource(node_id, type, tenant) values (?, '?', '?')";
 	public static final String SQL_INSERT_RENT_RESOURCE_INFO = "insert into rentResource(node_id, type, tenant) values (?, '?', '?')";
 	public static final String SQL_INSERT_OFS_INFO = "insert into ofs(dpid, system_resource_id, ofc_id) values ('?', ?, ?)";
+	public static final String SQL_INSERT_OFC_INFO = "insert into ofc(ip, port) values (?, ?)";
 
 	/* delete */
 	public static final String SQL_DELETE_NODE_FROM_NODERID = "delete vertex node where @RID = ?";
@@ -141,6 +142,7 @@ public class OrientDBDefinition {
 	public static final String SQL_DELETE_CABLE_FROM_ONE_PORTRID = "delete edge cable where out = ? and in = ?";
 	public static final String SQL_DELETE_PATCH_WIRING_FROM_DEVICE_NAME_PORT_NAME = "delete from patchWiring where (inDeviceName=? and inPortName=?) or (outDeviceName=? and outPortName=?)";
 	public static final String SQL_DELETE_INTERNALMAC_FROM_DEVICE_NAME_PORT_NAME = "delete from internalMacMap where deviceName=? and inPort=?";
+	public static final String SQL_DELETE_OFC_FROM_IP_AND_PORT = "delete from ofc where ip = ? and port = ?";
 
 	/* update */
 	public static final String SQL_UPDATE_NODE_INFO_FROM_RID = "update node set name = '?', datapathId = '?' , location = '?', tenant = '?', ofcIp = ? where @RID = ?";

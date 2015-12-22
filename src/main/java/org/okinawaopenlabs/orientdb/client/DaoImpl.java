@@ -39,6 +39,7 @@ import static org.okinawaopenlabs.constants.OrientDBDefinition.*;
 
 import org.okinawaopenlabs.ofpm.exception.ValidateException;
 import org.okinawaopenlabs.ofpm.json.device.DeviceInfo;
+import org.okinawaopenlabs.ofpm.json.device.OfcInfo;
 import org.okinawaopenlabs.ofpm.utils.OFPMUtils;
 import org.okinawaopenlabs.orientdb.utils.handlers.MapListHandler;
 
@@ -1554,5 +1555,93 @@ public class DaoImpl implements Dao {
 				logger.trace(String.format("%s(ret=%s) - end", fname, maps));
 			}
 		}	
+	}
+
+	@Override
+	public Map<String, Object> getOfcInfo(Connection conn, String ofcIpPort) throws SQLException {
+		final String fname = "getOfcInfo";
+		if (logger.isTraceEnabled()){
+			logger.trace(String.format("%s(conn=%s, ofcIpPort=%s) - start", fname, conn, ofcIpPort));
+		}
+
+		String[] ofc = ofcIpPort.split(":", 0);
+		String ip = ofc[0];
+		int port = Integer.parseInt(ofc[1]);
+
+		List<Map<String, Object>> infoMapList = getOfcInfoList(conn);
+		
+		for (Map<String, Object> infoMap : infoMapList) {
+						
+			if (ip.equals((String) infoMap.get("ip")) && (port == (Integer) infoMap.get("port"))) {
+				return infoMap;
+			}
+		}				
+		try {
+			// not found
+			return null;
+		} catch (Exception e){
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()){
+				logger.trace(String.format("%s(conn=%s, ofcIpPort=%s) - end", fname, conn, ofcIpPort));
+			}
+		}	
+	}
+		
+	@Override
+	public int createOfcInfo(Connection conn, String ip, Integer port) throws SQLException {
+
+		final String fname = "createOfcInfo";
+		if (logger.isTraceEnabled()) {
+			logger.trace(String.format("%s(conn=%s, ofcIp=%s, ofcPort=%d) - start", fname, conn, ip, port));
+		}
+		int ret = DB_RESPONSE_STATUS_OK;
+		try {
+			Object[] params = {ip, port};
+			int nRecords = utilsJdbc.update(conn, SQL_INSERT_OFC_INFO, params);
+			if (nRecords == 0) {
+				return DB_RESPONSE_STATUS_EXIST;
+			}
+
+//			ret = createResourceInfo(conn, deviceName, deviceType, datapathId, tenant, ofcIp);
+			
+			return ret;
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("%s(ret=%s) - end", fname, ret));
+			}
+		}
+	
+	}
+
+	@Override
+	public int deleteOfcInfo(Connection conn, String ofcIpPort) throws SQLException {
+		final String fname = "deleteOfcInfo";
+		if (logger.isTraceEnabled()) {
+			logger.trace(String.format("%s(conn=%s, ofcIpPort=%s) - start", fname, conn, ofcIpPort));
+		}
+		int ret = DB_RESPONSE_STATUS_OK;
+		try {
+			String[] ofc = ofcIpPort.split(":", 0);
+			String ip = ofc[0];
+			int port = Integer.parseInt(ofc[1]);
+			
+			Object[] params = {ip, port};
+			int nRecord = utilsJdbc.update(conn, SQL_DELETE_OFC_FROM_IP_AND_PORT, params);
+			if (nRecord != 1) {
+				ret = DB_RESPONSE_STATUS_FAIL;
+				return ret;
+			}
+			return ret;
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("%s(ret=%s) - end", fname, ret));
+			}
+		}
+	
 	}
 }

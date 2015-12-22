@@ -438,7 +438,6 @@ public interface Dao {
 	 */
 	String getPortRidFromDeviceNamePortName(Connection conn, String deviceName, String portName) throws SQLException;
 
-
 	/**
 	 * Get port band from device name and port name
 	 * @param conn
@@ -465,4 +464,32 @@ public interface Dao {
 	 * @throws SQLException
 	 */	
 	List<Map<String, Object>> getOfcInfoList(Connection conn) throws SQLException;
+
+	/**
+	 * Get OfcInfo .
+	 * @param conn
+	 * @return
+	 * @throws SQLException
+	 */		
+	Map<String, Object> getOfcInfo(Connection conn, String ofcIpPort) throws SQLException;
+	
+	/**
+	 * Create OfcInfo.
+	 * @param conn
+	 * @param ip
+	 * @param port
+	 * @return
+	 * @throws SQLException
+	 */	
+	int createOfcInfo(Connection conn, String ip, Integer port) throws SQLException;
+
+	/**
+	 * Delete ofc
+	 * @param conn
+	 * @param ofcIpPort
+	 * @return
+	 * @throws SQLException
+	 */
+	int deleteOfcInfo(Connection conn, String ofcIpPort) throws SQLException;
+
 }
