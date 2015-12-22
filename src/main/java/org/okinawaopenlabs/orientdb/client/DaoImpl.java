@@ -520,17 +520,19 @@ public class DaoImpl implements Dao {
 		int ret = DB_RESPONSE_STATUS_OK;
 		try {
 			boolean contain = false;
-			contain = this.isContainsPatchWiringFromDeviceNamePortName(conn, deviceName0, portName0);
-			if (contain) {
-				ret = DB_RESPONSE_STATUS_USED;
-				return ret;
-			}
+// TODO
+//			contain = this.isContainsPatchWiringFromDeviceNamePortName(conn, deviceName0, portName0);
+//			if (contain) {
+//				ret = DB_RESPONSE_STATUS_USED;
+//				return ret;
+//			}
 
-			contain = this.isContainsPatchWiringFromDeviceNamePortName(conn, deviceName1, portName1);
-			if (contain) {
-				ret = DB_RESPONSE_STATUS_USED;
-				return ret;
-			}
+// TODO
+//			contain = this.isContainsPatchWiringFromDeviceNamePortName(conn, deviceName1, portName1);
+//			if (contain) {
+//				ret = DB_RESPONSE_STATUS_USED;
+//				return ret;
+//			}
 
 			String port0Rid = this.getPortRidFromDeviceNamePortName(conn, deviceName0, portName0);
 			if (StringUtils.isBlank(port0Rid)) {
@@ -543,17 +545,19 @@ public class DaoImpl implements Dao {
 				return ret;
 			}
 
-			contain = this.isPortRidContainedIntoPatchWiring(conn, port0Rid);
-			if (contain) {
-				ret = DB_RESPONSE_STATUS_USED;
-				return ret;
-			}
+// TODO
+//			contain = this.isPortRidContainedIntoPatchWiring(conn, port0Rid);
+//			if (contain) {
+//				ret = DB_RESPONSE_STATUS_USED;
+//				return ret;
+//			}
 
-			contain = this.isPortRidContainedIntoPatchWiring(conn, port1Rid);
-			if (contain) {
-				ret = DB_RESPONSE_STATUS_USED;
-				return ret;
-			}
+// TODO
+//			contain = this.isPortRidContainedIntoPatchWiring(conn, port1Rid);
+//			if (contain) {
+//				ret = DB_RESPONSE_STATUS_USED;
+//				return ret;
+//			}
 
 			String sql = SQL_DELETE_CABLE_FROM_ONE_PORTRID;
 			sql = sql.replaceFirst("\\?", port0Rid);
