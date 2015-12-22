@@ -1194,9 +1194,10 @@ public class DaoImpl implements Dao {
 				return ret;
 			}
 
-			Object[] updPortNamePara = {portName, keyPortName, keyDeviceName};
-			utilsJdbc.update(conn, SQL_UPDATE_PATCH_WIRING_INPORTNAME, updPortNamePara);
-			utilsJdbc.update(conn, SQL_UPDATE_PATCH_WIRING_OUTPORTNAME, updPortNamePara);
+// TODO
+//			Object[] updPortNamePara = {portName, keyPortName, keyDeviceName};
+//			utilsJdbc.update(conn, SQL_UPDATE_PATCH_WIRING_INPORTNAME, updPortNamePara);
+//			utilsJdbc.update(conn, SQL_UPDATE_PATCH_WIRING_OUTPORTNAME, updPortNamePara);
 		} catch (Exception e) {
 			throw new SQLException(e.getMessage());
 		} finally {
@@ -1221,17 +1222,19 @@ public class DaoImpl implements Dao {
 				return ret;
 			}
 
-			boolean contain = this.isContainsPatchWiringFromDeviceNamePortName(conn, deviceName, portName);
-			if (contain) {
-				ret = DB_RESPONSE_STATUS_FORBIDDEN;
-				return ret;
-			}
+// TODO
+//			boolean contain = this.isContainsPatchWiringFromDeviceNamePortName(conn, deviceName, portName);
+//			if (contain) {
+//				ret = DB_RESPONSE_STATUS_FORBIDDEN;
+//				return ret;
+//			}
 
-			contain = this.isPortRidContainedIntoPatchWiring(conn, portRid);
-			if (contain) {
-				ret = DB_RESPONSE_STATUS_FORBIDDEN;
-				return ret;
-			}
+// TODO
+//			contain = this.isPortRidContainedIntoPatchWiring(conn, portRid);
+//			if (contain) {
+//				ret = DB_RESPONSE_STATUS_FORBIDDEN;
+//				return ret;
+//			}
 
 			String sql = SQL_DELETE_PORT_FROM_PORTRID;
 			sql = sql.replaceFirst("\\?", portRid);
