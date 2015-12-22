@@ -87,6 +87,8 @@ public class OrientDBDefinition {
 
 	public static final String SQL_GET_PATCH_WIRINGS_FROM_DEVICENAME          =
 			"select out, in, parent, sequence, inDeviceName, inPortName, outDeviceName, outPortName from patchWiring where inDeviceName=?";
+	public static final String SQL_GET_LOGICAL_LINKS_FROM_DEVICENAME          =
+			"select in_node_name as inDeviceName, in_port_name as inPortName, out_node_name as outDeviceName, out_port_name as outPortName from logicalLink where in_node_name=?";
 	public static final String SQL_GET_PATCH_WIRINGS_FROM_DEVICENAME_PORTNAME =
 			"select out, in, parent, sequence, inDeviceName, inPortName, outDeviceName, outPortName from patchWiring " +
 			"where inDeviceName=? and inPortName=? order by sequence asc";

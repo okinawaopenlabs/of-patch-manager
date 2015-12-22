@@ -265,6 +265,33 @@ public class DaoImpl implements Dao {
 	}
 
 	@Override
+	public List<Map<String, Object>> getLogicalLinksFromDeviceName(Connection conn, String deviceName)
+			throws SQLException {
+		final String fname = "getLogicalLinksFromDeviceName";
+		if (logger.isTraceEnabled()) {
+			logger.trace(String.format("%s(conn=%s, deviceName=%s) - start", fname, conn, deviceName));
+		}
+		List<Map<String, Object>> maps = null;
+		MapListHandler rhs = new MapListHandler(
+				"inDeviceName",  "inPortName",
+				"outDeviceName", "outPortName");
+		try {
+			maps = utilsJdbc.query(
+					conn,
+					SQL_GET_LOGICAL_LINKS_FROM_DEVICENAME,
+					rhs,
+					deviceName);
+			return maps;
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("%s(ret=%s) - end", fname, maps));
+			}
+		}
+	}
+
+	@Override
 	public List<Map<String, Object>> getPatchWiringsFromDeviceNamePortName(Connection conn, String deviceName, String portName) throws SQLException {
 		final String fname = "getPatchWiringsFromDeviceNamePortName";
 		if (logger.isTraceEnabled()) {

@@ -111,6 +111,14 @@ public interface Dao {
 	List<Map<String, Object>> getPatchWiringsFromDeviceName(Connection conn, String deviceName) throws SQLException;
 
 	/**
+	 * Get LogicalLink-list that is connected to other devices.
+	 * @param devName
+	 * @return
+	 * @throws SQLException
+	 */
+	List<Map<String, Object>> getLogicalLinksFromDeviceName(Connection conn, String deviceName) throws SQLException;
+	
+	/**
 	 * Check if contains pair of deviceName and portName into patchWiring .
 	 * @param conn
 	 * @param deviceName

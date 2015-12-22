@@ -208,7 +208,8 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			logger.debug(String.format("%s(conn=%s, devName=%s, setPortNumber=%s) - start", fname, conn, devName, setPortNumber));
 		}
 		Set<LogicalLink> linkSet = new HashSet<LogicalLink>();
-		List<Map<String, Object>> patchDocList = dao.getPatchWiringsFromDeviceName(conn, devName);
+//		List<Map<String, Object>> patchDocList = dao.getPatchWiringsFromDeviceName(conn, devName);
+		List<Map<String, Object>> patchDocList = dao.getLogicalLinksFromDeviceName(conn, devName);
 		if (patchDocList == null) {
 			return null;
 		}
