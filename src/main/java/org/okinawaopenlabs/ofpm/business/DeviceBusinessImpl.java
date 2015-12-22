@@ -764,7 +764,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 				}
 
 				/* Get neighbor device info from map. However, if the device info is null, get neighbor device info from ofp db */
-				String nghbrDevName = (String) nghbrPortMap.get("deviceName");
+				String nghbrDevName = (String) nghbrPortMap.get("node_name");
 				Map<String, Object> nghbrDevMap = devCache.get(nghbrDevName);
 				if (nghbrDevMap == null) {
 					nghbrDevMap = dao.getNodeInfoFromDeviceName(conn, nghbrDevName);

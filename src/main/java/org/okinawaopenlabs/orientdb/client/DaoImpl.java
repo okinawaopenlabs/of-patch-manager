@@ -1352,7 +1352,7 @@ public class DaoImpl implements Dao {
 
 	@Override
 	public Map<String, Object> getNeighborPortFromPortRid(Connection conn, String portRid) throws SQLException {
-		final String fname = "getPortInfoListFromDeviceName";
+		final String fname = "getNeighborPortFromPortRid";
 		if (logger.isTraceEnabled()){
 			logger.trace(String.format("%s(conn=%s, portRid=%s) - start", fname, portRid));
 		}
