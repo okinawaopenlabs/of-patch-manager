@@ -131,10 +131,11 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		if (devDoc == null) {
 			return null;
 		}
-		String   devType = (String)devDoc.get("type");
 		OfpConDeviceInfo node = new OfpConDeviceInfo();
 		node.setDeviceName(devName);
-		node.setDeviceType(devType);
+		node.setDeviceType((String)devDoc.get("type"));
+		node.setLocation((String)devDoc.get("location"));
+		node.setTenant((String)devDoc.get("tenant"));
 
 		List<OfpConPortInfo> portList = new ArrayList<OfpConPortInfo>();
 		List<Map<String, Object>> linkDocList = dao.getCableLinksFromDeviceName(conn, devName);
