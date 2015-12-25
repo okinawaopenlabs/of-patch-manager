@@ -987,48 +987,49 @@ public class DaoImpl implements Dao {
 		}
 	}
 	
-	@Override
-	public String getOfcRid(Connection conn, String ofcIp) throws SQLException {
-		final String fname = "getOfcRid";
-		if (logger.isTraceEnabled()) {
-			logger.trace(String.format("%s(conn=%s, ofcIp=%s) - start", fname, conn, ofcIp));
-		}
+    @Override
+    public String getOfcRid(Connection conn, String ofcIp) throws SQLException {
+            final String fname = "getOfcRid";
+            if (logger.isTraceEnabled()) {
+                    logger.trace(String.format("%s(conn=%s, ofcIp=%s) - start", fname, conn, ofcIp));
+            }
 
-		String ret = null;
-		try {
-			String[] ofc = ofcIp.split(":", 0);
-			String ip = ofc[0];
-			if(!this.isNum(ofc[1])) {
-				return null;
-			}
-			int port = Integer.parseInt(ofc[1]);
+            String ret = null;
+            try {
+                    String[] ofc = ofcIp.split(":", 0);
+                    String ip = ofc[0];
+                    if(!this.isNum(ofc[1])) {
+                            return null;
+                    }
+                    int port = Integer.parseInt(ofc[1]);
 
-			List<Map<String, Object>> records = utilsJdbc.query(
-					conn,
-					SQL_GET_OFC_RID_FROM_IP_AND_PORT,
-					new MapListHandler("rid"),
-					ip, port);
-			if (records != null && !records.isEmpty() && records.get(0) != null) {
-				ret = (String) records.get(0).get("rid");
-			}
-			return ret;
-		} catch (Exception e) {
-			throw new SQLException(e.getMessage());
-		} finally {
-			if (logger.isTraceEnabled()) {
-				logger.trace(String.format("%s(ret=%s) - end", fname, ret));
-			}
-		}
-	}
+                    List<Map<String, Object>> records = utilsJdbc.query(
+                                    conn,
+                                    SQL_GET_OFC_RID_FROM_IP_AND_PORT,
+                                    new MapListHandler("rid"),
+                                    ip, port);
+                    if (records != null && !records.isEmpty() && records.get(0) != null) {
+                            ret = (String) records.get(0).get("rid");
+                    }
+                    return ret;
+            } catch (Exception e) {
+                    throw new SQLException(e.getMessage());
+            } finally {
+                    if (logger.isTraceEnabled()) {
+                            logger.trace(String.format("%s(ret=%s) - end", fname, ret));
+                    }
+            }
+    }
 
-	public boolean isNum(String number) {
-	    try {
-	        Integer.parseInt(number);
-	        return true;
-	    } catch (NumberFormatException e) {
-	        return false;
-	    }
-	}
+    public boolean isNum(String number) {
+        try {
+            Integer.parseInt(number);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+	
 	
 	@Override
 	public int updateNodeInfo(Connection conn, String keyDeviceName, String deviceName, String location,String tenant, String datapathId, String ofcIp) throws SQLException {
@@ -1678,6 +1679,37 @@ public class DaoImpl implements Dao {
 			}
 		}	
 	}
+	
+    @Override
+    public Map<String, Object> getOfcRidInfo(Connection conn, String ofcIpPort) throws SQLException {
+            final String fname = "getOfcRidInfo";
+/*              if (logger.isTraceEnabled()){
+                    logger.trace(String.format("%s(conn=%s, ip=%s, port=%s) - start", fname, conn, ip, port));
+            }
+*/
+            Map<String, Object> ret = null;
+//          List<Map<String, Object>> rent_resource_maps = null;
+            if (logger.isTraceEnabled()){
+                    logger.trace(String.format("%s(conn=%s, ofcIpPort=%s) - start", fname, conn, ofcIpPort));
+            }
+
+            String[] ofc = ofcIpPort.split(":", 0);
+            String ip = ofc[0];
+            int port = Integer.parseInt(ofc[1]);
+            try {
+                    List<Map<String, Object>> records = utilsJdbc.query(conn, SQL_GET_OFC_INFO_FROM_IP_PORT, new MapListHandler(), ip, port);
+                    if (records != null && !records.isEmpty()) {
+                            ret = records.get(0);
+                    }
+                    return ret;
+            } catch (Exception e){
+                    throw new SQLException(e.getMessage());
+            } finally {
+                    if (logger.isTraceEnabled()){
+                            logger.trace(String.format("%s(ret=%s) - end", fname, ret));
+                    }
+            }      
+    }
 		
 	@Override
 	public int createOfcInfo(Connection conn, String ip, Integer port) throws SQLException {
@@ -1705,6 +1737,46 @@ public class DaoImpl implements Dao {
 			}
 		}
 	
+	}
+
+	@Override
+	public int updateOfcInfo(Connection conn, String ofcIpPort, String ip, Integer port) throws SQLException {
+		final String fname = "updateOfcInfo";
+		if (logger.isTraceEnabled()) {
+			logger.trace(String.format("%s(conn=%s, ip=%s, port=%s) - start", fname, conn, ip, port));
+		}
+		int ret = DB_RESPONSE_STATUS_OK;
+		try {
+			Map<String, Object> current = this.getOfcRidInfo(conn, ofcIpPort);
+			if (current == null) {
+				ret = DB_RESPONSE_STATUS_NOT_FOUND;
+				return ret;
+			}
+
+			String OfcRid = (String)current.get("rid");
+			if (StringUtils.isBlank(ip)) {
+				ip = (String)current.get("ip");
+			}
+			if (port == null) {
+				port = (Integer)current.get("port");
+			}
+
+			Object[] params = {ip, port, OfcRid};
+			int result = utilsJdbc.update(conn, SQL_UPDATE_OFC_INFO, params);
+
+			if (result == 0) {
+				ret = DB_RESPONSE_STATUS_EXIST;
+				return ret;
+			}
+
+			return ret;
+		} catch (Exception e){
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()){
+				logger.trace(String.format("%s(ret=%s) - end", fname, ret));
+			}
+		}
 	}
 
 	@Override
