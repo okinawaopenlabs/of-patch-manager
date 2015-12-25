@@ -36,6 +36,7 @@ public class ErrorMessage {
 	public static final String ALREADY_EXIST = "%s is already exists";
 	public static final String FIND_NULL = "Find %s thats %s is null";
 	public static final String NOT_FOUND = "%s is not found.";
+	public static final String IS_FULL = "%s is full.";
 	public static final String UNEXPECTED_ERROR = "Unexpected error.";
 	public static final String RETURNED_NULL = "%s returned null.";
 
@@ -48,4 +49,5 @@ public class ErrorMessage {
 	public static final String COULD_NOT_DELETE = "Couldn't delete %s";
 	public static final String INVALID_NUMBER_OF = "Invalid number of %s.";
 	public static final String PATCH_INSERT_FAILD = "patchWiring insert failed. %s[%s]-%s[%s]@%s(%s,%s)";
+	public static final String ROUTE_INSERT_FAILD = "route insert failed. sequence_num=%s, logical_link_id=%s, node_id=%s, node_name=%s, in_port_id=%s, in_port_name=%s, out_port_id=%s, out_port_name=%s";
 }

@@ -105,6 +105,15 @@ public class OrientDBDefinition {
 			"select out, in, parent, sequence, inDeviceName, inPortName, outDeviceName, outPortName from patchWiring " +
 			"where parent=? order by sequence asc limit=100000";
 
+	public static final String SQL_GET_LOGICAL_LINK_FROM_NODE_NAME_PORT_NAME  = 
+			"select @rid.asString(), in_node_id, in_node_name, in_port_id, in_port_name, out_node_id, out_node_name, out_port_id, out_port_name, nw_instance_id, nw_instance_type from logicalLink " +
+			"where (in_node_name=? and in_port_name=?) or (out_node_name=? and out_port_name=?)";
+
+	public static final String SQL_GET_ROUTE_FROM_LOGICAL_LINK_ID  = 
+			"select @rid.asString(), sequence_num, logical_link_id, node_id, node_name, in_port_id, in_port_name, out_port_id, out_port_name from route " +
+			"where logical_link_id=?";
+	
+	public static final String SQL_GET_MAX_NW_INSTANCE_ID = "select max(nw_instance_id) as maxNwInstanceId from logicalLink";
 	public static final String SQL_GET_MAX_INTERNALMAC = "select max(internalMac) as maxInternalMac from internalMacMap";
 	public static final String SQL_GET_INTERNALMAC_FROM_SRCMAC_DSTMAC_INPORT_DEVICENAME =
 			"select internalMac from internalMacMap where node_name = ? and inPort = ? and srcMac = ? and dstMac = ?";
@@ -114,7 +123,7 @@ public class OrientDBDefinition {
 			"select srcMac, dstMac, internalMac from internalMacMap where node_name = ? and inPort = ? limit = 100000";
 
 	public static final String SQL_GET_DIJKSTRA_PATH_FLATTEN  =
-			"select @rid.asString() as rid, name, number, node_name, type, datapathId, ofcIp, @class " +
+			"select @rid.asString() as rid, name, number, node_name, @class " +
 			"from (select flatten(dijkstra) from (select dijkstra(?,?,'used')))";
 	public static final String SQL_GET_NEIGHBOR_PORT_INFO_FROM_PORT_RID =
 			"select out.@rid.asString() as rid, out.name as name, out.node_name as node_name, out.number as number from cable where in.@RID = ?";
@@ -132,6 +141,10 @@ public class OrientDBDefinition {
 	public static final String SQL_INSERT_RENT_RESOURCE_INFO = "insert into rentResource(node_id, type, tenant) values (?, '?', '?')";
 	public static final String SQL_INSERT_OFS_INFO = "insert into ofs(dpid, system_resource_id, ofc_id) values ('?', ?, ?)";
 	public static final String SQL_INSERT_OFC_INFO = "insert into ofc(ip, port) values (?, ?)";
+//	public static final String SQL_INSERT_LOGICAL_LINK = "insert into logicalLink(in_node_id, in_node_name, in_port_id, in_port_name, out_node_id, out_node_name, out_port_id, out_port_name, nw_instance_id, nw_instance_type) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	public static final String SQL_INSERT_LOGICAL_LINK = "insert into logicalLink(in_node_id, in_node_name, in_port_id, in_port_name, out_node_id, out_node_name, out_port_id, out_port_name, nw_instance_id, nw_instance_type) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+//	public static final String SQL_INSERT_ROUTE_INFO = "insert into route(sequence_num, logical_link_id, node_id, node_name, in_port_id, in_port_name, out_port_id, out_port_name) values (?, ?, ?, '?', ?, '?', ?, '?')";
+	public static final String SQL_INSERT_ROUTE_INFO = "insert into route(sequence_num, logical_link_id, node_id, node_name, in_port_id, in_port_name, out_port_id, out_port_name) values (?, ?, ?, ?, ?, ?, ?, ?)";
 
 	/* delete */
 	public static final String SQL_DELETE_NODE_FROM_NODERID = "delete vertex node where @RID = ?";
@@ -145,6 +158,8 @@ public class OrientDBDefinition {
 	public static final String SQL_DELETE_PATCH_WIRING_FROM_DEVICE_NAME_PORT_NAME = "delete from patchWiring where (inDeviceName=? and inPortName=?) or (outDeviceName=? and outPortName=?)";
 	public static final String SQL_DELETE_INTERNALMAC_FROM_DEVICE_NAME_PORT_NAME = "delete from internalMacMap where node_name=? and inPort=?";
 	public static final String SQL_DELETE_OFC_FROM_IP_AND_PORT = "delete from ofc where ip = ? and port = ?";
+	public static final String SQL_DELETE_LOGICAL_LINK_FROM_DEVICE_NAME_PORT_NAME = "delete from logicalLink where (in_node_name=? and in_port_name=?) or (out_node_name=? and out_port_name=?)";
+	public static final String SQL_DELETE_ROUTE_FROM_LOGICAL_LINK_ID = "delete from route where logical_link_id=?";
 
 	/* update */
 	public static final String SQL_UPDATE_NODE_INFO_FROM_RID = "update node set name = '?', datapathId = '?' , location = '?', tenant = '?', ofcIp = ? where @RID = ?";
@@ -159,4 +174,8 @@ public class OrientDBDefinition {
 	/* OFP Flag */
 	public static final String OFP_FLAG_TRUE  = "true";
 	public static final String OFP_FLAG_FALSE = "false";
+	
+	/* network instance id min value */
+	public static final Integer MIN_NETWORK_INSTANCE_ID = 2;
+	public static final Integer MAX_NETWORK_INSTANCE_ID = 4094;
 }

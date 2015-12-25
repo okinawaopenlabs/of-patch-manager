@@ -72,4 +72,7 @@ public class OfpmDefinition {
 
 	/* Define max link ratio */
 	public static final long LINK_MAXIMUM_USED_RATIO = 10000L;
+	
+	/* Define network instance type */
+	public static final String NETWORK_INSTANCE_TYPE = "VLAN";
 }

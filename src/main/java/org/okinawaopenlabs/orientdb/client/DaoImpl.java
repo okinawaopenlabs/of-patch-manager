@@ -654,8 +654,15 @@ public class DaoImpl implements Dao {
 			String sql = SQL_GET_DIJKSTRA_PATH_FLATTEN;
 			sql = sql.replaceFirst("\\?", ridA);
 			sql = sql.replaceFirst("\\?", ridZ);
-			MapListHandler rsh = new MapListHandler("rid", "class", "name", "number", "deviceName", "type", "datapathId", "ofcIp");
+			MapListHandler rsh = new MapListHandler("rid", "name", "number", "node_name", "class");
 			ret = utilsJdbc.query(conn, sql, rsh);
+			
+			for (Map<String, Object> current : ret) {
+				if (StringUtils.equals((String)current.get("class"), "node")) {
+					Map<String, Object> nodeMap = this.getNodeInfoFromDeviceName(conn, (String)current.get("name"));
+					current.put("type", (String)nodeMap.get("type"));
+				}
+			}
 		} catch (Exception e) {
 			throw new SQLException(e.getMessage());
 		} finally {
@@ -688,6 +695,59 @@ public class DaoImpl implements Dao {
 			}
 		}
 		return ret;
+	}
+
+	@Override
+	public int insertLogicalLink(Connection conn, String in_node_id, String in_node_name, String in_port_id,
+		String in_port_name, String out_node_id, String out_node_name, String out_port_id, String out_port_name,
+		Integer nw_instance_id, String nw_instance_type) throws SQLException {
+		final String fname = "insertLogicalLink";
+		if (logger.isTraceEnabled()) {
+			logger.trace(String.format("%s(conn=%s, in_node_id=%s, in_node_name=%s, in_port_id=%s, in_port_name=%s, out_node_id=%s, out_node_name=%s, out_port_id=%s, out_port_name=%s, nw_instance_id=%s, nw_instance_type=%s) - start",
+					fname, conn, in_node_id, in_node_name, in_port_id, in_port_name, out_node_id, out_node_name, out_port_id, out_port_name, nw_instance_id, nw_instance_type));
+		}
+		int ret = DB_RESPONSE_STATUS_OK;
+		try {
+			Object[] forwardParams = {in_node_id, in_node_name, in_port_id, in_port_name, out_node_id, out_node_name, out_port_id, out_port_name, nw_instance_id, nw_instance_type};
+			int result = utilsJdbc.update(conn, SQL_INSERT_LOGICAL_LINK, forwardParams);
+			if (result != 1) {
+				throw new SQLException(String.format(PATCH_INSERT_FAILD, in_node_id, in_node_name, in_port_id, in_port_name, out_node_id, out_node_name, out_port_id, out_port_name, nw_instance_id, nw_instance_type));
+			}
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("%s(ret=%s) - end", fname, ret));
+			}
+		}
+		return ret;
+	}
+
+	@Override
+	public Integer getNwInstanceId(Connection conn) throws SQLException {
+		final String fname = "getNwInstanceId";
+		if (logger.isTraceEnabled()){
+			logger.trace(String.format("%s(conn=%s) - start", fname, conn));
+		}
+		List<String> ret = null;
+		try {
+			List<Map<String, Object>> records = utilsJdbc.query(conn, SQL_GET_MAX_NW_INSTANCE_ID, new MapListHandler());
+			Integer maxNwInstanceId = MIN_NETWORK_INSTANCE_ID;
+			if (records.size() > 0) {
+				maxNwInstanceId = (Integer)Integer.parseInt((records.get(0).get("maxNwInstanceId").toString())) + 1;
+				if (maxNwInstanceId > MAX_NETWORK_INSTANCE_ID) {
+					return -1;
+				}
+			}
+			
+			return maxNwInstanceId;
+		} catch (Exception e){
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("%s(ret=%s) - end", ret));
+			}
+		}
 	}
 
 	@Override
@@ -1556,7 +1616,7 @@ public class DaoImpl implements Dao {
 					new MapListHandler("band"),
 					portName, deviceName);
 			if (records != null && !records.isEmpty() && records.get(0) != null) {
-				ret = (String) records.get(0).get("band");
+				ret = (String) Integer.toString((Integer)records.get(0).get("band"));
 			}
 			return ret;
 		} catch (Exception e) {
@@ -1674,5 +1734,149 @@ public class DaoImpl implements Dao {
 			}
 		}
 	
+	}
+
+	@Override
+	public int insertRoute(Connection conn, Integer sequence_num, String logical_link_id, String node_id,
+			String node_name, String in_port_id, String in_port_name, String out_port_id, String out_port_name) throws SQLException {
+		final String fname = "insertRoute";
+		if (logger.isTraceEnabled()) {
+			logger.trace(String.format("%s(conn=%s, sequence_num=%s, logical_link_id=%s, node_id=%s, node_name=%s, in_port_id=%s, in_port_name=%s, out_port_id=%s, out_port_name=%s) - start",
+					fname, conn, sequence_num, logical_link_id, node_id, node_name, in_port_id, in_port_name, out_port_id, out_port_name));
+		}
+		int ret = DB_RESPONSE_STATUS_OK;
+		try {
+//			String sql = SQL_INSERT_ROUTE_INFO;
+//			sql = sql.replaceFirst("\\?", sequence_num.toString());
+//			sql = sql.replaceFirst("\\?", logical_link_id);
+//			sql = sql.replaceFirst("\\?", node_id);
+//			sql = sql.replaceFirst("\\?", node_name);
+//			sql = sql.replaceFirst("\\?", in_port_id);
+//			sql = sql.replaceFirst("\\?", in_port_name);
+//			sql = sql.replaceFirst("\\?", out_port_id);
+//			sql = sql.replaceFirst("\\?", out_port_name);
+//			int result = utilsJdbc.update(conn, sql);
+			Object[] params = {sequence_num.toString(), logical_link_id, node_id, node_name, in_port_id, in_port_name, out_port_id, out_port_name};
+			int result = utilsJdbc.update(conn, SQL_INSERT_ROUTE_INFO, params);
+			if (result != 1) {
+				throw new SQLException(String.format(ROUTE_INSERT_FAILD,
+						sequence_num, logical_link_id, node_id, node_name, in_port_id, in_port_name, out_port_id, out_port_name));
+			}
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("%s(ret=%s) - end", fname, ret));
+			}
+		}
+		return ret;
+	}
+
+	@Override
+	public Map<String, Object> getLogicalLinkFromNodeNamePortName(Connection conn, String node_name, String port_name) throws SQLException {
+		final String fname = "getLogicalLinkFromNodeNamePortName";
+		if (logger.isTraceEnabled()) {
+			logger.trace(String.format("%s(conn=%s, node_name=%s, port_name=%s) - start", fname, conn, node_name, port_name));
+		}
+		Map<String, Object> map = null;
+		try {
+			List<Map<String, Object>> maps = utilsJdbc.query(conn, SQL_GET_LOGICAL_LINK_FROM_NODE_NAME_PORT_NAME, new MapListHandler(), node_name, port_name, node_name, port_name);
+			if (!maps.isEmpty()) {
+				map = maps.get(0);
+			}
+			return map;
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("%s(ret=%s) - end", fname, map));
+			}
+		}
+	}
+
+	@Override
+	public boolean isContainsLogicalLinkFromDeviceNamePortName(Connection conn, String deviceName, String portName)
+			throws SQLException {
+		final String fname = "isContainsLogicalLinkFromDeviceNamePortName";
+		if (logger.isTraceEnabled()) {
+			logger.trace(String.format("%s(conn=%s, devicename=%s, portName=%s) - start", fname, conn, deviceName, portName));
+		}
+		boolean ret = true;
+		try {
+			Map<String, Object> map = getLogicalLinkFromNodeNamePortName(conn, deviceName, portName);
+			if (map == null || map.isEmpty()) {
+				ret = false;
+			}
+			return ret;
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("%s(ret=%s) - end", fname, ret));
+			}
+		}
+	}
+
+	@Override
+	public List<Map<String, Object>> getRouteFromLogicalLinkId(Connection conn, String logical_link_id) throws SQLException {
+		final String fname = "getRouteFromDeviceName";
+		if (logger.isTraceEnabled()) {
+			logger.trace(String.format("%s(conn=%s, logical_link_id=%s) - start", fname, conn, logical_link_id));
+		}
+		List<Map<String, Object>> maps = null;
+		try {
+			MapListHandler rhs = new MapListHandler(
+					"@rid.asString()", "sequence_num", "logical_link_id",
+					"node_id", "node_name", "in_port_id", "in_port_name", "out_port_id", "out_port_name");
+			maps = utilsJdbc.query(conn, SQL_GET_ROUTE_FROM_LOGICAL_LINK_ID, rhs, logical_link_id);
+			return maps;
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("%s(ret=%s) - end", fname, maps));
+			}
+		}
+	}
+
+	@Override
+	public int deleteLogicalLinkFromNodeNamePortName(Connection conn, String deviceName, String portName)
+			throws SQLException {
+		final String fname = "deleteLogicalLinkFromNodeNamePortName";
+		if (logger.isTraceEnabled()) {
+			logger.trace(String.format("%s(conn=%s, devicename=%s, portName=%s) - start", fname, conn, deviceName, portName));
+		}
+		int ret = 0;
+		try {
+			Object[] params = {deviceName, portName, deviceName, portName};
+			ret = utilsJdbc.update(conn, SQL_DELETE_LOGICAL_LINK_FROM_DEVICE_NAME_PORT_NAME, params);
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("%s(ret=%s) - end", fname, ret));
+			}
+		}
+		return ret;
+	}
+
+	@Override
+	public int deleteRouteFromLogicalLinkRid(Connection conn, String logical_link_id) throws SQLException {
+		final String fname = "deleteLogicalLinkFromNodeNamePortName";
+		if (logger.isTraceEnabled()) {
+			logger.trace(String.format("%s(conn=%s, logical_link_id=%s) - start", fname, conn, logical_link_id));
+		}
+		int ret = 0;
+		try {
+			Object[] params = {logical_link_id};
+			ret = utilsJdbc.update(conn, SQL_DELETE_ROUTE_FROM_LOGICAL_LINK_ID, params);
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()) {
+				logger.trace(String.format("%s(ret=%s) - end", fname, ret));
+			}
+		}
+		return ret;
 	}
 }
