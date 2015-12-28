@@ -35,6 +35,7 @@ import org.okinawaopenlabs.ofpm.json.common.BaseResponse;
 import org.okinawaopenlabs.ofpm.json.device.PortData;
 import org.okinawaopenlabs.ofpm.json.ofc.InitFlowIn;
 import org.okinawaopenlabs.ofpm.json.ofc.SetFlowIn;
+import org.okinawaopenlabs.ofpm.json.ofc.SetFlowToOFC;
 import org.okinawaopenlabs.ofpm.json.topology.logical.LogicalLink;
 import org.okinawaopenlabs.ofpm.json.topology.logical.LogicalTopology;
 import org.okinawaopenlabs.ofpm.json.topology.logical.LogicalTopology.OfpConDeviceInfo;
@@ -369,8 +370,8 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			return res.toJson();
 		}
 
-		MultivaluedMap<String, Map<String, Object>> reducedFlows   = new MultivaluedHashMap<String, Map<String, Object>>();
-		MultivaluedMap<String, Map<String, Object>> augmentedFlows = new MultivaluedHashMap<String, Map<String, Object>>();
+		MultivaluedMap<String, SetFlowToOFC> reducedFlows   = new MultivaluedHashMap<String, SetFlowToOFC>();
+		MultivaluedMap<String, SetFlowToOFC> augmentedFlows = new MultivaluedHashMap<String, SetFlowToOFC>();
 		ConnectionUtilsJdbc utilsJdbc = null;
 		Connection conn = null;
 		try {
@@ -500,46 +501,30 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		}
 
 		/* PHASE : Set flow to OFPS via OFC */
-//		try {
-//			for (Entry<String, List<Map<String, Object>>> entry : reducedFlows.entrySet()) {
-//				OFCClient client = new OFCClientImpl(entry.getKey());
-//				for (Map<String, Object> flow : entry.getValue()) {
-//					client.deleteFlows(
-//							(String) flow.get("datapathId"),
-//							(Integer)flow.get("inPort"),
-//							(String) flow.get("srcMac"),
-//							(String) flow.get("dstMac"),
-//							(Integer)flow.get("outPort"),
-//							(String) flow.get("modSrcMac"),
-//							(String) flow.get("modDstMac"),
-//							(Boolean)flow.get("packetInFlg"),
-//							(Boolean)flow.get("dropFlg"));
-//				}
-//			}
-//			for (Entry<String, List<Map<String, Object>>> entry : augmentedFlows.entrySet()) {
-//				OFCClient client = new OFCClientImpl(entry.getKey());
-//				for (Map<String, Object> flow : entry.getValue()) {
-//					client.setFlows(
-//							(String) flow.get("datapathId"),
-//							(Integer)flow.get("inPort"),
-//							(String) flow.get("srcMac"),
-//							(String) flow.get("dstMac"),
-//							(Integer)flow.get("outPort"),
-//							(String) flow.get("modSrcMac"),
-//							(String) flow.get("modDstMac"),
-//							(Boolean)flow.get("packetInFlg"),
-//							(Boolean)flow.get("dropFlg"));
-//				}
-//			}
-//		} catch (OFCClientException e) {
-//			OFPMUtils.logErrorStackTrace(logger, e);
-//			res.setStatus(STATUS_INTERNAL_ERROR);
-//			res.setMessage(e.getMessage());
-//			if (logger.isDebugEnabled()) {
-//				logger.debug(String.format("%s(ret=%s) - end", fname, res));
-//			}
-//			return res.toJson();
-//		}
+		try {
+			for (Entry<String, List<SetFlowToOFC>> entry : reducedFlows.entrySet()) {
+				OFCClient client = new OFCClientImpl();
+				String ofpIp = (String)entry.getKey();
+				for (SetFlowToOFC flow : entry.getValue()) {
+					client.deleteFlows(ofpIp, flow);
+				}
+			}
+			for (Entry<String, List<SetFlowToOFC>> entry : augmentedFlows.entrySet()) {
+				OFCClient client = new OFCClientImpl();
+				String ofpIp = (String)entry.getKey();
+				for (SetFlowToOFC flow : entry.getValue()) {
+					client.addFlows(ofpIp, flow);
+				}
+			}
+		} catch (OFCClientException e) {
+			OFPMUtils.logErrorStackTrace(logger, e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+			return res.toJson();
+		}
 
 		String ret = res.toJson();
 		if (logger.isDebugEnabled()) {
@@ -550,242 +535,244 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 
 	@Override
 	public String setFlow(String requestedData) {
-		final String fname = "setFlow";
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(requestedData=%s) - start", fname, requestedData));
-		}
-
-		BaseResponse res = new BaseResponse();
-		Connection conn = null;
-		ConnectionUtilsJdbc utilsJdbc = null;
-		SetFlowIn req = null;
-		String rid = "";
-		String deviceName = null;
-
-		try {
-			req = SetFlowIn.fromJson(requestedData);
-			// TODO: validation
-		} catch (JsonSyntaxException jse) {
-			logger.error(jse);
-			res.setStatus(STATUS_BAD_REQUEST);
-			res.setMessage(INVALID_JSON);
-		}
-
-		try {
-			dao = new DaoImpl();
-			utilsJdbc = new ConnectionUtilsJdbcImpl();
-			dao.setConnectionUtilsJdbc(utilsJdbc);
-			conn = utilsJdbc.getConnection(true);
-			deviceName = dao.getDeviceNameFromDatapathId(conn, req.getDpId());
-			rid = dao.getPortRidFromDeviceNamePortNumber(conn, deviceName, Integer.parseInt(req.getInPort()));
-			List<Map<String, Map<String, Object>>> ret = dao.getDevicePortInfoSetFlowFromPortRid(conn, rid);
-
-			// generate InternalMac and setFlow to OFC
-			Iterator<Map<String, Map<String, Object>>> it = ret.iterator();
-			String internalMac = DaoImpl.getInternalMacFromDeviceNameInPortSrcMacDstMac(utilsJdbc, conn, deviceName, req.getInPort(), req.getSrcMac(), req.getDstMac());
-			Long tmp = ~(OFPMUtils.macAddressToLong(internalMac));
-			String internalDstMac = OFPMUtils.longToMacAddress(tmp);
-
-			int switchNum = ret.size();
-			int i = 1;
-			while (it.hasNext()) {
-				Map<String, Map<String, Object>> deviceportInfo = it.next();	// in, out, parent
-				Map<String, Object> parentInfo = deviceportInfo.get("parent");
-				Map<String, Object> inPortInfo = deviceportInfo.get("in");
-				Map<String, Object> outPortInfo = deviceportInfo.get("out");
-
-				// new client
-				String ofcIp = parentInfo.get("ofcIp").toString();
-				OFCClient restClient = new OFCClientImpl(ofcIp);
-
-				// dpid
-				String dpid = parentInfo.get("datapathId").toString();
-				// inPort
-				Integer inPort = new Integer(inPortInfo.get("number").toString());
-				// srcMac
-				String type = parentInfo.get("type").toString();
-				String srcMac = null;
-				if (type.equals("Leaf") && i == 1) {
-					srcMac = internalMac;
-				} else if (type.equals("Leaf") && i == switchNum) {
-					srcMac = req.getSrcMac();
-				} else {
-					srcMac = internalMac;
-				}
-				// dstMac
-				String dstMac = null;
-				if (type.equals("Leaf") && i == 1) {
-					// noting
-				} else if (type.equals("Leaf") && i == switchNum) {
-					dstMac = req.getDstMac();
-				} else {
-					// nothing
-				}
-				// outPort
-				Integer outPort = new Integer(outPortInfo.get("number").toString());
-				// modSrcMac
-				String modSrcMac = null;
-				if (type.equals("Leaf") && i == 1) {
-					modSrcMac = req.getSrcMac();
-				} else if (type.equals("Leaf") && i == switchNum) {
-					modSrcMac = internalMac;
-				} else {
-					// nothing
-				}
-				// modDstMac
-				String modDstMac = null;
-				if (type.equals("Leaf") && i == 1) {
-					modDstMac = req.getDstMac();
-				} else if (type.equals("Leaf") && i == switchNum) {
-					modDstMac = internalDstMac;
-				} else {
-					// nothing
-				}
-				restClient.setFlows(dpid, inPort, srcMac, dstMac, outPort, modSrcMac, modDstMac, false, false);
-				i++;
-			}
-		} catch (SQLException e) {
-			res.setStatus(STATUS_INTERNAL_ERROR);
-			res.setMessage(e.getMessage());
-		} catch (Exception e) {
-			res.setStatus(STATUS_INTERNAL_ERROR);
-			res.setMessage(e.getMessage());
-		}
-		finally {
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-				}
-			}
-		}
-		String ret = res.toJson();
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(ret=%s) - end", fname, ret));
-		}
-		return ret;
+//		final String fname = "setFlow";
+//		if (logger.isDebugEnabled()) {
+//			logger.debug(String.format("%s(requestedData=%s) - start", fname, requestedData));
+//		}
+//
+//		BaseResponse res = new BaseResponse();
+//		Connection conn = null;
+//		ConnectionUtilsJdbc utilsJdbc = null;
+//		SetFlowIn req = null;
+//		String rid = "";
+//		String deviceName = null;
+//
+//		try {
+//			req = SetFlowIn.fromJson(requestedData);
+//			// TODO: validation
+//		} catch (JsonSyntaxException jse) {
+//			logger.error(jse);
+//			res.setStatus(STATUS_BAD_REQUEST);
+//			res.setMessage(INVALID_JSON);
+//		}
+//
+//		try {
+//			dao = new DaoImpl();
+//			utilsJdbc = new ConnectionUtilsJdbcImpl();
+//			dao.setConnectionUtilsJdbc(utilsJdbc);
+//			conn = utilsJdbc.getConnection(true);
+//			deviceName = dao.getDeviceNameFromDatapathId(conn, req.getDpId());
+//			rid = dao.getPortRidFromDeviceNamePortNumber(conn, deviceName, Integer.parseInt(req.getInPort()));
+//			List<Map<String, Map<String, Object>>> ret = dao.getDevicePortInfoSetFlowFromPortRid(conn, rid);
+//
+//			// generate InternalMac and setFlow to OFC
+//			Iterator<Map<String, Map<String, Object>>> it = ret.iterator();
+//			String internalMac = DaoImpl.getInternalMacFromDeviceNameInPortSrcMacDstMac(utilsJdbc, conn, deviceName, req.getInPort(), req.getSrcMac(), req.getDstMac());
+//			Long tmp = ~(OFPMUtils.macAddressToLong(internalMac));
+//			String internalDstMac = OFPMUtils.longToMacAddress(tmp);
+//
+//			int switchNum = ret.size();
+//			int i = 1;
+//			while (it.hasNext()) {
+//				Map<String, Map<String, Object>> deviceportInfo = it.next();	// in, out, parent
+//				Map<String, Object> parentInfo = deviceportInfo.get("parent");
+//				Map<String, Object> inPortInfo = deviceportInfo.get("in");
+//				Map<String, Object> outPortInfo = deviceportInfo.get("out");
+//
+//				// new client
+//				String ofcIp = parentInfo.get("ofcIp").toString();
+//				OFCClient restClient = new OFCClientImpl(ofcIp);
+//
+//				// dpid
+//				String dpid = parentInfo.get("datapathId").toString();
+//				// inPort
+//				Integer inPort = new Integer(inPortInfo.get("number").toString());
+//				// srcMac
+//				String type = parentInfo.get("type").toString();
+//				String srcMac = null;
+//				if (type.equals("Leaf") && i == 1) {
+//					srcMac = internalMac;
+//				} else if (type.equals("Leaf") && i == switchNum) {
+//					srcMac = req.getSrcMac();
+//				} else {
+//					srcMac = internalMac;
+//				}
+//				// dstMac
+//				String dstMac = null;
+//				if (type.equals("Leaf") && i == 1) {
+//					// noting
+//				} else if (type.equals("Leaf") && i == switchNum) {
+//					dstMac = req.getDstMac();
+//				} else {
+//					// nothing
+//				}
+//				// outPort
+//				Integer outPort = new Integer(outPortInfo.get("number").toString());
+//				// modSrcMac
+//				String modSrcMac = null;
+//				if (type.equals("Leaf") && i == 1) {
+//					modSrcMac = req.getSrcMac();
+//				} else if (type.equals("Leaf") && i == switchNum) {
+//					modSrcMac = internalMac;
+//				} else {
+//					// nothing
+//				}
+//				// modDstMac
+//				String modDstMac = null;
+//				if (type.equals("Leaf") && i == 1) {
+//					modDstMac = req.getDstMac();
+//				} else if (type.equals("Leaf") && i == switchNum) {
+//					modDstMac = internalDstMac;
+//				} else {
+//					// nothing
+//				}
+//				restClient.setFlows(dpid, inPort, srcMac, dstMac, outPort, modSrcMac, modDstMac, false, false);
+//				i++;
+//			}
+//		} catch (SQLException e) {
+//			res.setStatus(STATUS_INTERNAL_ERROR);
+//			res.setMessage(e.getMessage());
+//		} catch (Exception e) {
+//			res.setStatus(STATUS_INTERNAL_ERROR);
+//			res.setMessage(e.getMessage());
+//		}
+//		finally {
+//			if (conn != null) {
+//				try {
+//					conn.close();
+//				} catch (SQLException e) {
+//				}
+//			}
+//		}
+//		String ret = res.toJson();
+//		if (logger.isDebugEnabled()) {
+//			logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+//		}
+//		return ret;
+		return null;
 	}
 
 	@Override
 	public String initFlow(String requestedData) {
-		final String fname = "initFlow";
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(requestedData=%s)", fname, requestedData));
-		}
-		BaseResponse res = new BaseResponse();
-		res.setStatus(STATUS_SUCCESS);
-
-		/* PHASE 1: validation check */
-		InitFlowIn req = null;
-		try {
-			req = InitFlowIn.fromJson(requestedData);
-			InitFlowInValidate validator = new InitFlowInValidate();
-			validator.checkValidation(req);
-		} catch (Throwable t) {
-			OFPMUtils.logErrorStackTrace(logger, t);
-			{
-				if (t instanceof JsonSyntaxException) {
-					res.setStatus(STATUS_BAD_REQUEST);
-					res.setMessage(INVALID_JSON);
-				} else if (t instanceof ValidateException) {
-					res.setStatus(STATUS_BAD_REQUEST);
-					res.setMessage(t.getMessage());
-				} else {
-					res.setStatus(STATUS_INTERNAL_ERROR);
-					res.setMessage(t.getMessage());
-				}
-			}
-			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("%s(ret=%s)", fname, res));
-			}
-			return res.toJson();
-		}
-
-		/* PHASE 2:Set Flows into OFPS that is designated by datapathId. */
-		ConnectionUtilsJdbc utils = null;
-		Connection conn = null;
-		try {
-			utils = new ConnectionUtilsJdbcImpl();
-			conn  = utils.getConnection(true);
-
-			Dao dao = new DaoImpl(utils);
-			String dpid = req.getDatapathId();
-			String devName = dao.getDeviceNameFromDatapathId(conn, dpid);
-			Map<String, Object> devInfo = dao.getNodeInfoFromDeviceName(conn, devName);
-			OFCClient client = new OFCClientImpl((String) devInfo.get("ofcIp"));
-
-			List<Map<String, Object>> patchMapList = dao.getPatchWiringsFromParentRid(conn, (String) devInfo.get("rid"));
-			for (Map<String, Object> patchMap : patchMapList) {
-				List<Map<String, Object>> path = dao.getPatchWiringsFromDeviceNamePortName(
-						conn,
-						(String) patchMap.get("inDeviceName"),
-						(String) patchMap.get("inPortName"));
-				Integer sequence = (Integer) patchMap.get("sequence");
-
-				Map<String, Object>  inPortInfo = dao.getPortInfoFromPortRid(conn, (String) patchMap.get("in"));
-				Map<String, Object> outPortInfo = dao.getPortInfoFromPortRid(conn, (String) patchMap.get("out"));
-				Integer  inPort = (Integer)  inPortInfo.get("number");
-				Integer outPort = (Integer) outPortInfo.get("number");
-				/* port 2 port flow */
-				if (path.size() == 1) {
-					client.setFlows(dpid, inPort, null, null, outPort, null, null, null, null);
-					continue;
-				}
-
-				/* not port 2 prot flow */
-				Map<String, Object> firstOfpsPort = dao.getPortInfoFromPortRid(conn, (String) path.get(0).get("in"));
-				String  firstOfpsDevName    = (String)  firstOfpsPort.get("node_name");
-				Integer firstOfpsPortNumber = (Integer) firstOfpsPort.get("number");
-
-				List<Map<String, Object>> macList = dao.getInternalMacInfoListFromDeviceNameInPort(
-						conn,
-						firstOfpsDevName,
-						firstOfpsPortNumber);
-				for (Map<String, Object> mac : macList) {
-					Long interMac = (Long)   mac.get("internalMac");
-					String srcMac = null;
-					String dstMac = null;
-					String modSrcMac = null;
-					String modDstMac = null;
-
-					if (sequence == 1) {
-						/* first patch switch */
-						srcMac = (String) mac.get("srcMac");
-						dstMac = (String) mac.get("dstMac");
-						modSrcMac = (OFPMUtils.longToMacAddress(interMac));
-						modDstMac = (OFPMUtils.longToMacAddress(~interMac));
-					} else if (sequence == path.size()) {
-						/* final patch switch */
-						srcMac = (OFPMUtils.longToMacAddress(interMac));
-						modSrcMac = (String) mac.get("srcMac");
-						modDstMac = (String) mac.get("dstMac");
-					} else {
-						/* relay patch swtich */
-						srcMac = (OFPMUtils.longToMacAddress(interMac));
-					}
-
-					client.setFlows(dpid, inPort, srcMac, dstMac, outPort, modSrcMac, modDstMac, null, null);
-				}
-
-				/* If the OFPS is first patch switch for the route, set Packet-In flow. */
-				if (sequence == 1) {
-					client.setFlows(dpid, inPort, null, null, null, null, null, true, null);
-				}
-			}
-
-		} catch (SQLException | OFCClientException e) {
-			OFPMUtils.logErrorStackTrace(logger, e);
-			res.setStatus(STATUS_INTERNAL_ERROR);
-			res.setMessage(e.getMessage());
-		} finally {
-			utils.close(conn);
-		}
-
-		String ret = res.toJson();
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(ret=%s)", fname, ret));
-		}
-		return res.toJson();
+//		final String fname = "initFlow";
+//		if (logger.isDebugEnabled()) {
+//			logger.debug(String.format("%s(requestedData=%s)", fname, requestedData));
+//		}
+//		BaseResponse res = new BaseResponse();
+//		res.setStatus(STATUS_SUCCESS);
+//
+//		/* PHASE 1: validation check */
+//		InitFlowIn req = null;
+//		try {
+//			req = InitFlowIn.fromJson(requestedData);
+//			InitFlowInValidate validator = new InitFlowInValidate();
+//			validator.checkValidation(req);
+//		} catch (Throwable t) {
+//			OFPMUtils.logErrorStackTrace(logger, t);
+//			{
+//				if (t instanceof JsonSyntaxException) {
+//					res.setStatus(STATUS_BAD_REQUEST);
+//					res.setMessage(INVALID_JSON);
+//				} else if (t instanceof ValidateException) {
+//					res.setStatus(STATUS_BAD_REQUEST);
+//					res.setMessage(t.getMessage());
+//				} else {
+//					res.setStatus(STATUS_INTERNAL_ERROR);
+//					res.setMessage(t.getMessage());
+//				}
+//			}
+//			if (logger.isDebugEnabled()) {
+//				logger.debug(String.format("%s(ret=%s)", fname, res));
+//			}
+//			return res.toJson();
+//		}
+//
+//		/* PHASE 2:Set Flows into OFPS that is designated by datapathId. */
+//		ConnectionUtilsJdbc utils = null;
+//		Connection conn = null;
+//		try {
+//			utils = new ConnectionUtilsJdbcImpl();
+//			conn  = utils.getConnection(true);
+//
+//			Dao dao = new DaoImpl(utils);
+//			String dpid = req.getDatapathId();
+//			String devName = dao.getDeviceNameFromDatapathId(conn, dpid);
+//			Map<String, Object> devInfo = dao.getNodeInfoFromDeviceName(conn, devName);
+//			OFCClient client = new OFCClientImpl((String) devInfo.get("ofcIp"));
+//
+//			List<Map<String, Object>> patchMapList = dao.getPatchWiringsFromParentRid(conn, (String) devInfo.get("rid"));
+//			for (Map<String, Object> patchMap : patchMapList) {
+//				List<Map<String, Object>> path = dao.getPatchWiringsFromDeviceNamePortName(
+//						conn,
+//						(String) patchMap.get("inDeviceName"),
+//						(String) patchMap.get("inPortName"));
+//				Integer sequence = (Integer) patchMap.get("sequence");
+//
+//				Map<String, Object>  inPortInfo = dao.getPortInfoFromPortRid(conn, (String) patchMap.get("in"));
+//				Map<String, Object> outPortInfo = dao.getPortInfoFromPortRid(conn, (String) patchMap.get("out"));
+//				Integer  inPort = (Integer)  inPortInfo.get("number");
+//				Integer outPort = (Integer) outPortInfo.get("number");
+//				/* port 2 port flow */
+//				if (path.size() == 1) {
+//					client.setFlows(dpid, inPort, null, null, outPort, null, null, null, null);
+//					continue;
+//				}
+//
+//				/* not port 2 prot flow */
+//				Map<String, Object> firstOfpsPort = dao.getPortInfoFromPortRid(conn, (String) path.get(0).get("in"));
+//				String  firstOfpsDevName    = (String)  firstOfpsPort.get("node_name");
+//				Integer firstOfpsPortNumber = (Integer) firstOfpsPort.get("number");
+//
+//				List<Map<String, Object>> macList = dao.getInternalMacInfoListFromDeviceNameInPort(
+//						conn,
+//						firstOfpsDevName,
+//						firstOfpsPortNumber);
+//				for (Map<String, Object> mac : macList) {
+//					Long interMac = (Long)   mac.get("internalMac");
+//					String srcMac = null;
+//					String dstMac = null;
+//					String modSrcMac = null;
+//					String modDstMac = null;
+//
+//					if (sequence == 1) {
+//						/* first patch switch */
+//						srcMac = (String) mac.get("srcMac");
+//						dstMac = (String) mac.get("dstMac");
+//						modSrcMac = (OFPMUtils.longToMacAddress(interMac));
+//						modDstMac = (OFPMUtils.longToMacAddress(~interMac));
+//					} else if (sequence == path.size()) {
+//						/* final patch switch */
+//						srcMac = (OFPMUtils.longToMacAddress(interMac));
+//						modSrcMac = (String) mac.get("srcMac");
+//						modDstMac = (String) mac.get("dstMac");
+//					} else {
+//						/* relay patch swtich */
+//						srcMac = (OFPMUtils.longToMacAddress(interMac));
+//					}
+//
+//					client.setFlows(dpid, inPort, srcMac, dstMac, outPort, modSrcMac, modDstMac, null, null);
+//				}
+//
+//				/* If the OFPS is first patch switch for the route, set Packet-In flow. */
+//				if (sequence == 1) {
+//					client.setFlows(dpid, inPort, null, null, null, null, null, true, null);
+//				}
+//			}
+//
+//		} catch (SQLException | OFCClientException e) {
+//			OFPMUtils.logErrorStackTrace(logger, e);
+//			res.setStatus(STATUS_INTERNAL_ERROR);
+//			res.setMessage(e.getMessage());
+//		} finally {
+//			utils.close(conn);
+//		}
+//
+//		String ret = res.toJson();
+//		if (logger.isDebugEnabled()) {
+//			logger.debug(String.format("%s(ret=%s)", fname, ret));
+//		}
+//		return res.toJson();
+		return null;
 	}
 
 	/**
@@ -846,7 +833,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	 * @param link
 	 * @throws SQLException
 	 */
-	private void addDeclementLogicalLink(Connection conn, LogicalLink link, MultivaluedMap<String, Map<String, Object>> reducedFlows) throws SQLException {
+	private void addDeclementLogicalLink(Connection conn, LogicalLink link, MultivaluedMap<String, SetFlowToOFC> reducedFlows) throws SQLException {
 		PortData inPort  = link.getLink().get(0);
 
 		/* get route */
@@ -903,38 +890,30 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 
 		/* make flow edge-switch tx side */
 		{
-			String dpid  = (String)txOfpsMap.get("datapathId");
-			String ofcIp = (String)txOfpsMap.get("ofcIp") + (String)txOfpsMap.get("ofcPort");
+			String ofcIp = (String)txOfpsMap.get("ip") + ":" + Integer.toString((Integer)txOfpsMap.get("port"));
+			
+			SetFlowToOFC requestData = OFCClientImpl.createRequestData(Long.decode((String)txOfpsMap.get("datapathId")), 100L, null, null);
+			Integer inPortNumber = (Integer)txInPortMap.get("number");
+			OFCClientImpl.createMatchForInPortDlVlan(requestData, inPortNumber.longValue(), (Long)logicalLinkMap.get("nw_instance_id"));
+			reducedFlows.add(ofcIp, requestData);
 
-			Map<String, Object> flow = new HashMap<String, Object>();
-			flow.put("datapathId", dpid);
-			flow.put("inPort", txInPortMap.get("number"));
-			flow.put("dropFlg", true);
-			reducedFlows.add(ofcIp, flow);
-
-			flow = new HashMap<String, Object>();
-			flow.put("datapathId", dpid);
-			flow.put("nw_instance_id", logicalLinkMap.get("nw_instance_id"));
-			flow.put("dropFlg", true);
-			reducedFlows.add(ofcIp, flow);
+			requestData = OFCClientImpl.createRequestData(Long.decode((String)txOfpsMap.get("datapathId")), 100L, null, null);
+			OFCClientImpl.createMatchForDlVlan(requestData, (Long)logicalLinkMap.get("nw_instance_id"));
+			reducedFlows.add(ofcIp, requestData);
 		}
 
 		/* make flow edge-switch rx side */
 		{
-			String dpid  = (String)rxOfpsMap.get("datapathId");
-			String ofcIp = (String)rxOfpsMap.get("ofcIp") + (String)rxOfpsMap.get("ofcPort");
+			String ofcIp = (String)rxOfpsMap.get("ip") + ":" + Integer.toString((Integer)rxOfpsMap.get("port"));
+			
+			SetFlowToOFC requestData = OFCClientImpl.createRequestData(Long.decode((String)rxOfpsMap.get("datapathId")), 100L, null, null);
+			Integer inPortNumber = (Integer)rxOutPortMap.get("number");
+			OFCClientImpl.createMatchForInPortDlVlan(requestData, inPortNumber.longValue(), (Long)logicalLinkMap.get("nw_instance_id"));
+			reducedFlows.add(ofcIp, requestData);
 
-			Map<String, Object> flow = new HashMap<String, Object>();
-			flow.put("datapathId", dpid);
-			flow.put("inPort", rxOutPortMap.get("number"));
-			flow.put("dropFlg", true);
-			reducedFlows.add(ofcIp, flow);
-
-			flow = new HashMap<String, Object>();
-			flow.put("datapathId", dpid);
-			flow.put("nw_instance_id", logicalLinkMap.get("nw_instance_id"));
-			flow.put("dropFlg", true);
-			reducedFlows.add(ofcIp, flow);
+			requestData = OFCClientImpl.createRequestData(Long.decode((String)rxOfpsMap.get("datapathId")), 100L, null, null);
+			OFCClientImpl.createMatchForDlVlan(requestData, (Long)logicalLinkMap.get("nw_instance_id"));
+			reducedFlows.add(ofcIp, requestData);
 		}
 
 		/* make flow internal switch */
@@ -943,14 +922,11 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 				String rid = (String)routeMapList.get(i).get("node_id");
 
 				Map<String, Object> ofpsMap = dao.getDeviceInfoFromDeviceRid(conn, rid);
-				String dpid  = (String)ofpsMap.get("datapathId");
-				String ofcIp = (String)rxOfpsMap.get("ofcIp") + (String)rxOfpsMap.get("ofcPort");
-
-				Map<String, Object> flow = new HashMap<String, Object>();
-				flow.put("datapathId", dpid);
-				flow.put("srcMac", logicalLinkMap.get("nw_instance_id"));
-				flow.put("dropFlg", true);
-				reducedFlows.add(ofcIp, flow);
+				String ofcIp = (String)ofpsMap.get("ip") + ":" + Integer.toString((Integer)ofpsMap.get("port"));
+				
+				SetFlowToOFC requestData = OFCClientImpl.createRequestData(Long.decode((String)ofpsMap.get("datapathId")), 100L, null, null);
+				OFCClientImpl.createMatchForDlVlan(requestData, (Long)logicalLinkMap.get("nw_instance_id"));
+				reducedFlows.add(ofcIp, requestData);				
 			}
 		}
 
@@ -973,7 +949,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	 * @throws SQLException
 	 * @throws NoRouteException
 	 */
-	private void addInclementLogicalLink(Connection conn, LogicalLink link, MultivaluedMap<String, Map<String, Object>> augmentedFlows) throws SQLException, NoRouteException {
+	private void addInclementLogicalLink(Connection conn, LogicalLink link, MultivaluedMap<String, SetFlowToOFC> augmentedFlows) throws SQLException, NoRouteException {
 		PortData tx = link.getLink().get(0);
 		PortData rx = link.getLink().get(1);
 		/* get rid of txPort/rxPort */
@@ -1081,7 +1057,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		}
 		
 		String nw_instance_type = NETWORK_INSTANCE_TYPE;
-		Integer nw_instance_id = dao.getNwInstanceId(conn);
+		Long nw_instance_id = dao.getNwInstanceId(conn);
 		if (nw_instance_id < 0) {
 			throw new NoRouteException(String.format(IS_FULL, "network instance id"));
 		}
@@ -1126,21 +1102,23 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		if (ofpIndexList.size() == 1) {
 			int i = ofpIndexList.get(0);
 			Map<String, Object>  inPortDataMap = path.get(i - 1);
-			Map<String, Object> ofpNodeDataMap = path.get(i);
+			Map<String, Object> ofpNodeData = path.get(i);
+			Map<String, Object> ofpNodeDataMap = dao.getNodeInfoFromDeviceName(conn, (String)ofpNodeData.get("name"));
 			Map<String, Object> outPortDataMap = path.get(i + 1);
 
-			Map<String, Object> flow = new HashMap<String, Object>();
-			flow.put("datapathId", ofpNodeDataMap.get("datapathId"));
-			flow.put("inPort", inPortDataMap.get("number"));
-			flow.put("outPort", outPortDataMap.get("number"));
-			augmentedFlows.add((String)ofpNodeDataMap.get("ofcIp"), flow);
+			String ofcIp = (String)ofpNodeDataMap.get("ip") + ":" + Integer.toString((Integer)ofpNodeDataMap.get("port"));
+			Integer inPortNumber = (Integer)inPortDataMap.get("number");
+			Integer outPortNumber = (Integer)outPortDataMap.get("number");
 
-			flow = new HashMap<String, Object>();
-			flow.put("datapathId", ofpNodeDataMap.get("datapathId"));
-			flow.put("inPort", outPortDataMap.get("number"));
-			flow.put("outPort", inPortDataMap.get("number"));
-			augmentedFlows.add((String)ofpNodeDataMap.get("ofcIp"), flow);
+			SetFlowToOFC requestData = OFCClientImpl.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), 100L, null, null);
+			OFCClientImpl.createMatchForInPort(requestData, inPortNumber.longValue());
+			OFCClientImpl.createActionsForOutputPort(requestData, outPortNumber.longValue());
+			augmentedFlows.add(ofcIp, requestData);
 
+			requestData = OFCClientImpl.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), 100L, null, null);
+			OFCClientImpl.createMatchForInPort(requestData, outPortNumber.longValue());
+			OFCClientImpl.createActionsForOutputPort(requestData, inPortNumber.longValue());
+			augmentedFlows.add(ofcIp, requestData);
 			return;
 		}
 
@@ -1148,67 +1126,69 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		{
 			int i = ofpIndexList.get(0);
 			Map<String, Object>  inPortDataMap = path.get(i - 1);
-			Map<String, Object> ofpNodeDataMap = path.get(i);
+			Map<String, Object> ofpNodeData = path.get(i);
+			Map<String, Object> ofpNodeDataMap = dao.getNodeInfoFromDeviceName(conn, (String)ofpNodeData.get("name"));
 			Map<String, Object> outPortDataMap = path.get(i + 1);
+			
+			String ofcIp = (String)ofpNodeDataMap.get("ip") + ":" + Integer.toString((Integer)ofpNodeDataMap.get("port"));
+			Integer inPortNumber = (Integer)inPortDataMap.get("number");
+			Integer outPortNumber = (Integer)outPortDataMap.get("number");
+			
+			SetFlowToOFC requestData = OFCClientImpl.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), 100L, null, null);
+			OFCClientImpl.createMatchForInPort(requestData, inPortNumber.longValue());
+			OFCClientImpl.createActionsForPushVlan(requestData, outPortNumber.longValue(), nw_instance_id);
+			augmentedFlows.add(ofcIp, requestData);
 
-			Map<String, Object> flow = new HashMap<String, Object>();
-			flow.put("datapathId", ofpNodeDataMap.get("datapathId"));
-			flow.put("inPort", inPortDataMap.get("number"));
-			flow.put("pushVlan", nw_instance_id);
-			flow.put("outPort", outPortDataMap.get("number"));
-			augmentedFlows.add((String)ofpNodeDataMap.get("ofcIp"), flow);
-
-			flow = new HashMap<String, Object>();
-			flow.put("datapathId", ofpNodeDataMap.get("datapathId"));
-			flow.put("inPort", outPortDataMap.get("number"));
-			flow.put("popVlan", nw_instance_id);
-			flow.put("outPort", inPortDataMap.get("number"));
-			augmentedFlows.add((String)ofpNodeDataMap.get("ofcIp"), flow);
+			requestData = OFCClientImpl.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), 100L, null, null);
+			OFCClientImpl.createMatchForInPort(requestData, outPortNumber.longValue());
+			OFCClientImpl.createActionsForPopVlan(requestData, inPortNumber.longValue());
+			augmentedFlows.add(ofcIp, requestData);
 		}
 
 		/* spine ofs flow */		
 		for (int i = 1; i < ofpIndexList.size() - 1; i++) {
 			/* insert frowarding patch wiring */
 			Map<String, Object>  inPortDataMap = path.get(i-1);
-			Map<String, Object> ofpNodeDataMap = path.get(i);
+			Map<String, Object> ofpNodeData = path.get(i);
+			Map<String, Object> ofpNodeDataMap = dao.getNodeInfoFromDeviceName(conn, (String)ofpNodeData.get("name"));
 			Map<String, Object> outPortDataMap = path.get(i+1);
 
-			Map<String, Object> flow = new HashMap<String, Object>();
-			flow.put("datapathId", ofpNodeDataMap.get("datapathId"));
-			flow.put("inPort", inPortDataMap.get("number"));
-			flow.put("pushVlan", nw_instance_id);
-			flow.put("outPort", outPortDataMap.get("number"));
-			augmentedFlows.add((String)ofpNodeDataMap.get("ofcIp"), flow);
+			String ofcIp = (String)ofpNodeDataMap.get("ip") + ":" + Integer.toString((Integer)ofpNodeDataMap.get("port"));
+			Integer inPortNumber = (Integer)inPortDataMap.get("number");
+			Integer outPortNumber = (Integer)outPortDataMap.get("number");
+			
+			SetFlowToOFC requestData = OFCClientImpl.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), 100L, null, null);
+			OFCClientImpl.createMatchForInPortDlVlan(requestData, inPortNumber.longValue(), nw_instance_id);
+			OFCClientImpl.createActionsForOutputPort(requestData, outPortNumber.longValue());
+			augmentedFlows.add(ofcIp, requestData);
 
-			flow = new HashMap<String, Object>();
-			flow.put("datapathId", ofpNodeDataMap.get("datapathId"));
-			flow.put("inPort", outPortDataMap.get("number"));
-			flow.put("popVlan", nw_instance_id);
-			flow.put("outPort", inPortDataMap.get("number"));
-			augmentedFlows.add((String)ofpNodeDataMap.get("ofcIp"), flow);
-
+			requestData = OFCClientImpl.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), 100L, null, null);
+			OFCClientImpl.createMatchForInPortDlVlan(requestData, outPortNumber.longValue(), nw_instance_id);
+			OFCClientImpl.createActionsForOutputPort(requestData, inPortNumber.longValue());
+			augmentedFlows.add(ofcIp, requestData);
 		}
 		
 		/* the final ofps flow */
 		{
 			int i = ofpIndexList.get(ofpIndexList.size() - 1);
 			Map<String, Object>  inPortDataMap = path.get(i + 1);
-			Map<String, Object> ofpNodeDataMap = path.get(i);
+			Map<String, Object> ofpNodeData = path.get(i);
+			Map<String, Object> ofpNodeDataMap = dao.getNodeInfoFromDeviceName(conn, (String)ofpNodeData.get("name"));
 			Map<String, Object> outPortDataMap = path.get(i - 1);
 
-			Map<String, Object> flow = new HashMap<String, Object>();
-			flow.put("datapathId", ofpNodeDataMap.get("datapathId"));
-			flow.put("inPort", inPortDataMap.get("number"));
-			flow.put("pushVlan", nw_instance_id);
-			flow.put("outPort", outPortDataMap.get("number"));
-			augmentedFlows.add((String)ofpNodeDataMap.get("ofcIp"), flow);
-
-			flow = new HashMap<String, Object>();
-			flow.put("datapathId", ofpNodeDataMap.get("datapathId"));
-			flow.put("inPort", outPortDataMap.get("number"));
-			flow.put("popVlan", nw_instance_id);
-			flow.put("outPort", inPortDataMap.get("number"));
-			augmentedFlows.add((String)ofpNodeDataMap.get("ofcIp"), flow);
+			String ofcIp = (String)ofpNodeDataMap.get("ip") + ":" + Integer.toString((Integer)ofpNodeDataMap.get("port"));
+			Integer inPortNumber = (Integer)inPortDataMap.get("number");
+			Integer outPortNumber = (Integer)outPortDataMap.get("number");
+			
+			SetFlowToOFC requestData = OFCClientImpl.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), 100L, null, null);
+			OFCClientImpl.createMatchForInPort(requestData, inPortNumber.longValue());
+			OFCClientImpl.createActionsForPushVlan(requestData, outPortNumber.longValue(), nw_instance_id);
+			augmentedFlows.add(ofcIp, requestData);
+			
+			requestData = OFCClientImpl.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), 100L, null, null);
+			OFCClientImpl.createMatchForInPort(requestData, outPortNumber.longValue());
+			OFCClientImpl.createActionsForPopVlan(requestData, inPortNumber.longValue());
+			augmentedFlows.add(ofcIp, requestData);
 		}
 		return;
 	}

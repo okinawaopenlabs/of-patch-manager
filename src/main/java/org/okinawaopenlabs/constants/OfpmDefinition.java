@@ -41,7 +41,8 @@ public class OfpmDefinition {
 	public static final String DEFAULT_PROPERTIY_FILE = "ofpm.properties";
 
 	/* Define openflow controller config */
-	public static final String OFC_PATH = "/ofc/ryu/ctrl";
+	public static final String OFC_ADD_FLOWENTRY_PATH = "/stats/flowentry/add";
+	public static final String OFC_DELETE_FLOWENTRY_PATH = "/stats/flowentry/delete";
 
 	/* Define Database url */
 	public static final String CONFIG_KEY_DB_URL = "db.url";

@@ -700,7 +700,7 @@ public class DaoImpl implements Dao {
 	@Override
 	public int insertLogicalLink(Connection conn, String in_node_id, String in_node_name, String in_port_id,
 		String in_port_name, String out_node_id, String out_node_name, String out_port_id, String out_port_name,
-		Integer nw_instance_id, String nw_instance_type) throws SQLException {
+		Long nw_instance_id, String nw_instance_type) throws SQLException {
 		final String fname = "insertLogicalLink";
 		if (logger.isTraceEnabled()) {
 			logger.trace(String.format("%s(conn=%s, in_node_id=%s, in_node_name=%s, in_port_id=%s, in_port_name=%s, out_node_id=%s, out_node_name=%s, out_port_id=%s, out_port_name=%s, nw_instance_id=%s, nw_instance_type=%s) - start",
@@ -724,7 +724,7 @@ public class DaoImpl implements Dao {
 	}
 
 	@Override
-	public Integer getNwInstanceId(Connection conn) throws SQLException {
+	public Long getNwInstanceId(Connection conn) throws SQLException {
 		final String fname = "getNwInstanceId";
 		if (logger.isTraceEnabled()){
 			logger.trace(String.format("%s(conn=%s) - start", fname, conn));
@@ -732,11 +732,11 @@ public class DaoImpl implements Dao {
 		List<String> ret = null;
 		try {
 			List<Map<String, Object>> records = utilsJdbc.query(conn, SQL_GET_MAX_NW_INSTANCE_ID, new MapListHandler());
-			Integer maxNwInstanceId = MIN_NETWORK_INSTANCE_ID;
+			Long maxNwInstanceId = MIN_NETWORK_INSTANCE_ID;
 			if (records.size() > 0) {
-				maxNwInstanceId = (Integer)Integer.parseInt((records.get(0).get("maxNwInstanceId").toString())) + 1;
+				maxNwInstanceId = (Long)Long.parseLong((records.get(0).get("maxNwInstanceId").toString())) + 1;
 				if (maxNwInstanceId > MAX_NETWORK_INSTANCE_ID) {
-					return -1;
+					return -1L;
 				}
 			}
 			

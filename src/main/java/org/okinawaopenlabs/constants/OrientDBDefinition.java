@@ -176,6 +176,6 @@ public class OrientDBDefinition {
 	public static final String OFP_FLAG_FALSE = "false";
 	
 	/* network instance id min value */
-	public static final Integer MIN_NETWORK_INSTANCE_ID = 2;
-	public static final Integer MAX_NETWORK_INSTANCE_ID = 4094;
+	public static final Long MIN_NETWORK_INSTANCE_ID = 2L;
+	public static final Long MAX_NETWORK_INSTANCE_ID = 4094L;
 }

@@ -71,7 +71,7 @@ public interface Dao {
 	 * @param conn
 	 * @throws SQLException
 	 */
-	Integer getNwInstanceId(Connection conn) throws SQLException;
+	Long getNwInstanceId(Connection conn) throws SQLException;
 
 	/**
 	 * get internal-mac-address list. if not exist, return empty list.
@@ -203,7 +203,7 @@ public interface Dao {
 	 * @param nw_instance_type
 	 * @throws SQLException
 	 */
-	int insertLogicalLink(Connection conn, String in_node_id, String in_node_name, String in_port_id, String in_port_name, String out_node_id, String out_node_name, String out_port_id, String out_port_name, Integer nw_instance_id, String nw_instance_type) throws SQLException;
+	int insertLogicalLink(Connection conn, String in_node_id, String in_node_name, String in_port_id, String in_port_name, String out_node_id, String out_node_name, String out_port_id, String out_port_name, Long nw_instance_id, String nw_instance_type) throws SQLException;
 
 	/**
 	 * Get logical link infromation.

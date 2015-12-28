@@ -16,13 +16,14 @@
 
 package org.okinawaopenlabs.ofpm.client;
 
+import java.util.Map;
+
 import org.okinawaopenlabs.ofpm.exception.OFCClientException;
 import org.okinawaopenlabs.ofpm.json.common.BaseResponse;
+import org.okinawaopenlabs.ofpm.json.ofc.SetFlowToOFC;
 
 public interface OFCClient {
-	public BaseResponse setFlows(String dpid, Integer inPort, String srcMac, String dstMac, Integer outPort, String modSrcMac, String modDstMac, Boolean packetIn, Boolean drop) throws OFCClientException;
+	public BaseResponse addFlows(String ofIp, SetFlowToOFC requestData) throws OFCClientException;
 
-	public BaseResponse deleteFlows(String dpid, Integer inPort, String srcMac, String dstMac, Integer outPort, String modSrcMac, String modDstMac, Boolean packetIn, Boolean drop) throws OFCClientException;
-
-	public String getIp();
+	public BaseResponse deleteFlows(String ofIp, SetFlowToOFC requestData) throws OFCClientException;
 }
