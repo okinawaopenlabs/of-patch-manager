@@ -768,7 +768,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		Map<String, Object> txOutPortMap = dao.getPortInfoFromPortName(conn, (String) txRouteMap.get("node_name"), (String) txRouteMap.get("out_port_name"));
 
 		Map<String, Object> rxOfpsMap = dao.getNodeInfoFromDeviceName(conn, (String) rxRouteMap.get("node_name"));
-		Map<String, Object> rxOutPortMap = dao.getPortInfoFromPortName(conn, (String) rxRouteMap.get("node_name"), (String) rxRouteMap.get("in_port_name"));
+		Map<String, Object> rxOutPortMap = dao.getPortInfoFromPortName(conn, (String) rxRouteMap.get("node_name"), (String) rxRouteMap.get("out_port_name"));
 
 		if (routeMapList.size() == 1 ) {
 			String ofcIp = (String)txOfpsMap.get("ip") + ":" + Integer.toString((Integer)txOfpsMap.get("port"));
@@ -799,7 +799,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			
 			SetFlowToOFC requestData = OFCClientImpl.createRequestData(Long.decode((String)txOfpsMap.get("datapathId")), 100L, null, null);
 			Integer inPortNumber = (Integer)txInPortMap.get("number");
-			OFCClientImpl.createMatchForInPortDlVlan(requestData, inPortNumber.longValue(), (Long)logicalLinkMap.get("nw_instance_id"));
+			OFCClientImpl.createMatchForInPort(requestData, inPortNumber.longValue());
 			reducedFlows.add(ofcIp, requestData);
 
 			requestData = OFCClientImpl.createRequestData(Long.decode((String)txOfpsMap.get("datapathId")), 100L, null, null);
@@ -813,7 +813,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			
 			SetFlowToOFC requestData = OFCClientImpl.createRequestData(Long.decode((String)rxOfpsMap.get("datapathId")), 100L, null, null);
 			Integer inPortNumber = (Integer)rxOutPortMap.get("number");
-			OFCClientImpl.createMatchForInPortDlVlan(requestData, inPortNumber.longValue(), (Long)logicalLinkMap.get("nw_instance_id"));
+			OFCClientImpl.createMatchForInPort(requestData, inPortNumber.longValue());
 			reducedFlows.add(ofcIp, requestData);
 
 			requestData = OFCClientImpl.createRequestData(Long.decode((String)rxOfpsMap.get("datapathId")), 100L, null, null);
@@ -824,9 +824,8 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		/* make flow internal switch */
 		{
 			for (int i = 1; i < routeMapList.size() - 1; i++) {
-				String rid = (String)routeMapList.get(i).get("node_id");
-
-				Map<String, Object> ofpsMap = dao.getDeviceInfoFromDeviceRid(conn, rid);
+				String node_name = (String)routeMapList.get(i).get("node_name");
+				Map<String, Object> ofpsMap = dao.getNodeInfoFromDeviceName(conn, node_name);
 				String ofcIp = (String)ofpsMap.get("ip") + ":" + Integer.toString((Integer)ofpsMap.get("port"));
 				
 				SetFlowToOFC requestData = OFCClientImpl.createRequestData(Long.decode((String)ofpsMap.get("datapathId")), 100L, null, null);
@@ -1045,7 +1044,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			augmentedFlows.add(ofcIp, requestData);
 
 			requestData = OFCClientImpl.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), 100L, null, null);
-			OFCClientImpl.createMatchForInPort(requestData, outPortNumber.longValue());
+			OFCClientImpl.createMatchForInPortDlVlan(requestData, outPortNumber.longValue(), nw_instance_id);
 			OFCClientImpl.createActionsForPopVlan(requestData, inPortNumber.longValue());
 			augmentedFlows.add(ofcIp, requestData);
 		}
@@ -1053,10 +1052,11 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		/* spine ofs flow */		
 		for (int i = 1; i < ofpIndexList.size() - 1; i++) {
 			/* insert frowarding patch wiring */
-			Map<String, Object>  inPortDataMap = path.get(i-1);
-			Map<String, Object> ofpNodeData = path.get(i);
+			int index = ofpIndexList.get(i);
+			Map<String, Object>  inPortDataMap = path.get(index-1);
+			Map<String, Object> ofpNodeData = path.get(index);
 			Map<String, Object> ofpNodeDataMap = dao.getNodeInfoFromDeviceName(conn, (String)ofpNodeData.get("name"));
-			Map<String, Object> outPortDataMap = path.get(i+1);
+			Map<String, Object> outPortDataMap = path.get(index+1);
 
 			String ofcIp = (String)ofpNodeDataMap.get("ip") + ":" + Integer.toString((Integer)ofpNodeDataMap.get("port"));
 			Integer inPortNumber = (Integer)inPortDataMap.get("number");
@@ -1091,7 +1091,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			augmentedFlows.add(ofcIp, requestData);
 			
 			requestData = OFCClientImpl.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), 100L, null, null);
-			OFCClientImpl.createMatchForInPort(requestData, outPortNumber.longValue());
+			OFCClientImpl.createMatchForInPortDlVlan(requestData, outPortNumber.longValue(), nw_instance_id);
 			OFCClientImpl.createActionsForPopVlan(requestData, inPortNumber.longValue());
 			augmentedFlows.add(ofcIp, requestData);
 		}
