@@ -226,18 +226,18 @@ public class OFCClientImpl implements OFCClient {
 		
 		Action pushVlanAction = requestData.new Action();
 		pushVlanAction.setType(OfcClientDefinition.ACTION_TYPE_PUSH_VLAN);
-		pushVlanAction.setValue(OfcClientDefinition.ACTION_TYPE_PUSH_VLAN_ETH_TYPE);
+		pushVlanAction.setEthertype(OfcClientDefinition.ACTION_TYPE_PUSH_VLAN_ETH_TYPE);
 		retActions.add(pushVlanAction);
 		
 		Action pushSetFieldAction = requestData.new Action();
 		pushSetFieldAction.setType(OfcClientDefinition.ACTION_TYPE_SET_FIELD);
 		pushSetFieldAction.setField(OfcClientDefinition.ACTION_TYPE_SET_FIELD_VLAN_VID);
-		pushSetFieldAction.setPort(outPort);
+		pushSetFieldAction.setValue(vlanId);
 		retActions.add(pushSetFieldAction);
 		
 		Action pushOutputAction = requestData.new Action();
 		pushOutputAction.setType(OfcClientDefinition.ACTION_TYPE_OUTPUT);
-		pushOutputAction.setValue(outPort);
+		pushOutputAction.setPort(outPort);
 		retActions.add(pushOutputAction);
 		
 		if (logger.isDebugEnabled()) {
