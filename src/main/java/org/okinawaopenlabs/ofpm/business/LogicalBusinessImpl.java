@@ -765,10 +765,34 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 
 		Map<String, Object> txOfpsMap = dao.getNodeInfoFromDeviceName(conn, (String) txRouteMap.get("node_name"));
 		Map<String, Object> txInPortMap = dao.getPortInfoFromPortName(conn, (String) txRouteMap.get("node_name"), (String) txRouteMap.get("in_port_name"));
+		Map<String, Object> txOutPortMap = dao.getPortInfoFromPortName(conn, (String) txRouteMap.get("node_name"), (String) txRouteMap.get("out_port_name"));
 
 		Map<String, Object> rxOfpsMap = dao.getNodeInfoFromDeviceName(conn, (String) rxRouteMap.get("node_name"));
 		Map<String, Object> rxOutPortMap = dao.getPortInfoFromPortName(conn, (String) rxRouteMap.get("node_name"), (String) rxRouteMap.get("in_port_name"));
 
+		if (routeMapList.size() == 1 ) {
+			String ofcIp = (String)txOfpsMap.get("ip") + ":" + Integer.toString((Integer)txOfpsMap.get("port"));
+			
+			SetFlowToOFC requestData = OFCClientImpl.createRequestData(Long.decode((String)txOfpsMap.get("datapathId")), 100L, null, null);
+			Integer inPortNumber = (Integer)txInPortMap.get("number");
+			OFCClientImpl.createMatchForInPort(requestData, inPortNumber.longValue());
+			reducedFlows.add(ofcIp, requestData);
+
+			Integer outPortNumber = (Integer)txOutPortMap.get("number");
+			requestData = OFCClientImpl.createRequestData(Long.decode((String)txOfpsMap.get("datapathId")), 100L, null, null);
+			OFCClientImpl.createMatchForInPort(requestData, outPortNumber.longValue());
+			reducedFlows.add(ofcIp, requestData);
+
+			
+			/* delete route */
+			dao.deleteRouteFromLogicalLinkRid(conn, (String)logicalLinkMap.get("rid"));
+			
+			/* delete logical link */
+			dao.deleteLogicalLinkFromNodeNamePortName(conn, inPort.getDeviceName(), inPort.getPortName());
+			
+			return;
+		}
+		
 		/* make flow edge-switch tx side */
 		{
 			String ofcIp = (String)txOfpsMap.get("ip") + ":" + Integer.toString((Integer)txOfpsMap.get("port"));

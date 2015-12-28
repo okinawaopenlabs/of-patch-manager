@@ -124,13 +124,12 @@ public class OFCClientImpl implements OFCClient {
 			Builder resBuilder = resource.entity(requestData.toJson());
 			resBuilder = resBuilder.accept(MediaType.APPLICATION_JSON);
 			resBuilder = resBuilder.type(MediaType.APPLICATION_JSON);
-//			ClientResponse res = resBuilder.post(ClientResponse.class);
-//			if (res.getStatus() != STATUS_CREATED) {
-//				logger.error(res.getEntity(String.class));
-//				throw new OFCClientException(String.format(WRONG_RESPONSE, "OFC-" + url));
-//			}
-//			ret = BaseResponse.fromJson(res.getEntity(String.class));
-			ret.setStatus(STATUS_SUCCESS);
+			ClientResponse res = resBuilder.post(ClientResponse.class);
+			if (res.getStatus() != STATUS_SUCCESS) {
+				logger.error(res.getStatus());
+				throw new OFCClientException(String.format(WRONG_RESPONSE, "OFC-" + url));
+			}
+			ret.setStatus(res.getStatus());
 		} catch (UniformInterfaceException uie) {
 			logger.error(uie.getMessage());
 			throw new OFCClientException(String.format(CONNECTION_FAIL, "OFC-" + url));
@@ -233,7 +232,7 @@ public class OFCClientImpl implements OFCClient {
 		Action pushSetFieldAction = requestData.new Action();
 		pushSetFieldAction.setType(OfcClientDefinition.ACTION_TYPE_SET_FIELD);
 		pushSetFieldAction.setField(OfcClientDefinition.ACTION_TYPE_SET_FIELD_VLAN_VID);
-		pushSetFieldAction.setValue(vlanId);
+		pushSetFieldAction.setPort(outPort);
 		retActions.add(pushSetFieldAction);
 		
 		Action pushOutputAction = requestData.new Action();
@@ -261,7 +260,7 @@ public class OFCClientImpl implements OFCClient {
 
 		Action pushOutputAction = requestData.new Action();
 		pushOutputAction.setType(OfcClientDefinition.ACTION_TYPE_OUTPUT);
-		pushOutputAction.setValue(outPort);
+		pushOutputAction.setPort(outPort);
 		retActions.add(pushOutputAction);
 
 		if (logger.isDebugEnabled()) {
@@ -280,7 +279,7 @@ public class OFCClientImpl implements OFCClient {
 
 		Action pushOutputAction = requestData.new Action();
 		pushOutputAction.setType(OfcClientDefinition.ACTION_TYPE_OUTPUT);
-		pushOutputAction.setValue(outPort);
+		pushOutputAction.setPort(outPort);
 		retActions.add(pushOutputAction);
 		
 		if (logger.isDebugEnabled()) {
