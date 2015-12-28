@@ -567,6 +567,24 @@ public interface Dao {
 	 * @throws SQLException
 	 */		
 	Map<String, Object> getOfcInfo(Connection conn, String ofcIpPort) throws SQLException;
+
+    /**
+     * Get OfcInfo in db.
+     * @param conn, ip, port
+     * @return
+     * @throws SQLException
+     */             
+    Map<String, Object> getOfcRidInfo(Connection conn, String ofcIpPort) throws SQLException;
+	
+	/**
+     * Update OfcInfo.
+     * @param conn
+     * @param ofcIp new openflow controller ip
+     * @param ofcPort new openflow controller port
+     * @return
+     * @throws SQLException
+     */
+    int updateOfcInfo(Connection conn, String ofcIpPort, String ip, Integer port) throws SQLException;	
 	
 	/**
 	 * Create OfcInfo.

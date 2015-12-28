@@ -14,17 +14,24 @@
  *   limitations under the License.
  */
 
-package org.okinawaopenlabs.ofpm.business;
+package org.okinawaopenlabs.ofpm.json.device;
 
-public interface LogicalBusiness {
-	public String getLogicalTopology(String deviceNames);
+import java.lang.reflect.Type;
 
-	public String updateLogicalTopology(String requestedTopologyJson);
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
-	/**
-	 * Set all flow in OFP-DB to OFPS that is presented by datapathId.
-	 * @param requestedData datapathId
-	 * @return
-	 */
-	public String initFlow(String requestedData);
+public class OfcInfoUpdateJsonIn extends OfcInfo {
+	public String toJson() {
+		Gson gson = new Gson();
+		return gson.toJson(this, new TypeToken<OfcInfoUpdateJsonIn>(){}.getType());
+	}
+	public static OfcInfoUpdateJsonIn fromJson(String json) {
+		Gson gson = new Gson();
+		return gson.fromJson(json, new TypeToken<OfcInfoUpdateJsonIn>(){}.getType());
+	}
+	@Override
+	public String toString() {
+		return this.toJson();
+	}
 }

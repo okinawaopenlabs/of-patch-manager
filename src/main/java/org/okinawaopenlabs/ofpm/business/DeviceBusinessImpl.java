@@ -49,6 +49,7 @@ import org.okinawaopenlabs.ofpm.json.device.OfcInfo;
 import org.okinawaopenlabs.ofpm.json.device.OfcInfoCreateJsonIn;
 import org.okinawaopenlabs.ofpm.json.device.OfcInfoListReadJsonOut;
 import org.okinawaopenlabs.ofpm.json.device.OfcInfoReadJsonOut;
+import org.okinawaopenlabs.ofpm.json.device.OfcInfoUpdateJsonIn;
 import org.okinawaopenlabs.ofpm.json.device.PortInfo;
 import org.okinawaopenlabs.ofpm.utils.Config;
 import org.okinawaopenlabs.ofpm.utils.ConfigImpl;
@@ -57,6 +58,7 @@ import org.okinawaopenlabs.ofpm.validate.common.BaseValidate;
 import org.okinawaopenlabs.ofpm.validate.device.DeviceInfoCreateJsonInValidate;
 import org.okinawaopenlabs.ofpm.validate.device.DeviceInfoUpdateJsonInValidate;
 import org.okinawaopenlabs.ofpm.validate.device.OfcInfoCreateJsonInValidate;
+import org.okinawaopenlabs.ofpm.validate.device.OfcInfoUpdateJsonInValidate;
 import org.okinawaopenlabs.ofpm.validate.device.PortInfoCreateJsonInValidate;
 import org.okinawaopenlabs.ofpm.validate.device.PortInfoUpdateJsonInValidate;
 import org.okinawaopenlabs.orientdb.client.ConnectionUtilsJdbc;
@@ -996,8 +998,87 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 	@Override
 	public String updateOfc(String ofcIpPort, String updateOfcInfoJson) {
 		// TODO Auto-generated method stub
-		return null;
+	String fname = "updateOfc";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(OfcPort=%s, updateOfcInfoJson=%s) - start", fname, ofcIpPort, updateOfcInfoJson));
+		}
+		BaseResponse res = new BaseResponse();
+
+		/* PHASE 1: json -> OfcInfoUpdateJosnIn and check validation */
+		OfcInfoUpdateJsonIn newOfcInfo = null;
+//		newOfcInfo = OfcInfoUpdateJsonIn.fromJson(updateOfcInfoJson);
+		try {
+			newOfcInfo = OfcInfoUpdateJsonIn.fromJson(updateOfcInfoJson);
+			OfcInfoUpdateJsonInValidate validator = new OfcInfoUpdateJsonInValidate();
+			validator.checkValidation(ofcIpPort, newOfcInfo);
+		} catch (JsonSyntaxException jse) {
+			logger.error(jse);
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(INVALID_JSON);
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		} catch (ValidateException ve) {
+			logger.error(ve);
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(ve.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}	
+			return ret;
+		}
+		
+		ConnectionUtilsJdbc utils = null;
+		Connection           conn = null;
+		try {
+			utils = new ConnectionUtilsJdbcImpl();
+			conn  = utils.getConnection(false);
+
+			Dao dao = new DaoImpl(utils);
+
+			int status = dao.updateOfcInfo(
+					conn,
+					ofcIpPort,
+					newOfcInfo.getIp(),
+					newOfcInfo.getPort());
+
+			switch (status) {
+				case DB_RESPONSE_STATUS_NOT_FOUND:
+					utils.rollback(conn);
+					res.setStatus(STATUS_NOTFOUND);
+					res.setMessage(String.format(NOT_FOUND));
+					return res.toJson();
+			
+/*
+				case DB_RESPONSE_STATUS_EXIST:
+					utils.rollback(conn);
+					res.setStatus(STATUS_CONFLICT);
+					res.setMessage(String.format(ALREADY_EXIST, newOfcInfo.getIp()));
+					return res.toJson();
+*/
+			}
+
+			utils.commit(conn);
+			res.setStatus(STATUS_SUCCESS);
+			return res.toJson();
+		} catch (SQLException | RuntimeException e) {
+			utils.rollback(conn);
+			OFPMUtils.logErrorStackTrace(logger, e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			return res.toJson();
+		} finally {
+			utils.close(conn);
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+		}
 	}
+
 
 	@Override
 	public String readOfcList() {

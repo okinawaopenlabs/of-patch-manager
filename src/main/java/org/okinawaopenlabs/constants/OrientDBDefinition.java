@@ -71,7 +71,8 @@ public class OrientDBDefinition {
 	public static final String SQL_GET_PORTRID_FROM_DEVICENAME_PORTNUMBER = "select @rid.asString() from port where node_name = ? and number = ?";
 	public static final String SQL_GET_PORT_BAND_FROM_DEVICENAME_PORTNAME  = "select band from port where name = ? and node_name = ?";
 	public static final String SQL_GET_OFC_INFO_LIST = "select ip, port from ofc";
-
+	public static final String SQL_GET_OFC_INFO_FROM_IP_PORT = "select @rid.asString(), ip, port from ofc where ip = ? and port = ?";
+	
 	public static final String SQL_GET_CABLE_FROM_IN_PORTRID =
 			"select in.node_name as inDeviceName, in.name as inPortName, in.number as inPortNumber, "
 			+ "out.node_name as outDeviceName, out.name as outPortName, out.number as outPortNumber, @RID.asString(), band, used "
@@ -170,6 +171,7 @@ public class OrientDBDefinition {
 	public static final String SQL_UPDATE_PATCH_WIRING_OUTDEVICENAME = "update patchWiring set outDeviceName = ? where outDeviceName = ?";
 	public static final String SQL_UPDATE_PATCH_WIRING_INPORTNAME  = "update patchWiring set  inPortName = ? where  inPortName = ? and  inDeviceName = ?";
 	public static final String SQL_UPDATE_PATCH_WIRING_OUTPORTNAME = "update patchWiring set outPortName = ? where outPortName = ? and outDeviceName = ?";
+	public static final String SQL_UPDATE_OFC_INFO = "update ofc set ip = ?, port = ? where @RID = ?";
 
 	/* OFP Flag */
 	public static final String OFP_FLAG_TRUE  = "true";

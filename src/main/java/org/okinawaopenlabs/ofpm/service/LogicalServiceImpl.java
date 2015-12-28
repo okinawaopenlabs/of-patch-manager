@@ -100,28 +100,6 @@ public class LogicalServiceImpl implements LogicalService {
 		return Response.ok(resLogiBiz).type(MediaType.APPLICATION_JSON_TYPE).build();
 	}
 
-	@Override
-	public Response setFlow(String requestedData) {
-		final String fname = "setFlow";
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(requestedData=%s) - start", fname, requestedData));
-		}
-
-		this.injector = Guice.createInjector(new AbstractModule() {
-			@Override
-			protected void configure() {
-				bind(LogicalBusiness.class).to(LogicalBusinessImpl.class);
-			}
-		});
-		LogicalServiceImpl main = this.injector.getInstance(LogicalServiceImpl.class);
-		String resLogiBiz = main.logiBiz.setFlow(requestedData);
-
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(ret=%s) - end", fname, resLogiBiz));
-		}
-		return Response.ok(resLogiBiz).type(MediaType.APPLICATION_JSON_TYPE).build();
-	}
-
 	public Response initFlow(String requestedData) {
 		final String fname = "initFlow";
 		if (logger.isDebugEnabled()) {
