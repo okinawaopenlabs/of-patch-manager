@@ -46,6 +46,9 @@ public interface ConnectionUtilsJdbc {
      */
     public abstract <T> T query(Connection conn, String sql,
             ResultSetHandler<T> handler, Object... params) throws SQLException;
+
+    public abstract <T> T query(Connection conn, String sql,
+            ResultSetHandler<T> handler) throws SQLException;
     /**
      * commit
      * @param conn

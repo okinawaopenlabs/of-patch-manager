@@ -142,4 +142,17 @@ public class ConnectionUtilsJdbcImpl implements ConnectionUtilsJdbc {
         return records;
     }
 
+    @Override
+    public <T> T query(Connection conn, String sql,
+            ResultSetHandler<T> handler) throws SQLException {
+        if (logger.isDebugEnabled()) {
+            logger.debug(String.format("query(conn=%s, sql=%s, handler=%s) - start ", conn, sql, handler));
+        }
+        QueryRunner qRunner = new QueryRunner();
+        T records = qRunner.query(conn, sql, handler);
+        if (logger.isDebugEnabled()) {
+            logger.debug(String.format("query(records=%s) - end ", records));
+        }
+        return records;
+    }
 }

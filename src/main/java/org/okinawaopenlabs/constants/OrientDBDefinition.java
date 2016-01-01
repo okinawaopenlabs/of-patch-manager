@@ -85,7 +85,10 @@ public class OrientDBDefinition {
 			"select in.node_name as inDeviceName, in.name as inPortName, in.number as inPortNumber, "
 			+ "out.node_name as outDeviceName, out.name as outPortName, out.number as outPortNumber, @RID, band, used "
 			+ "from link where in.node_name = ? and out.@class = 'port'";
-
+	public static final String SQL_GET_CABLE_LINKS_ALL = 
+			"select in.node_name as inDeviceName, in.name as inPortName, in.number as inPortNumber, "
+			+ "out.node_name as outDeviceName, out.name as outPortName, out.number as outPortNumber, @RID, band, used from cable limit 10000";
+	
 	public static final String SQL_GET_PATCH_WIRINGS_FROM_DEVICENAME          =
 			"select out, in, parent, sequence, inDeviceName, inPortName, outDeviceName, outPortName from patchWiring where inDeviceName=?";
 	public static final String SQL_GET_LOGICAL_LINKS_FROM_DEVICENAME          =

@@ -18,6 +18,8 @@ package org.okinawaopenlabs.ofpm.business;
 
 public interface PhysicalBusiness {
 
+	public String getPhysicalTopology();
+
 	public String connectPhysicalLink(String physicalLinkJson);
 
 	public String disconnectPhysicalLink(String physicalLinkJson);

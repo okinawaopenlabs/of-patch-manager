@@ -1951,4 +1951,30 @@ public class DaoImpl implements Dao {
 		}
 		return ret;
 	}
+
+	@Override
+	public List<Map<String, Object>> getCableList(Connection conn) throws SQLException {
+		final String fname = "getCableList";
+		if (logger.isTraceEnabled()){
+			logger.trace(String.format("%s(conn=%s) - start", fname, conn));
+		}
+		List<Map<String, Object>> maps = null;
+		MapListHandler rhs = new MapListHandler(
+				"inDeviceName",  "inPortName",  "inPortNumber",
+				"outDeviceName", "outPortName", "outPortNumber",
+				"@rid.asString()", "band", "used");
+		try {
+			maps = utilsJdbc.query(
+					conn,
+					SQL_GET_CABLE_LINKS_ALL,
+					rhs);
+			return maps;
+		} catch (Exception e){
+			throw new SQLException(e.getMessage());
+		} finally {
+			if (logger.isTraceEnabled()){
+				logger.trace(String.format("%s(ret=%s) - end", fname, maps));
+			}
+		}
+	}
 }

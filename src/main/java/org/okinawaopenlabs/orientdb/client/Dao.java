@@ -605,4 +605,5 @@ public interface Dao {
 	 */
 	int deleteOfcInfo(Connection conn, String ofcIpPort) throws SQLException;
 
+	public List<Map<String, Object>> getCableList(Connection conn) throws SQLException;
 }
