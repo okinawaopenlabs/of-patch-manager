@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.gson.JsonSyntaxException;
+import com.orientechnologies.orient.core.record.impl.ODocument;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -397,9 +398,11 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 				DeviceInfo dev = new DeviceInfo();
 				dev.setDeviceName((String) infoMap.get("name"));
 				dev.setDeviceType((String) infoMap.get("type"));
-				dev.setDatapathId((String) infoMap.get("datapathId"));
 				dev.setLocation((String) infoMap.get("location"));
 				dev.setTenant((String) infoMap.get("tenant"));
+				if(infoMap.containsKey("dpid")){
+					dev.setDatapathId((String)infoMap.get("dpid"));
+				}
 				if(infoMap.containsKey("ip") && infoMap.containsKey("port")){
 					dev.setOfcIp(((String)infoMap.get("ip") + ":" + (String)infoMap.get("port").toString()));
 				}

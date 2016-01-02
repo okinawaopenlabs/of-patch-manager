@@ -784,14 +784,23 @@ public class DaoImpl implements Dao {
 			logger.trace(String.format("%s(conn=%s) - start", fname, conn));
 		}
 		List<Map<String, Object>> maps = null;
-		List<Map<String, Object>> rent_resource_maps = null;
 		try {
-			maps = utilsJdbc.query(conn, SQL_GET_NODE_INFO_LIST_FM_SYS, new MapListHandler());
-			rent_resource_maps = utilsJdbc.query(conn, SQL_GET_NODE_INFO_LIST_FM_RENT, new MapListHandler());
+			maps = utilsJdbc.query(conn, SQL_GET_NODE_INFO_LIST, new MapListHandler());
 
-			for(Map<String, Object> rent_res: rent_resource_maps){
-				maps.add(rent_res);
+			List<Map<String, Object>> ofsMaps = utilsJdbc.query(conn, SQL_GET_OFS_INFO_LIST, new MapListHandler());
+			for (Map<String, Object> infoMap : maps) {
+				for (Map<String, Object> ofsMap : ofsMaps) {
+					String rid = (String)infoMap.get("rid");
+					if(rid.equals((String) ofsMap.get("node_id"))){
+						infoMap.put("sw_instance_id", ofsMap.get("rid"));
+						infoMap.put("dpid", (String) ofsMap.get("dpid"));
+						infoMap.put("ip", (String) ofsMap.get("ip"));
+						infoMap.put("port", (Integer) ofsMap.get("port"));
+					}
+				}
 			}
+
+			
 			return maps;
 		} catch (Exception e){
 			throw new SQLException(e.getMessage());
@@ -858,13 +867,21 @@ public class DaoImpl implements Dao {
 		}
 		int ret = DB_RESPONSE_STATUS_OK;
 		try {
-			Object[] params = {deviceName, location};
+			Object[] params = {deviceName, location, deviceType, tenant};
 			int nRecords = utilsJdbc.update(conn, SQL_INSERT_NODE_INFO, params);
 			if (nRecords == 0) {
 				return DB_RESPONSE_STATUS_EXIST;
 			}
 
-			ret = createResourceInfo(conn, deviceName, deviceType, datapathId, tenant, ofcIp);
+			if (ArrayUtils.contains(SYSTEM_RESOURCE_TYPES, deviceType)) {
+				String nodeRid = this.getNodeRidFromDeviceName(conn, deviceName);
+				if (StringUtils.isBlank(nodeRid)) {
+					return DB_RESPONSE_STATUS_NOT_FOUND;
+				}
+
+				ret = this.createOfsInfo(conn, nodeRid, datapathId, ofcIp);
+			}
+
 			
 			return ret;
 		} catch (Exception e) {
@@ -952,10 +969,10 @@ public class DaoImpl implements Dao {
 		}
 	}
 
-	public int createOfsInfo(Connection conn, String resourceRid, String datapathId, String ofcIp) throws SQLException {
+	public int createOfsInfo(Connection conn, String nodeRid, String datapathId, String ofcIp) throws SQLException {
 		final String fname = "createOfsInfo";
 		if (logger.isTraceEnabled()) {
-			logger.trace(String.format("%s(conn=%s, resourceRid=%s, datapathId=%s, ofcIp=%s) - start", fname, conn, resourceRid, datapathId, ofcIp));
+			logger.trace(String.format("%s(conn=%s, nodeRid=%s, datapathId=%s, ofcIp=%s) - start", fname, conn, nodeRid, datapathId, ofcIp));
 		}
 		int ret = DB_RESPONSE_STATUS_OK;
 		try {
@@ -964,17 +981,32 @@ public class DaoImpl implements Dao {
 				if (StringUtils.isBlank(ofcRid)) {
 					return DB_RESPONSE_STATUS_NOT_FOUND;
 				}
-//				Object[] params = {datapathId, resourceRid, ofcRid};
+//				Object[] params = {datapathId, nodeRid, ofcRid};
 //				int nRecords = utilsJdbc.update(conn, SQL_INSERT_OFS_INFO, params);
 				String sql = SQL_INSERT_OFS_INFO;
 				sql = sql.replaceFirst("\\?", datapathId);
-				sql = sql.replaceFirst("\\?", resourceRid);
+				sql = sql.replaceFirst("\\?", nodeRid);
 				sql = sql.replaceFirst("\\?", ofcRid);
 				int nRecords = utilsJdbc.update(conn, sql);
 
 				if (nRecords == 0) {
 					return DB_RESPONSE_STATUS_EXIST;
-				}					
+				}
+
+				String ofsRid = this.getOfsRid(conn, nodeRid);
+				if (StringUtils.isBlank(ofsRid)) {
+					return DB_RESPONSE_STATUS_NOT_FOUND;
+				}
+				
+				sql = SQL_UPDATE_NODE_SW_INSTANCE_INFO_FROM_RID;
+				sql = sql.replaceFirst("\\?", "OpenFlowSwitch");
+				sql = sql.replaceFirst("\\?", ofsRid);
+				sql = sql.replaceFirst("\\?", nodeRid);				
+				int result = utilsJdbc.update(conn, sql);
+				if (result == 0) {
+					ret = DB_RESPONSE_STATUS_EXIST;
+					return ret;
+				}
 			}
 
 			return ret;
@@ -986,7 +1018,32 @@ public class DaoImpl implements Dao {
 			}
 		}
 	}
-	
+
+	public String getOfsRid(Connection conn, String nodeRid) throws SQLException {
+        final String fname = "getOfsRid";
+        if (logger.isTraceEnabled()) {
+                logger.trace(String.format("%s(conn=%s, nodeRid=%s) - start", fname, conn, nodeRid));
+        }
+
+        String ret = null;
+        try {
+                List<Map<String, Object>> records = utilsJdbc.query(
+                                conn,
+                                SQL_GET_OFS_RID_FROM_NODE_ID,
+                                new MapListHandler("rid"),
+                                nodeRid);
+                if (records != null && !records.isEmpty() && records.get(0) != null) {
+                        ret = (String) records.get(0).get("rid");
+                }
+                return ret;
+        } catch (Exception e) {
+                throw new SQLException(e.getMessage());
+        } finally {
+                if (logger.isTraceEnabled()) {
+                        logger.trace(String.format("%s(ret=%s) - end", fname, ret));
+                }
+        }
+}
     @Override
     public String getOfcRid(Connection conn, String ofcIp) throws SQLException {
             final String fname = "getOfcRid";
@@ -1058,29 +1115,42 @@ public class DaoImpl implements Dao {
 			if (StringUtils.isBlank(datapathId)) {
 				datapathId = (String)current.get("datapathId");
 			}
-			if (StringUtils.isBlank(ofcIp)) {
-				ofcIp = (String)current.get("ofcIp");
-			}
-			String ofcRid = this.getOfcRid(conn, ofcIp);
-			if (StringUtils.isBlank(ofcRid)) {
-				ret = DB_RESPONSE_STATUS_NOT_FOUND;
-				return ret;
-			}
 
-//			Object[] params = {deviceName, datapathId, location, tenant, ofcRid, nodeRid};
+			//			Object[] params = {deviceName, datapathId, location, tenant, ofcRid, nodeRid};
 //			int result = utilsJdbc.update(conn, SQL_UPDATE_NODE_INFO_FROM_RID, params);
 			String sql = SQL_UPDATE_NODE_INFO_FROM_RID;
 			sql = sql.replaceFirst("\\?", deviceName);
-			sql = sql.replaceFirst("\\?", datapathId);
 			sql = sql.replaceFirst("\\?", location);
 			sql = sql.replaceFirst("\\?", tenant);
-			sql = sql.replaceFirst("\\?", ofcRid);
 			sql = sql.replaceFirst("\\?", nodeRid);
 			int result = utilsJdbc.update(conn, sql);
 			if (result == 0) {
 				ret = DB_RESPONSE_STATUS_EXIST;
 				return ret;
 			}
+
+			if (ArrayUtils.contains(SYSTEM_RESOURCE_TYPES, (String)current.get("type"))) {
+				if (StringUtils.isBlank(ofcIp)) {
+					ofcIp = (String)current.get("ofcIp");
+				}
+				String ofcRid = this.getOfcRid(conn, ofcIp);
+				if (StringUtils.isBlank(ofcRid)) {
+					ret = DB_RESPONSE_STATUS_NOT_FOUND;
+					return ret;
+				}
+
+				
+				sql = SQL_UPDATE_OFS_INFO_FROM_RID;
+				sql = sql.replaceFirst("\\?", datapathId);
+				sql = sql.replaceFirst("\\?", ofcRid);
+				sql = sql.replaceFirst("\\?", (String)current.get("sw_instance_id"));
+				result = utilsJdbc.update(conn, sql);
+				if (result == 0) {
+					ret = DB_RESPONSE_STATUS_EXIST;
+					return ret;
+				}
+			}
+			
 //TODO
 //			Object[] updDevNamePara = {deviceName, keyDeviceName};
 //			utilsJdbc.update(conn, SQL_UPDATE_PORT_DEVICENAME, updDevNamePara);
@@ -1135,23 +1205,7 @@ public class DaoImpl implements Dao {
 
 			if (ArrayUtils.contains(SYSTEM_RESOURCE_TYPES, (String)deviceMap.get("type"))) {
 				String sql = SQL_DELETE_OFS_FROM_RID;
-				sql = sql.replaceFirst("\\?", (String)deviceMap.get("ofs_rid"));
-				int nRecord = utilsJdbc.update(conn, sql);
-				if (nRecord != 1) {
-					ret = DB_RESPONSE_STATUS_FAIL;
-					return ret;
-				}
-
-				sql = SQL_DELETE_SYSTEM_RESOURCE_FROM_RID;
-				sql = sql.replaceFirst("\\?", (String)deviceMap.get("system_resource_rid"));
-				nRecord = utilsJdbc.update(conn, sql);
-				if (nRecord != 1) {
-					ret = DB_RESPONSE_STATUS_FAIL;
-					return ret;
-				}
-			} else {
-				String sql = SQL_DELETE_RENT_RESOURCE_FROM_RID;
-				sql = sql.replaceFirst("\\?", (String)deviceMap.get("rent_resource_rid"));
+				sql = sql.replaceFirst("\\?", (String)deviceMap.get("sw_instance_id"));
 				int nRecord = utilsJdbc.update(conn, sql);
 				if (nRecord != 1) {
 					ret = DB_RESPONSE_STATUS_FAIL;

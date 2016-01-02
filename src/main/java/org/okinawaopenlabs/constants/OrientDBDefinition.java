@@ -33,7 +33,7 @@ public class OrientDBDefinition {
 	public static final String NODE_TYPE_AGGREGATE_SW = "Aggregate_Switch";
 	public static final String NODE_TYPE_SITES_SW = "Sites_Switch";
 
-	public static final String[] SYSTEM_RESOURCE_TYPES = {NODE_TYPE_LEAF, NODE_TYPE_SPINE, NODE_TYPE_AGGREGATE_SW, NODE_TYPE_SITES_SW};
+	public static final String[] SYSTEM_RESOURCE_TYPES = {NODE_TYPE_LEAF, NODE_TYPE_SPINE};
 	
 	/* DB Response */
 	public static final int DB_RESPONSE_STATUS_OK = 200;
@@ -49,8 +49,10 @@ public class OrientDBDefinition {
 	public static final String SQL_NODE_KEY_FLAG = "ofpFlag";
 
 	/* select */
-	public static final String SQL_GET_NODE_INFO_LIST_FM_SYS = "select system_resource_id.node_id.@rid.asString() as rid, system_resource_id.asString() as system_resource_rid, @rid.asString() as ofs_rid, system_resource_id.node_id.name as name, system_resource_id.node_id.location as location, system_resource_id.type as type, system_resource_id.tenant as tenant, dpid as datapathId, ofc_id.ip as ip, ofc_id.port as port from ofs";
-	public static final String SQL_GET_NODE_INFO_LIST_FM_RENT = "select system_resource_id.node_id.@rid.asString() as rid, @rid.asString() as rent_resource_rid, node_id.name as name, node_id.location as location, type, tenant from rentResource";
+//	public static final String SQL_GET_NODE_INFO_LIST = "select @rid.asString() as rid, name, location, type, tenant, sw_instance_type, sw_instance_id from node limit 10000";
+//	public static final String SQL_GET_NODE_INFO_LIST = "select @rid.asString() as rid, name, location, type, tenant, sw_instance_id.dpid as datapathId, sw_instance_id.ofc_id.ip as ip, sw_instance_id.ofc_id.port as port from node limit 10000";
+	public static final String SQL_GET_NODE_INFO_LIST = "select @rid.asString() as rid, name, location, type, tenant from node limit 10000";
+//	public static final String SQL_GET_NODE_INFO_LIST = "select * from node limit 10000";
 	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_NAME = "select @rid.asString(), name, type from node where name=?";
 	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_NAME_FM_SYS = "select system_resource_id.node_id.@rid.asString() as rid, system_resource_id.node_id.name as name, system_resource_id.node_id.location as location, system_resource_id.type as type, system_resource_id.tenant as tenant, dpid as datapathId, ofc_id.ip as ip, ofc_id.port as port from ofs where system_resource_id.node_id.name=?";
 	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_NAME_FM_RENT = "select system_resource_id.node_id.@rid.asString() as rid, node_id.name as name, node_id.location as location, type, tenant from rentResource where node_id.name=?";
@@ -70,6 +72,8 @@ public class OrientDBDefinition {
 	public static final String SQL_GET_PORT_RID_FROM_DEVICENAME_PORTNAME  = "select @rid.asString() from port where name = ? and node_name = ?";
 	public static final String SQL_GET_PORTRID_FROM_DEVICENAME_PORTNUMBER = "select @rid.asString() from port where node_name = ? and number = ?";
 	public static final String SQL_GET_PORT_BAND_FROM_DEVICENAME_PORTNAME  = "select band from port where name = ? and node_name = ?";
+	public static final String SQL_GET_OFS_INFO_LIST = "select @rid.asString() as rid, ofc_id.@rid.asString() as ofc_id, node_id.@rid.asString() as node_id, dpid, ofc_id.ip as ip, ofc_id.port as port from ofs";
+	public static final String SQL_GET_OFS_RID_FROM_NODE_ID = "select @rid.asString() as rid, ofc_id.@rid.asString() as ofc_id, dpid, ofc_id.ip as ip, ofc_id.port as port from ofs where node_id=?";
 	public static final String SQL_GET_OFC_INFO_LIST = "select ip, port from ofc";
 	public static final String SQL_GET_OFC_INFO_FROM_IP_PORT = "select @rid.asString(), ip, port from ofc where ip = ? and port = ?";
 	
@@ -134,7 +138,7 @@ public class OrientDBDefinition {
 
 	/* insert */
 	public static final String SQL_INSERT_NODE      = "create vertex node set name = '%s', type = '%s'";
-	public static final String SQL_INSERT_NODE_INFO = "create vertex node set name = ?, location = ?";
+	public static final String SQL_INSERT_NODE_INFO = "create vertex node set name = ?, location = ?,type = ?, tenant = ?";
 	public static final String SQL_INSERT_PORT      = "create vertex port set name = '%s', number = %s, band = %s, node_name = '%s'";
 	public static final String SQL_INSERT_PORT_INFO = "create vertex port set name = ?, number = ?, band = ?, node_name = ?";
 	public static final String SQL_INSERT_BUS  = "create edge bus from ? to ? set used = ?";
@@ -143,7 +147,7 @@ public class OrientDBDefinition {
 	public static final String SQL_INSERT_INTERNALMAC = "insert into internalMacMap(node_name, inPort, srcMac, dstMac, internalMac) values (?, ?, ?, ?, ?)";
 	public static final String SQL_INSERT_SYSTEM_RESOURCE_INFO = "insert into systemResource(node_id, type, tenant) values (?, '?', '?')";
 	public static final String SQL_INSERT_RENT_RESOURCE_INFO = "insert into rentResource(node_id, type, tenant) values (?, '?', '?')";
-	public static final String SQL_INSERT_OFS_INFO = "insert into ofs(dpid, system_resource_id, ofc_id) values ('?', ?, ?)";
+	public static final String SQL_INSERT_OFS_INFO = "insert into ofs(dpid, node_id, ofc_id) values ('?', ?, ?)";
 	public static final String SQL_INSERT_OFC_INFO = "insert into ofc(ip, port) values (?, ?)";
 //	public static final String SQL_INSERT_LOGICAL_LINK = "insert into logicalLink(in_node_id, in_node_name, in_port_id, in_port_name, out_node_id, out_node_name, out_port_id, out_port_name, nw_instance_id, nw_instance_type) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	public static final String SQL_INSERT_LOGICAL_LINK = "insert into logicalLink(in_node_id, in_node_name, in_port_id, in_port_name, out_node_id, out_node_name, out_port_id, out_port_name, nw_instance_id, nw_instance_type) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -166,7 +170,9 @@ public class OrientDBDefinition {
 	public static final String SQL_DELETE_ROUTE_FROM_LOGICAL_LINK_ID = "delete from route where logical_link_id=?";
 
 	/* update */
-	public static final String SQL_UPDATE_NODE_INFO_FROM_RID = "update node set name = '?', datapathId = '?' , location = '?', tenant = '?', ofcIp = ? where @RID = ?";
+	public static final String SQL_UPDATE_NODE_INFO_FROM_RID = "update node set name = '?', location = '?', tenant = '?' where @RID = ?";
+	public static final String SQL_UPDATE_OFS_INFO_FROM_RID = "update ofs set dpid = '?' , ofc_id = ? where @RID = ?";
+	public static final String SQL_UPDATE_NODE_SW_INSTANCE_INFO_FROM_RID = "update node set sw_instance_type = '?', sw_instance_id = ? where @RID = ?";
 	public static final String SQL_UPDATE_PORT_INFO_FROM_RID = "update port set name = ?, number = ?, band = ?, where @RID = ?";
 	public static final String SQL_UPDATE_PORT_DEVICENAME = "update port set node_name = ? where node_name = ?";
 	public static final String SQL_UPDATE_CALBE_LINK_USED_VALUE_FROM_PORT_RID = "update link set used = ? where out.@class='port' and in.@class='port' and (in.@RID = ? or out.@RID = ?)";
