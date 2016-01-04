@@ -72,7 +72,7 @@ public class OrientDBDefinition {
 	public static final String SQL_GET_PORT_RID_FROM_DEVICENAME_PORTNAME  = "select @rid.asString() from port where name = ? and node_name = ?";
 	public static final String SQL_GET_PORTRID_FROM_DEVICENAME_PORTNUMBER = "select @rid.asString() from port where node_name = ? and number = ?";
 	public static final String SQL_GET_PORT_BAND_FROM_DEVICENAME_PORTNAME  = "select band from port where name = ? and node_name = ?";
-	public static final String SQL_GET_OFS_INFO_LIST = "select @rid.asString() as rid, ofc_id.@rid.asString() as ofc_id, node_id.@rid.asString() as node_id, dpid, ofc_id.ip as ip, ofc_id.port as port from ofs";
+	public static final String SQL_GET_OFS_INFO_LIST = "select @rid.asString() as rid, ofc_id.@rid.asString() as ofc_id, node_id.@rid.asString() as node_id, dpid as datapathId, ofc_id.ip as ip, ofc_id.port as port from ofs";
 	public static final String SQL_GET_OFS_RID_FROM_NODE_ID = "select @rid.asString() as rid, ofc_id.@rid.asString() as ofc_id, dpid, ofc_id.ip as ip, ofc_id.port as port from ofs where node_id=?";
 	public static final String SQL_GET_OFC_INFO_LIST = "select ip, port from ofc";
 	public static final String SQL_GET_OFC_INFO_FROM_IP_PORT = "select @rid.asString(), ip, port from ofc where ip = ? and port = ?";

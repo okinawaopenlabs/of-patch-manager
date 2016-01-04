@@ -400,8 +400,8 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 				dev.setDeviceType((String) infoMap.get("type"));
 				dev.setLocation((String) infoMap.get("location"));
 				dev.setTenant((String) infoMap.get("tenant"));
-				if(infoMap.containsKey("dpid")){
-					dev.setDatapathId((String)infoMap.get("dpid"));
+				if(infoMap.containsKey("datapathId")){
+					dev.setDatapathId((String)infoMap.get("datapathId"));
 				}
 				if(infoMap.containsKey("ip") && infoMap.containsKey("port")){
 					dev.setOfcIp(((String)infoMap.get("ip") + ":" + (String)infoMap.get("port").toString()));

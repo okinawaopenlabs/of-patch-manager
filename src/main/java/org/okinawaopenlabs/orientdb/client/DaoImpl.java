@@ -793,7 +793,7 @@ public class DaoImpl implements Dao {
 					String rid = (String)infoMap.get("rid");
 					if(rid.equals((String) ofsMap.get("node_id"))){
 						infoMap.put("sw_instance_id", ofsMap.get("rid"));
-						infoMap.put("dpid", (String) ofsMap.get("dpid"));
+						infoMap.put("datapathId", (String) ofsMap.get("datapathId"));
 						infoMap.put("ip", (String) ofsMap.get("ip"));
 						infoMap.put("port", (Integer) ofsMap.get("port"));
 					}
