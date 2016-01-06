@@ -277,7 +277,8 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 					newDeviceInfo.getLocation(),
 					newDeviceInfo.getTenant(),
 					newDeviceInfo.getDatapathId(),
-					newDeviceInfo.getOfcIp());
+					newDeviceInfo.getOfcIp(),
+					newDeviceInfo.getDeviceType());
 
 			switch (status) {
 				case DB_RESPONSE_STATUS_NOT_FOUND:
@@ -290,6 +291,12 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 					utils.rollback(conn);
 					res.setStatus(STATUS_CONFLICT);
 					res.setMessage(String.format(ALREADY_EXIST, newDeviceInfo.getDeviceName()));
+					return res.toJson();
+
+				case DB_RESPONSE_STATUS_INVALID_ERR:
+					utils.rollback(conn);
+					res.setStatus(STATUS_BAD_REQUEST);
+					res.setMessage(String.format(INVALID_PARAMETER, "deviceType"));
 					return res.toJson();
 			}
 

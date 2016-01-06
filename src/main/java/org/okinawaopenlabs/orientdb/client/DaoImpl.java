@@ -34,7 +34,10 @@ import com.orientechnologies.orient.core.record.impl.ODocument;
 
 import static org.okinawaopenlabs.constants.ErrorMessage.*;
 import static org.okinawaopenlabs.constants.OfpmDefinition.ENABLE_DEVICE_TYPES;
+import static org.okinawaopenlabs.constants.OfpmDefinition.LEGACY_DEVICE_TYPES;
 import static org.okinawaopenlabs.constants.OfpmDefinition.STATUS_NOTFOUND;
+import static org.okinawaopenlabs.constants.OfpmDefinition.OPEN_FLOW_DEVICE_TYPES;
+
 import static org.okinawaopenlabs.constants.OrientDBDefinition.*;
 
 import org.okinawaopenlabs.ofpm.exception.ValidateException;
@@ -796,6 +799,8 @@ public class DaoImpl implements Dao {
 						infoMap.put("datapathId", (String) ofsMap.get("datapathId"));
 						infoMap.put("ip", (String) ofsMap.get("ip"));
 						infoMap.put("port", (Integer) ofsMap.get("port"));
+						Integer port = (Integer) ofsMap.get("port");
+						infoMap.put("ofcIp", (String) ofsMap.get("ip") + ":" + port.toString());
 					}
 				}
 			}
@@ -1089,7 +1094,7 @@ public class DaoImpl implements Dao {
 	
 	
 	@Override
-	public int updateNodeInfo(Connection conn, String keyDeviceName, String deviceName, String location,String tenant, String datapathId, String ofcIp) throws SQLException {
+	public int updateNodeInfo(Connection conn, String keyDeviceName, String deviceName, String location,String tenant, String datapathId, String ofcIp, String type) throws SQLException {
 		final String fname = "updateNodeInfo";
 		if (logger.isTraceEnabled()) {
 			logger.trace(String.format("%s(conn=%s, keyDeviceName=%s, newDeviceName=%s, datapathId=%s, ofcIp=%s) - start", fname, conn, keyDeviceName, deviceName, datapathId, ofcIp));
@@ -1106,14 +1111,29 @@ public class DaoImpl implements Dao {
 			if (StringUtils.isBlank(deviceName)) {
 				deviceName = (String)current.get("name");
 			}
+			
+			if (StringUtils.isBlank(type)) {
+				ret = DB_RESPONSE_STATUS_NOT_FOUND;
+				return ret;
+			}
+
+			if(!type.equals((String)current.get("type"))){
+				ret = DB_RESPONSE_STATUS_INVALID_ERR;
+				return ret;
+			}
+
 			if (StringUtils.isBlank(location)) {
 				location = (String)current.get("location");
 			}
 			if (StringUtils.isBlank(tenant)) {
 				tenant = (String)current.get("tenant");
 			}
-			if (StringUtils.isBlank(datapathId)) {
-				datapathId = (String)current.get("datapathId");
+//			System.out.println(datapathId);
+			if(!ArrayUtils.contains(LEGACY_DEVICE_TYPES, type))
+			{
+				if (StringUtils.isBlank(datapathId)) {
+					datapathId = (String)current.get("datapathId");
+				}
 			}
 
 			//			Object[] params = {deviceName, datapathId, location, tenant, ofcRid, nodeRid};

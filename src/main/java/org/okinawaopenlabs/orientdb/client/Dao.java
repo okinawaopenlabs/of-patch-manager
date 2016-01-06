@@ -427,7 +427,7 @@ public interface Dao {
 	 * @return
 	 * @throws SQLException
 	 */
-	int updateNodeInfo(Connection conn, String keyDeviceName, String deviceName, String location, String tenant, String datapathId, String ofcIp) throws SQLException;
+	int updateNodeInfo(Connection conn, String keyDeviceName, String deviceName, String location, String tenant, String datapathId, String ofcIp, String type) throws SQLException;
 
 	/**
 	 * Delete DeviceInfo

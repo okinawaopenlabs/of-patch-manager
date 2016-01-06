@@ -38,6 +38,7 @@ public class OrientDBDefinition {
 	/* DB Response */
 	public static final int DB_RESPONSE_STATUS_OK = 200;
 	public static final int DB_RESPONSE_STATUS_EXIST = 210;
+	public static final int DB_RESPONSE_STATUS_INVALID_ERR = 400;
 	public static final int DB_RESPONSE_STATUS_NOT_FOUND = 404;
 	public static final int DB_RESPONSE_STATUS_USED = 220;
 	public static final int DB_RESPONSE_STATUS_FORBIDDEN = 403;
