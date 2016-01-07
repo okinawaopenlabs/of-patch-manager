@@ -59,7 +59,7 @@ public class OrientDBDefinition {
 	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_NAME_FM_RENT = "select system_resource_id.node_id.@rid.asString() as rid, node_id.name as name, node_id.location as location, type, tenant from rentResource where node_id.name=?";
 	public static final String SQL_GET_NODE_INFO_FROM_DEVICE_RID  = "select @rid.asString(), name, type, datapathId, ofcIp from node where @rid=?";
 	public static final String SQL_GET_NODE_RID_FROM_DEVICENAME   = "select @rid.asString() as rid from node where name=?";
-	public static final String SQL_GET_DEVICENAME_FROM_DATAPATHID = "select name from node where datapathId = ?";
+	public static final String SQL_GET_DEVICENAME_FROM_DATAPATHID = "select name from node where dpid = ?";
 	public static final String SQL_GET_DEVICE_INFO_FROM_DEVICERID = "select name, type, datapathId, ofcIp from node where @RID = ?";
 
 	public static final String SQL_GET_STSTEM_RESOURCE_RID_FROM_NODE_RID   = "select @rid.asString() from systemResource where node_id=?";
@@ -118,9 +118,17 @@ public class OrientDBDefinition {
 			"select @rid.asString(), in_node_id, in_node_name, in_port_id, in_port_name, out_node_id, out_node_name, out_port_id, out_port_name, nw_instance_id, nw_instance_type from logicalLink " +
 			"where (in_node_name=? and in_port_name=?) or (out_node_name=? and out_port_name=?)";
 
+	public static final String SQL_GET_LOGICAL_LINK_FROM_RID  = 
+			"select @rid.asString(), in_node_id, in_node_name, in_port_id, in_port_name, out_node_id, out_node_name, out_port_id, out_port_name, nw_instance_id, nw_instance_type from logicalLink " +
+			"where @RID = ?";
+
 	public static final String SQL_GET_ROUTE_FROM_LOGICAL_LINK_ID  = 
-			"select @rid.asString(), sequence_num, logical_link_id, node_id, node_name, in_port_id, in_port_name, out_port_id, out_port_name from route " +
+			"select @rid.asString(), sequence_num, logical_link_id, node_id, node_name, in_port_id, in_port_name, in_port_number, out_port_id, out_port_name, out_port_number from route " +
 			"where logical_link_id=?";
+
+	public static final String SQL_GET_ROUTE_FROM_NODERID  = 
+			"select @rid.asString(), sequence_num, logical_link_id, node_id, node_name, in_port_id, in_port_name, in_port_number, out_port_id, out_port_name, out_port_number from route " +
+			"where node_id=?";
 	
 	public static final String SQL_GET_MAX_NW_INSTANCE_ID = "select max(nw_instance_id) as maxNwInstanceId from logicalLink";
 	public static final String SQL_GET_MAX_INTERNALMAC = "select max(internalMac) as maxInternalMac from internalMacMap";
@@ -150,10 +158,8 @@ public class OrientDBDefinition {
 	public static final String SQL_INSERT_RENT_RESOURCE_INFO = "insert into rentResource(node_id, type, tenant) values (?, '?', '?')";
 	public static final String SQL_INSERT_OFS_INFO = "insert into ofs(dpid, node_id, ofc_id) values ('?', ?, ?)";
 	public static final String SQL_INSERT_OFC_INFO = "insert into ofc(ip, port) values (?, ?)";
-//	public static final String SQL_INSERT_LOGICAL_LINK = "insert into logicalLink(in_node_id, in_node_name, in_port_id, in_port_name, out_node_id, out_node_name, out_port_id, out_port_name, nw_instance_id, nw_instance_type) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	public static final String SQL_INSERT_LOGICAL_LINK = "insert into logicalLink(in_node_id, in_node_name, in_port_id, in_port_name, out_node_id, out_node_name, out_port_id, out_port_name, nw_instance_id, nw_instance_type) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-//	public static final String SQL_INSERT_ROUTE_INFO = "insert into route(sequence_num, logical_link_id, node_id, node_name, in_port_id, in_port_name, out_port_id, out_port_name) values (?, ?, ?, '?', ?, '?', ?, '?')";
-	public static final String SQL_INSERT_ROUTE_INFO = "insert into route(sequence_num, logical_link_id, node_id, node_name, in_port_id, in_port_name, out_port_id, out_port_name) values (?, ?, ?, ?, ?, ?, ?, ?)";
+	public static final String SQL_INSERT_ROUTE_INFO = "insert into route(sequence_num, logical_link_id, node_id, node_name, in_port_id, in_port_name, in_port_number, out_port_id, out_port_name, out_port_number) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 	/* delete */
 	public static final String SQL_DELETE_NODE_FROM_NODERID = "delete vertex node where @RID = ?";

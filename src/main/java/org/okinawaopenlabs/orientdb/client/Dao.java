@@ -213,6 +213,13 @@ public interface Dao {
 	 * @throws SQLException
 	 */
 	Map<String, Object> getLogicalLinkFromNodeNamePortName(Connection conn, String node_name, String port_name) throws SQLException;
+	/**
+	 * Get logical link infromation.
+	 * @param Connection conn
+	 * @param logicalLinkRid
+	 * @throws SQLException
+	 */
+	Map<String, Object> getLogicalLinkFromRid(Connection conn, String logicalLinkRid) throws SQLException;
 
 	/**
 	 * Delete LogicalLink from devices port.
@@ -234,6 +241,15 @@ public interface Dao {
 	List<Map<String, Object>> getRouteFromLogicalLinkId(Connection conn,  String logical_link_id) throws SQLException;
 
 	/**
+	 * Get route list.
+	 * @param Connection conn
+	 * @param logical_link_id
+	 * @return
+	 * @throws SQLException
+	 */
+	List<Map<String, Object>> getRouteFromNodeRid(Connection conn,  String nodeRid) throws SQLException;
+
+	/**
 	 * Delete Route-list from logical link rid.
 	 * @param conn
 	 * @param logical_link_id
@@ -251,11 +267,13 @@ public interface Dao {
 	 * @param String node_name
 	 * @param String in_port_id
 	 * @param String in_port_name
+	 * @param String in_port_number
 	 * @param String out_port_id
 	 * @param String out_port_name
+	 * @param String out_port_number
 	 * @throws SQLException
 	 */
-	int insertRoute(Connection conn, Integer sequence_num, String logical_link_id, String node_id, String node_name, String in_port_id, String in_port_name, String out_port_id, String out_port_name) throws SQLException;
+	int insertRoute(Connection conn, Integer sequence_num, String logical_link_id, String node_id, String node_name, String in_port_id, String in_port_name, Integer in_port_number, String out_port_id, String out_port_name, Integer out_port_number) throws SQLException;
 
 	/**
 	 * Delete patchWiring-list from devices port.
