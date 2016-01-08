@@ -19,6 +19,7 @@ package org.okinawaopenlabs.ofpm.validate.device;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import java.util.regex.Pattern;
 
 import static org.okinawaopenlabs.constants.ErrorMessage.*;
 import static org.okinawaopenlabs.constants.OfpmDefinition.*;
@@ -32,6 +33,8 @@ public class OfcInfoCreateJsonInValidate extends BaseValidate {
 
 	public void checkValidation(OfcInfoCreateJsonIn ofcInfo) throws ValidateException {
 		String fname = "checkValidateion";
+		boolean match;
+		
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ofcInfoJson=%s) - start", fname, (ofcInfo == null)? "null" : ofcInfo.toJson()));
 		}
@@ -42,11 +45,38 @@ public class OfcInfoCreateJsonInValidate extends BaseValidate {
 		if (StringUtils.isBlank(ofcInfo.getIp())) {
 			throw new ValidateException(String.format(IS_BLANK, "ofcIp"));
 		}
-//		if (StringUtils.isBlank(ofcInfo.getPort())) {
+
 		if (ofcInfo.getPort() == null) {
 			throw new ValidateException(String.format(IS_BLANK, "ofcPort"));
 		}
 
+		String getofcip = "";
+		Integer getofcport = 0;
+		
+		if(!ofcInfo.getIp().isEmpty()){
+			getofcip = ofcInfo.getIp();
+			getofcport = ofcInfo.getPort();
+			match = Pattern.matches(REGEX_IPADDRESS, getofcip);
+			if(match==true){
+				String[] getip = getofcip.split("\\.",0);
+				if(getip.length != 4){
+					throw new ValidateException(String.format(INVALID_PARAMETER, "OFC_ip"));
+				}
+				for(int i=0;i<getip.length;i++){
+					//check value (IPv4)
+					if(Integer.parseInt(getip[i]) > MAX_IPADDRESS_VALUE){
+						throw new ValidateException(String.format(INVALID_PARAMETER, "OFC_ip"));
+					}
+				}
+			}
+				
+			match = Pattern.matches(REGEX_NUMBER, getofcport.toString());
+
+			if(match==false || getofcport < MIN_PORT_VALUE || MAX_PORT_VALUE < getofcport){
+				throw new ValidateException(String.format(INVALID_PARAMETER, "OFC_port"));
+			}
+		}
+		
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s() - end", fname));
 		}
