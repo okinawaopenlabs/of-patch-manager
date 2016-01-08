@@ -61,7 +61,7 @@ public class PortInfoCreateJsonInValidate extends BaseValidate {
 			throw new ValidateException(String.format(INVALID_PARAMETER, "Input parameter"));
 		}
 
-		//Chack PortName
+		//Check PortName
 		try{
 			if (StringUtils.isBlank(portInfoJson.getPortName())) {
 				throw new ValidateException(String.format(IS_BLANK, "portName"));
@@ -81,11 +81,6 @@ public class PortInfoCreateJsonInValidate extends BaseValidate {
 			System.out.println(portInfoJson.getPortNumber());
 			if(portInfoJson.getPortNumber()==0){
 				throw new ValidateException(String.format(IS_BLANK, "portNumber"));
-			}
-			
-			if(portInfoJson.getPortNumber() < MIN_PORT_VALUE || MAX_PORT_VALUE < portInfoJson.getPortNumber())
-			{
-				throw new ValidateException(String.format(INVALID_PARAMETER, "portNumber"));				
 			}
 		}
 		catch(Exception e)
