@@ -17,6 +17,7 @@
 package org.okinawaopenlabs.ofpm.validate.topology.physical;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -53,6 +54,16 @@ public class DisconnectPhysicalLinksJsonInValidate extends BaseValidate {
 				throw new ValidateException(String.format(IS_NULL, msgLinks));
 			}
 			List<PortData> ports = physicalLink.getLink();
+
+			String band = physicalLink.getBand();
+			if (BaseValidate.checkNull(band)) {
+				throw new ValidateException(String.format(IS_NULL, "band"));
+			}
+
+			if(!Pattern.matches(REGEX_NUMBER, band)){
+				throw new ValidateException(String.format(INVALID_PARAMETER, "band"));				
+			}
+						
 			if (BaseValidate.checkNull(ports)) {
 				throw new ValidateException(String.format(IS_NULL, msgLinks + ".link"));
 			}
