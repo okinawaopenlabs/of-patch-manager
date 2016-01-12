@@ -735,6 +735,20 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	}
 
 	/**
+	 * Calc Vlan tag overhead
+	 * @param band
+	 * @return
+	 */
+	public long calcVlanTagOverhead(Long band) {
+		long bandBps = band * CONVERT_MBPS_BPS;
+		long maxEthFrameNum = bandBps / MIN_ETHER_FRAME_SIZE_BIT;
+		long vlanTagOverheadBpsPerSec = maxEthFrameNum * VLAN_FEALD_SIZE_BIT;
+		long ret = vlanTagOverheadBpsPerSec / CONVERT_MBPS_BPS;
+		
+		return ret;
+	}
+
+	/**
 	 * Delete logical link, in fact remove patch wiring and update links used value.
 	 * @param conn
 	 * @param link
@@ -754,8 +768,9 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		Map<String, Object> rxRouteMap = routeMapList.get(routeMapList.size() - 1);
 
 		/* calc patch band width */
-		long band = 0L;
+		long bandOverHead = 0L;
 		{
+			long band = 0L;
 			Map<String, Object> txLinkMap = dao.getCableLinkFromInPortRid(conn, (String)txRouteMap.get("in_port_id"));
 			Map<String, Object> rxLinkMap = dao.getCableLinkFromInPortRid(conn, (String)rxRouteMap.get("out_port_id"));
 			long txBand = this.getBandWidth(conn, (String)txLinkMap.get("inDeviceName"), (String)txLinkMap.get("inPortName"));
@@ -765,6 +780,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			band = (txBand < rxBand)   ? txBand:    rxBand;
 			band = (band   < txOfpBand)?   band: txOfpBand;
 			band = (band   < rxOfpBand)?   band: rxOfpBand;
+			bandOverHead = calcVlanTagOverhead(band);
 		}
 
 		/* update link-used-value and make patch link for ofc */
@@ -774,7 +790,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			Map<String, Object> inLink = dao.getCableLinkFromInPortRid(conn, inPortRid);
 			String inCableRid = (String)inLink.get("rid");
 			if (!alreadyProcCable.contains(inCableRid)) {
-				long newUsed = this.calcReduceCableLinkUsed(conn, inLink, band);
+				long newUsed = this.calcReduceCableLinkUsed(conn, inLink, bandOverHead);
 				dao.updateCableLinkUsedFromPortRid(conn, inPortRid, newUsed);
 				alreadyProcCable.add(inCableRid);
 			}
@@ -783,7 +799,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			Map<String, Object> outLink = dao.getCableLinkFromOutPortRid(conn, outPortRid);
 			String outCableRid = (String)outLink.get("rid");
 			if (!alreadyProcCable.contains(outCableRid)) {
-				long newUsed = this.calcReduceCableLinkUsed(conn, outLink, band);
+				long newUsed = this.calcReduceCableLinkUsed(conn, outLink, bandOverHead);
 				dao.updateCableLinkUsedFromPortRid(conn, outPortRid, newUsed);
 				alreadyProcCable.add(outCableRid);
 			}
@@ -932,8 +948,9 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		}
 
 		/* conmute need band-width for patching */
-		long needBand = 0;
+		long needBandOverHead = 0;
 		{
+			long needBand = 0;
 			long txBand = portBandMap.get(txPort);
 			long rxBand = portBandMap.get(rxPort);
 			long txNextBand = portBandMap.get(path.get(txPortIndex + 1));
@@ -941,6 +958,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			needBand = (  txBand <     rxBand)?   txBand:     rxBand;
 			needBand = (needBand < txNextBand)? needBand: txNextBand;
 			needBand = (needBand < rxNextBand)? needBand: rxNextBand;
+			needBandOverHead = calcVlanTagOverhead(needBand);
 		}
 
 		/* Update links used value */
@@ -959,7 +977,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			long  inBand = portBandMap.get(nowV);
 			long outBand = portBandMap.get(prvV);
 			long maxBand = (inBand < outBand)? inBand: outBand;
-			long newUsed = nowUsed + needBand;
+			long newUsed = nowUsed + needBandOverHead;
 			if (newUsed > maxBand) {
 				throw new NoRouteException(String.format(NOT_FOUND, "Path"));
 			}
@@ -967,7 +985,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 				newUsed = maxBand * LINK_MAXIMUM_USED_RATIO;
 			}
 
-			//dao.updateCableLinkUsedFromPortRid(conn, nowPortRid, newUsed);
+			dao.updateCableLinkUsedFromPortRid(conn, nowPortRid, newUsed);
 		}
 
 		/* Make ofpatch index list */
