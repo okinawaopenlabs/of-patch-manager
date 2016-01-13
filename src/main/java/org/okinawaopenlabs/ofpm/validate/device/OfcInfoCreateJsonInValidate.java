@@ -68,6 +68,8 @@ public class OfcInfoCreateJsonInValidate extends BaseValidate {
 						throw new ValidateException(String.format(INVALID_PARAMETER, "OFC_ip"));
 					}
 				}
+			}else if(!getofcip.equals("localhost")) {
+				throw new ValidateException(String.format(INVALID_PARAMETER, "OFC_ip"));				
 			}
 				
 			match = Pattern.matches(REGEX_NUMBER, getofcport.toString());

@@ -48,14 +48,6 @@ public class OfcInfoUpdateJsonInValidate extends BaseValidate {
 			logger.debug(String.format("%s(updateOfcInfo=%s) - start", fname, updateOfcInfo));
 		}
 
-//		if (StringUtils.isBlank(ofcIpPort)) {
-//			throw new ValidateException(String.format(IS_BLANK, "ofcIpPort"));
-//		}
-//
-//		if (BaseValidate.checkNull(updateOfcInfo)) {
-//			throw new ValidateException(String.format(IS_BLANK, "parameter"));
-//		}
-
 		String getofcip = "";
 		Integer getofcport = 0;
 		
@@ -73,10 +65,11 @@ public class OfcInfoUpdateJsonInValidate extends BaseValidate {
 						throw new ValidateException(String.format(INVALID_PARAMETER, "OFC_ip"));
 					}
 				}
+			}else if(!getofcip.equals("localhost")) {
+				throw new ValidateException(String.format(INVALID_PARAMETER, "OFC_ip"));				
 			}
-				
 		}
-
+		
 		if(updateOfcInfo.getPort() != null){
 			getofcport = updateOfcInfo.getPort();
 			match = Pattern.matches(REGEX_NUMBER, getofcport.toString());
