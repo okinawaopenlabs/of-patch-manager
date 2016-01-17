@@ -131,6 +131,7 @@ public class OrientDBDefinition {
 			"where node_id=?";
 	
 	public static final String SQL_GET_MAX_NW_INSTANCE_ID = "select max(nw_instance_id) as maxNwInstanceId from logicalLink";
+	public static final String SQL_GET_NW_INSTANCE_ID = "select nw_instance_id as maxNwInstanceId from logicalLink order by nw_instance_id asc";
 	public static final String SQL_GET_MAX_INTERNALMAC = "select max(internalMac) as maxInternalMac from internalMacMap";
 	public static final String SQL_GET_INTERNALMAC_FROM_SRCMAC_DSTMAC_INPORT_DEVICENAME =
 			"select internalMac from internalMacMap where node_name = ? and inPort = ? and srcMac = ? and dstMac = ?";

@@ -751,6 +751,18 @@ public class DaoImpl implements Dao {
 			if (records.size() > 0) {
 				maxNwInstanceId = (Long)Long.parseLong((records.get(0).get("maxNwInstanceId").toString())) + 1;
 				if (maxNwInstanceId > MAX_NETWORK_INSTANCE_ID) {
+					records = utilsJdbc.query(conn, SQL_GET_NW_INSTANCE_ID, new MapListHandler());
+					Long count = MIN_NETWORK_INSTANCE_ID;
+					for(Map<String, Object> record : records) {
+						Long curId = (Long)record.get("maxNwInstanceId");
+						if (curId != count) {
+							// found.
+							return count;
+						}
+						count++;
+					}
+					
+					// not found.
 					return -1L;
 				}
 			}
