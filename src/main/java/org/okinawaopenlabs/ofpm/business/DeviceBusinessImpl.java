@@ -413,9 +413,6 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 				if(infoMap.containsKey("ip") && infoMap.containsKey("port")){
 					dev.setOfcIp(((String)infoMap.get("ip") + ":" + (String)infoMap.get("port").toString()));
 				}
-//				StringBuilder str_build = new StringBuilder();
-//				str_build.append((String) infoMap.get("ip"));
-//				str_build.append((String) infoMap.get("port"));
 				result.add(dev);
 			}
 
@@ -955,12 +952,6 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 				res.setStatus(STATUS_NOTFOUND);
 				return res.toJson();
 			}
-
-//			OfcInfo ofcInfo = new OfcInfo();
-//			ofcInfo.setIp((String) infoMap.get("ip"));
-//			ofcInfo.setPort((Integer) infoMap.get("port"));
-//			res.setResult(ofcInfo);
-//			return res.toJson();
 						
 			int status = dao.deleteOfcInfo(
 					conn,
@@ -1007,7 +998,6 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 
 	@Override
 	public String updateOfc(String ofcIpPort, String updateOfcInfoJson) {
-		// TODO Auto-generated method stub
 	String fname = "updateOfc";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(OfcPort=%s, updateOfcInfoJson=%s) - start", fname, ofcIpPort, updateOfcInfoJson));
@@ -1016,7 +1006,6 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 
 		/* PHASE 1: json -> OfcInfoUpdateJosnIn and check validation */
 		OfcInfoUpdateJsonIn newOfcInfo = null;
-//		newOfcInfo = OfcInfoUpdateJsonIn.fromJson(updateOfcInfoJson);
 		try {
 			newOfcInfo = OfcInfoUpdateJsonIn.fromJson(updateOfcInfoJson);
 			OfcInfoUpdateJsonInValidate validator = new OfcInfoUpdateJsonInValidate();

@@ -896,6 +896,11 @@ public class DaoImpl implements Dao {
 		}
 		int ret = DB_RESPONSE_STATUS_OK;
 		try {
+			Map<String, Object> current = this.getNodeInfoFromDeviceName(conn, deviceName);
+			if (current != null) {
+				return DB_RESPONSE_STATUS_EXIST;
+			}
+			
 			Object[] params = {deviceName, location, deviceType, tenant};
 			int nRecords = utilsJdbc.update(conn, SQL_INSERT_NODE_INFO, params);
 			if (nRecords == 0) {
@@ -1290,6 +1295,12 @@ public class DaoImpl implements Dao {
 
 			if (StringUtils.equals((String)devMap.get("type"), NODE_TYPE_SERVER)) {
 				portNumber = null;
+			}
+
+			Map<String, Object> current = this.getPortInfoFromPortName(conn, deviceName, portName);
+			if (current != null) {
+				ret = DB_RESPONSE_STATUS_EXIST;
+				return ret;
 			}
 
 			Object[] params = {portName, portNumber, band, deviceName};
@@ -1816,14 +1827,18 @@ public class DaoImpl implements Dao {
 		}
 		int ret = DB_RESPONSE_STATUS_OK;
 		try {
+			String ofcIpPort = ip + ":" + port.toString();
+			Map<String, Object> current = this.getOfcRidInfo(conn, ofcIpPort);
+			if (current != null) {
+				return DB_RESPONSE_STATUS_EXIST;
+			}
+
 			Object[] params = {ip, port};
 			int nRecords = utilsJdbc.update(conn, SQL_INSERT_OFC_INFO, params);
 			if (nRecords == 0) {
 				return DB_RESPONSE_STATUS_EXIST;
 			}
 
-//			ret = createResourceInfo(conn, deviceName, deviceType, datapathId, tenant, ofcIp);
-			
 			return ret;
 		} catch (Exception e) {
 			throw new SQLException(e.getMessage());
