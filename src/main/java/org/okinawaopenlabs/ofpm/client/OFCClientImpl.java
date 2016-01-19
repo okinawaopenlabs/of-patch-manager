@@ -146,7 +146,7 @@ public class OFCClientImpl implements OFCClient {
 		return ret;
 	}
 
-	public static SetFlowToOFC createRequestData(Long dpid, Long priority, Match match, List<Action> actions) {
+	public SetFlowToOFC createRequestData(Long dpid, Long priority, Match match, List<Action> actions) {
 		final String fname = "createRequestData";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(dpid=%s, priority=%s, match=%s, actions=%s) - start", fname, dpid, priority, match, actions));
@@ -170,7 +170,7 @@ public class OFCClientImpl implements OFCClient {
 		return requestData;
 	}
 
-	public static SetFlowToOFC createMatchForInPort(SetFlowToOFC requestData, Long inPort) {
+	public SetFlowToOFC createMatchForInPort(SetFlowToOFC requestData, Long inPort) {
 		final String fname = "createMatchForInPort";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(requestData=%s, inPort=%s) - start", fname, requestData, inPort));
@@ -185,7 +185,7 @@ public class OFCClientImpl implements OFCClient {
 		return requestData;
 	}
 	
-	public static SetFlowToOFC createMatchForInPortDlVlan(SetFlowToOFC requestData, Long inPort, Long vlanId) {
+	public SetFlowToOFC createMatchForInPortDlVlan(SetFlowToOFC requestData, Long inPort, Long vlanId) {
 		final String fname = "createMatchForInPortDlVlan";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(requestData=%s, inPort=%s, vlanId=%s) - start", fname, requestData, inPort, vlanId));
@@ -201,7 +201,7 @@ public class OFCClientImpl implements OFCClient {
 		return requestData;
 	}
 
-	public static SetFlowToOFC createMatchForDlVlan(SetFlowToOFC requestData, Long vlanId) {
+	public SetFlowToOFC createMatchForDlVlan(SetFlowToOFC requestData, Long vlanId) {
 		final String fname = "createMatchForDlVlan";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(requestData=%s, vlanId=%s) - start", fname, requestData, vlanId));
@@ -216,7 +216,7 @@ public class OFCClientImpl implements OFCClient {
 		return requestData;
 	}
 
-	public static SetFlowToOFC createActionsForPushVlan(SetFlowToOFC requestData, Long outPort, Long vlanId) {
+	public SetFlowToOFC createActionsForPushVlan(SetFlowToOFC requestData, Long outPort, Long vlanId) {
 		final String fname = "createActionsForPushVlan";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(requestData=%s, outPort=%s, vlanId=%s) - start", fname, requestData, outPort, vlanId));
@@ -246,7 +246,7 @@ public class OFCClientImpl implements OFCClient {
 		return requestData;
 	}
 
-	public static SetFlowToOFC createActionsForPopVlan(SetFlowToOFC requestData, Long outPort) {
+	public SetFlowToOFC createActionsForPopVlan(SetFlowToOFC requestData, Long outPort) {
 		final String fname = "createActionsForPopVlan";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(requestData=%s, outPort=%s) - start", fname, requestData, outPort));
@@ -269,7 +269,7 @@ public class OFCClientImpl implements OFCClient {
 		return requestData;
 	}
 
-	public static SetFlowToOFC createActionsForOutputPort(SetFlowToOFC requestData, Long outPort) {
+	public SetFlowToOFC createActionsForOutputPort(SetFlowToOFC requestData, Long outPort) {
 		final String fname = "createActionsForPopVlan";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(requestData=%s, outPort=%s) - start", fname, requestData, outPort));
