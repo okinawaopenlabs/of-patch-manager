@@ -1048,7 +1048,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 				case DB_RESPONSE_STATUS_NOT_FOUND:
 					utils.rollback(conn);
 					res.setStatus(STATUS_NOTFOUND);
-					res.setMessage(String.format(NOT_FOUND));
+					res.setMessage(String.format(NOT_FOUND, ofcIpPort));
 					return res.toJson();
 			
 /*
