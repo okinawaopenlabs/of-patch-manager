@@ -3,6 +3,7 @@ package org.okinawaopenlabs.ofpm.business;
 import static org.okinawaopenlabs.constants.ErrorMessage.*;
 import static org.okinawaopenlabs.constants.OfpmDefinition.*;
 import static org.okinawaopenlabs.constants.OrientDBDefinition.*;
+import static org.okinawaopenlabs.constants.OfcClientDefinition.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;

@@ -105,9 +105,4 @@ public class OfpmDefinition {
 	public static final long CONVERT_MBPS_BPS = 1048576L;	// 1024 * 1024
 	public static final long MIN_ETHER_FRAME_SIZE_BIT = 512L;
 	public static final long VLAN_FEALD_SIZE_BIT = 32L;	// VLAN field 4byte = 32bit
-
-	/* Define OpenFlow priority */
-	public static final long OPENFLOW_FLOWENTRY_PRIORITY_DROP = 100L;
-	public static final long OPENFLOW_FLOWENTRY_PRIORITY_NORMAL = 200L;
-
 }

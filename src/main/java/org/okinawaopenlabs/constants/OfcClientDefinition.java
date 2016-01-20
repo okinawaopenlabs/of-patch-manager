@@ -30,5 +30,8 @@ public class OfcClientDefinition {
 	public static final Long 	ACTION_TYPE_PUSH_VLAN_ETH_TYPE 	= 33024L;			/* Ethertype 0x8100(=33024): IEEE 802.1Q VLAN-tagged frame */	
 	public static final String 	ACTION_TYPE_SET_FIELD 			= "SET_FIELD";
 	public static final String 	ACTION_TYPE_SET_FIELD_VLAN_VID 	= "vlan_vid";		/* Set VLAN ID */
-	
+
+	/* Define OpenFlow priority */
+	public static final Long 	OPENFLOW_FLOWENTRY_PRIORITY_DROP 	= 100L;
+	public static final Long 	OPENFLOW_FLOWENTRY_PRIORITY_NORMAL 	= 200L;
 }
