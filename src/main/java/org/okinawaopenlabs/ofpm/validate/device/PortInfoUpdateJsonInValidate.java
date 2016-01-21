@@ -20,6 +20,9 @@ import static org.okinawaopenlabs.constants.ErrorMessage.*;
 import static org.okinawaopenlabs.constants.OfpmDefinition.MAX_PORT_VALUE;
 import static org.okinawaopenlabs.constants.OfpmDefinition.MIN_PORT_VALUE;
 import static org.okinawaopenlabs.constants.OfpmDefinition.PORT_NAME_MAX_LENGTH;
+import static org.okinawaopenlabs.constants.OfpmDefinition.REGEX_NUMBER;
+
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -42,16 +45,10 @@ public class PortInfoUpdateJsonInValidate extends BaseValidate {
 		}
 
 		//Chack PortName
-		System.out.println(updatePortInfo.getPortName().length() + "," + PORT_NAME_MAX_LENGTH);
+		//System.out.println(updatePortInfo.getPortName().length() + "," + PORT_NAME_MAX_LENGTH);
 		if (updatePortInfo.getPortName().length() > PORT_NAME_MAX_LENGTH)
 		{
 			throw new ValidateException(String.format(INVALID_PARAMETER, "portName"));				
-		}
-
-		//Check PortNumber
-		if(updatePortInfo.getPortNumber() < MIN_PORT_VALUE || MAX_PORT_VALUE < updatePortInfo.getPortNumber())
-		{
-			throw new ValidateException(String.format(INVALID_PARAMETER, "portNumber"));				
 		}
 
 		if (logger.isDebugEnabled()) {
