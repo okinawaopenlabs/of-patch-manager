@@ -34,6 +34,7 @@ public class OrientDBDefinition {
 	public static final String NODE_TYPE_SITES_SW = "Sites_Switch";
 
 	public static final String[] SYSTEM_RESOURCE_TYPES = {NODE_TYPE_LEAF, NODE_TYPE_SPINE};
+	public static final String[] RENT_RESOURCE_TYPES = {NODE_TYPE_SERVER, NODE_TYPE_SWITCH};
 	
 	/* DB Response */
 	public static final int DB_RESPONSE_STATUS_OK = 200;

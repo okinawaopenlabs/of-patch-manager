@@ -673,10 +673,15 @@ public class DaoImpl implements Dao {
 			ret = utilsJdbc.query(conn, sql, rsh);
 			
 			for (Map<String, Object> current : ret) {
+				String deviceName = "";
 				if (StringUtils.equals((String)current.get("class"), "node")) {
-					Map<String, Object> nodeMap = this.getNodeInfoFromDeviceName(conn, (String)current.get("name"));
-					current.put("type", (String)nodeMap.get("type"));
+					deviceName = (String)current.get("name");
+				} else {
+					deviceName = (String)current.get("node_name");
 				}
+				Map<String, Object> nodeMap = this.getNodeInfoFromDeviceName(conn, deviceName);
+				current.put("type", (String)nodeMap.get("type"));
+
 			}
 		} catch (Exception e) {
 			throw new SQLException(e.getMessage());
