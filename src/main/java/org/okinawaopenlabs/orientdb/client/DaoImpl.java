@@ -1326,8 +1326,8 @@ public class DaoImpl implements Dao {
 
 			/* Here, decide Used default value of bus of Node. */
 			Long used = USED_BLOCKING_VALUE;
-			if (StringUtils.equals(devType, NODE_TYPE_SPINE)) {
-				used = SPINE_BUS_USED_VALUE;
+			if (ArrayUtils.contains(BIG_USED_BUS_TYPES, devType)) {
+				used = BIG_USED_BUS_VALUE;
 			} else if (StringUtils.equals(devType, NODE_TYPE_LEAF)) {
 				used = 0L;
 			}

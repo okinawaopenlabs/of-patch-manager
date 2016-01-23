@@ -21,7 +21,7 @@ public class OrientDBDefinition {
 	public static final int DIJKSTRA_WEIGHT_NO_ROUTE = 100;
 	public static final int DIJKSTRA_WEIGHT_AVAILABLE_ROUTE = 1;
 	public static final long USED_BLOCKING_VALUE = 1000000000000L;
-	public static final long SPINE_BUS_USED_VALUE = 10240000L;
+	public static final long BIG_USED_BUS_VALUE = 10240000L;
 
 	/* Node Type */
 	public static final String NODE_TYPE_SERVER = "Server";
@@ -35,6 +35,8 @@ public class OrientDBDefinition {
 
 	public static final String[] SYSTEM_RESOURCE_TYPES = {NODE_TYPE_LEAF, NODE_TYPE_SPINE};
 	public static final String[] RENT_RESOURCE_TYPES = {NODE_TYPE_SERVER, NODE_TYPE_SWITCH};
+
+	public static final String[] BIG_USED_BUS_TYPES = {NODE_TYPE_SPINE, NODE_TYPE_AGGREGATE_SW, NODE_TYPE_SITES_SW};
 	
 	/* DB Response */
 	public static final int DB_RESPONSE_STATUS_OK = 200;
