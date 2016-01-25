@@ -57,6 +57,12 @@ import org.okinawaopenlabs.orientdb.client.ConnectionUtilsJdbc;
 import org.okinawaopenlabs.orientdb.client.ConnectionUtilsJdbcImpl;
 import org.okinawaopenlabs.orientdb.client.Dao;
 import org.okinawaopenlabs.orientdb.client.DaoImpl;
+import ool.com.openam.client.OpenAmClient;
+import ool.com.openam.client.OpenAmClientException;
+import ool.com.openam.client.OpenAmClientImpl;
+import ool.com.openam.json.OpenAmAttributesOut;
+import ool.com.openam.json.OpenAmIdentitiesOut;
+import ool.com.openam.json.TokenIdOut;
 
 public class LogicalBusinessImpl implements LogicalBusiness {
 	private static final Logger logger = Logger.getLogger(LogicalBusinessImpl.class);
@@ -269,6 +275,36 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		}
 		LogicalTopologyGetJsonOut res = new LogicalTopologyGetJsonOut();
 
+		/* PHASE 0: Authentication */
+		try {
+			String openamUrl = conf.getString(OPEN_AM_URL);
+			OpenAmClient openAmClient = new OpenAmClientImpl(openamUrl);
+			boolean isTokenValid = false;
+			if (!StringUtils.isBlank(tokenId) && openAmClient != null) {
+				TokenValidChkOut tokenValidchkOut = openAmClient.tokenValidateCheck(tokenId);
+				isTokenValid = tokenValidchkOut.getIsTokenValid();
+			}
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+		
 		/* PHASE 1: Validation */
 		List<String> deviceNames = null;
 		try {

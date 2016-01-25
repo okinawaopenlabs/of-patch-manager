@@ -109,12 +109,31 @@
 		<version>4.11</version>
 		<scope>test</scope>
 	</dependency>	
+	<dependency>
+		<groupId>ool.com</groupId>
+		<artifactId>OpenAmClient</artifactId>
+		<version>1.0.1</version>
+	</dependency>
   </dependencies>
-
+	
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-
+  
+  <repositories>
+   <repository>
+    <id>ool-repo</id>
+    <url>http://172.16.1.220/repo/</url>
+   </repository>
+  </repositories>
+  <distributionManagement>
+   <repository>
+     <id>com.ool</id>
+     <name>MavenRepo</name>
+     <url>scp://172.16.1.220/repo/</url>
+   </repository>
+  </distributionManagement>
+  
   <build>
     <finalName>of-patch-manager</finalName>
     <plugins>
