@@ -63,6 +63,7 @@ import ool.com.openam.client.OpenAmClientImpl;
 import ool.com.openam.json.OpenAmAttributesOut;
 import ool.com.openam.json.OpenAmIdentitiesOut;
 import ool.com.openam.json.TokenIdOut;
+import ool.com.openam.json.TokenValidChkOut;
 
 public class LogicalBusinessImpl implements LogicalBusiness {
 	private static final Logger logger = Logger.getLogger(LogicalBusinessImpl.class);
@@ -275,6 +276,8 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		}
 		LogicalTopologyGetJsonOut res = new LogicalTopologyGetJsonOut();
 
+		String tokenId = "aaa"; // dummy 20160125
+		
 		/* PHASE 0: Authentication */
 		try {
 			String openamUrl = conf.getString(OPEN_AM_URL);

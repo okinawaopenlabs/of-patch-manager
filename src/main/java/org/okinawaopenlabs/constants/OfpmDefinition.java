@@ -45,6 +45,9 @@ public class OfpmDefinition {
 	public static final String OFC_DELETE_FLOWENTRY_PATH = "/stats/flowentry/delete";
 	public static final String OFC_PATH = "/ofc/ryu/ctrl";
 
+	/* Define Open AM url */
+	public static final String OPEN_AM_URL                         = "openam.url";
+
 	/* Define Database url */
 	public static final String CONFIG_KEY_DB_URL = "db.url";
 	public static final String CONFIG_KEY_DB_USER = "db.user";
