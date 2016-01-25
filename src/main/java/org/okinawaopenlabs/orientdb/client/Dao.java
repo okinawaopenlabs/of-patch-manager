@@ -67,6 +67,13 @@ public interface Dao {
 	//static synchronized String getInternalMacFromDeviceNameInPortSrcMacDstMac(ConnectionUtilsJdbc utilsJdbc, Connection conn, String deviceName, String inPort, String srcMac, String dstMac) throws SQLException;
 
 	/**
+	 * get nw_instance_id
+	 * @param conn
+	 * @throws SQLException
+	 */
+	Long getNwInstanceId(Connection conn) throws SQLException;
+
+	/**
 	 * get internal-mac-address list. if not exist, return empty list.
 	 * @param conn
 	 * @param deviceName
@@ -111,6 +118,14 @@ public interface Dao {
 	List<Map<String, Object>> getPatchWiringsFromDeviceName(Connection conn, String deviceName) throws SQLException;
 
 	/**
+	 * Get LogicalLink-list that is connected to other devices.
+	 * @param devName
+	 * @return
+	 * @throws SQLException
+	 */
+	List<Map<String, Object>> getLogicalLinksFromDeviceName(Connection conn, String deviceName) throws SQLException;
+	
+	/**
 	 * Check if contains pair of deviceName and portName into patchWiring .
 	 * @param conn
 	 * @param deviceName
@@ -120,6 +135,17 @@ public interface Dao {
 	 */
 	boolean isContainsPatchWiringFromDeviceNamePortName(Connection conn, String deviceName, String portName) throws SQLException;
 
+	/**
+	 * Check if contains pair of deviceName and portName into logicalLink .
+	 * @param conn
+	 * @param deviceName
+	 * @param portName
+	 * @return
+	 * @throws SQLException
+	 */
+	boolean isContainsLogicalLinkFromDeviceNamePortName(Connection conn, String deviceName, String portName) throws SQLException;
+
+	
 	/**
 	 * Check if contains device name into patchWirings inDeviceName or outDeviceName
 	 * @param conn
@@ -161,6 +187,93 @@ public interface Dao {
 	 * @throws SQLException
 	 */
 	int insertPatchWiring(Connection conn, String ofpRid, String in, String out, String inDeviceName, String inPortName, String outDeviceName, String outPortName, int sequence) throws SQLException;
+
+	/**
+	 * Insert logical link infromation into db.
+	 * @param Connection conn
+	 * @param in_node_id
+	 * @param in_node_name
+	 * @param in_port_id
+	 * @param in_port_name
+	 * @param out_node_rid
+	 * @param out_node_name
+	 * @param out_port_id
+	 * @param out_port_name
+	 * @param nw_instance_id
+	 * @param nw_instance_type
+	 * @throws SQLException
+	 */
+	int insertLogicalLink(Connection conn, String in_node_id, String in_node_name, String in_port_id, String in_port_name, String out_node_id, String out_node_name, String out_port_id, String out_port_name, Long nw_instance_id, String nw_instance_type) throws SQLException;
+
+	/**
+	 * Get logical link infromation.
+	 * @param Connection conn
+	 * @param node_name
+	 * @param port_name
+	 * @throws SQLException
+	 */
+	Map<String, Object> getLogicalLinkFromNodeNamePortName(Connection conn, String node_name, String port_name) throws SQLException;
+	/**
+	 * Get logical link infromation.
+	 * @param Connection conn
+	 * @param logicalLinkRid
+	 * @throws SQLException
+	 */
+	Map<String, Object> getLogicalLinkFromRid(Connection conn, String logicalLinkRid) throws SQLException;
+
+	/**
+	 * Delete LogicalLink from devices port.
+	 * @param conn
+	 * @param deviceName
+	 * @param portName
+	 * @return
+	 * @throws SQLException
+	 */
+	int deleteLogicalLinkFromNodeNamePortName(Connection conn, String deviceName, String portName) throws SQLException;
+	
+	/**
+	 * Get route list.
+	 * @param Connection conn
+	 * @param logical_link_id
+	 * @return
+	 * @throws SQLException
+	 */
+	List<Map<String, Object>> getRouteFromLogicalLinkId(Connection conn,  String logical_link_id) throws SQLException;
+
+	/**
+	 * Get route list.
+	 * @param Connection conn
+	 * @param logical_link_id
+	 * @return
+	 * @throws SQLException
+	 */
+	List<Map<String, Object>> getRouteFromNodeRid(Connection conn,  String nodeRid) throws SQLException;
+
+	/**
+	 * Delete Route-list from logical link rid.
+	 * @param conn
+	 * @param logical_link_id
+	 * @return
+	 * @throws SQLException
+	 */
+	int deleteRouteFromLogicalLinkRid(Connection conn, String logical_link_id) throws SQLException;
+	
+	/**
+	 * Insert route data into db.
+	 * @param Connection conn
+	 * @param Integer sequence_num
+	 * @param String logical_link_id
+	 * @param String node_id
+	 * @param String node_name
+	 * @param String in_port_id
+	 * @param String in_port_name
+	 * @param String in_port_number
+	 * @param String out_port_id
+	 * @param String out_port_name
+	 * @param String out_port_number
+	 * @throws SQLException
+	 */
+	int insertRoute(Connection conn, Integer sequence_num, String logical_link_id, String node_id, String node_name, String in_port_id, String in_port_name, Integer in_port_number, String out_port_id, String out_port_name, Integer out_port_number) throws SQLException;
 
 	/**
 	 * Delete patchWiring-list from devices port.
@@ -320,7 +433,7 @@ public interface Dao {
 	 * @param ofcIp
 	 * @return
 	 */
-	int createNodeInfo(Connection conn, String deviceName, String deviceType, String datapathId, String ofcIp) throws SQLException;
+	int createNodeInfo(Connection conn, String deviceName, String deviceType, String location, String tenant, String datapathId, String ofcIp) throws SQLException;
 
 	/**
 	 * Update DeviceInfo.
@@ -332,7 +445,7 @@ public interface Dao {
 	 * @return
 	 * @throws SQLException
 	 */
-	int updateNodeInfo(Connection conn, String keyDeviceName, String deviceName, String datapathId, String ofcIp) throws SQLException;
+	int updateNodeInfo(Connection conn, String keyDeviceName, String deviceName, String location, String tenant, String datapathId, String ofcIp, String type) throws SQLException;
 
 	/**
 	 * Delete DeviceInfo
@@ -356,7 +469,7 @@ public interface Dao {
 	 * @param deviceName
 	 * @return
 	 */
-	int createPortInfo(Connection conn, String portName, Integer portNumber, String band, String deviceName) throws SQLException;
+	int createPortInfo(Connection conn, String portName, Integer portNumber, Integer band, String deviceName) throws SQLException;
 
 	/**
 	 * Update PortInfo
@@ -369,7 +482,7 @@ public interface Dao {
 	 * @return
 	 * @throws SQLException
 	 */
-	int updatePortInfo(Connection conn, String keyPortName, String keyDeviceName, String portName, Integer portNumber, String band) throws SQLException;
+	int updatePortInfo(Connection conn, String keyPortName, String keyDeviceName, String portName, Integer portNumber, Integer band) throws SQLException;
 
 	/**
 	 * Delete PortInfo
@@ -438,7 +551,6 @@ public interface Dao {
 	 */
 	String getPortRidFromDeviceNamePortName(Connection conn, String deviceName, String portName) throws SQLException;
 
-
 	/**
 	 * Get port band from device name and port name
 	 * @param conn
@@ -448,4 +560,68 @@ public interface Dao {
 	 * @throws SQLException
 	 */
 	String getPortBandFromDeviceNamePortName(Connection conn, String deviceName, String portName) throws SQLException;
+
+	/**
+	 * Get ofc rid from ofcIp
+	 * @param conn
+	 * @param ofcIp
+	 * @return
+	 * @throws SQLException
+	 */
+	String getOfcRid(Connection conn, String ofcIp) throws SQLException;
+
+	/**
+	 * Get OfcInfo list in db.
+	 * @param conn
+	 * @return
+	 * @throws SQLException
+	 */	
+	List<Map<String, Object>> getOfcInfoList(Connection conn) throws SQLException;
+
+	/**
+	 * Get OfcInfo .
+	 * @param conn
+	 * @return
+	 * @throws SQLException
+	 */		
+	Map<String, Object> getOfcInfo(Connection conn, String ofcIpPort) throws SQLException;
+
+    /**
+     * Get OfcInfo in db.
+     * @param conn, ip, port
+     * @return
+     * @throws SQLException
+     */             
+    Map<String, Object> getOfcRidInfo(Connection conn, String ofcIpPort) throws SQLException;
+	
+	/**
+     * Update OfcInfo.
+     * @param conn
+     * @param ofcIp new openflow controller ip
+     * @param ofcPort new openflow controller port
+     * @return
+     * @throws SQLException
+     */
+    int updateOfcInfo(Connection conn, String ofcIpPort, String ip, Integer port) throws SQLException;	
+	
+	/**
+	 * Create OfcInfo.
+	 * @param conn
+	 * @param ip
+	 * @param port
+	 * @return
+	 * @throws SQLException
+	 */	
+	int createOfcInfo(Connection conn, String ip, Integer port) throws SQLException;
+
+	/**
+	 * Delete ofc
+	 * @param conn
+	 * @param ofcIpPort
+	 * @return
+	 * @throws SQLException
+	 */
+	int deleteOfcInfo(Connection conn, String ofcIpPort) throws SQLException;
+
+	public List<Map<String, Object>> getCableList(Connection conn) throws SQLException;
 }

@@ -28,6 +28,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.gson.JsonSyntaxException;
+import com.orientechnologies.orient.core.record.impl.ODocument;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import org.okinawaopenlabs.ofpm.exception.ValidateException;
@@ -39,15 +42,24 @@ import org.okinawaopenlabs.ofpm.json.device.DeviceInfoReadJsonOut;
 import org.okinawaopenlabs.ofpm.json.device.DeviceInfoUpdateJsonIn;
 import org.okinawaopenlabs.ofpm.json.device.DeviceManagerGetConnectedPortInfoJsonOut;
 import org.okinawaopenlabs.ofpm.json.device.PortInfoCreateJsonIn;
+import org.okinawaopenlabs.ofpm.json.device.PortInfoListReadJsonOut;
 import org.okinawaopenlabs.ofpm.json.device.PortInfoUpdateJsonIn;
 import org.okinawaopenlabs.ofpm.json.device.DeviceManagerGetConnectedPortInfoJsonOut.ResultData;
 import org.okinawaopenlabs.ofpm.json.device.DeviceManagerGetConnectedPortInfoJsonOut.ResultData.LinkData;
+import org.okinawaopenlabs.ofpm.json.device.OfcInfo;
+import org.okinawaopenlabs.ofpm.json.device.OfcInfoCreateJsonIn;
+import org.okinawaopenlabs.ofpm.json.device.OfcInfoListReadJsonOut;
+import org.okinawaopenlabs.ofpm.json.device.OfcInfoReadJsonOut;
+import org.okinawaopenlabs.ofpm.json.device.OfcInfoUpdateJsonIn;
+import org.okinawaopenlabs.ofpm.json.device.PortInfo;
 import org.okinawaopenlabs.ofpm.utils.Config;
 import org.okinawaopenlabs.ofpm.utils.ConfigImpl;
 import org.okinawaopenlabs.ofpm.utils.OFPMUtils;
 import org.okinawaopenlabs.ofpm.validate.common.BaseValidate;
 import org.okinawaopenlabs.ofpm.validate.device.DeviceInfoCreateJsonInValidate;
 import org.okinawaopenlabs.ofpm.validate.device.DeviceInfoUpdateJsonInValidate;
+import org.okinawaopenlabs.ofpm.validate.device.OfcInfoCreateJsonInValidate;
+import org.okinawaopenlabs.ofpm.validate.device.OfcInfoUpdateJsonInValidate;
 import org.okinawaopenlabs.ofpm.validate.device.PortInfoCreateJsonInValidate;
 import org.okinawaopenlabs.ofpm.validate.device.PortInfoUpdateJsonInValidate;
 import org.okinawaopenlabs.orientdb.client.ConnectionUtilsJdbc;
@@ -104,10 +116,22 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 			conn = utils.getConnection(false);
 
 			Dao dao = new DaoImpl(utils);
+
+			if (!StringUtils.isBlank(deviceInfo.getOfcIp())) {
+				String ofcRid = dao.getOfcRid(conn, deviceInfo.getOfcIp());
+				if (StringUtils.isBlank(ofcRid)) {
+					res.setStatus(STATUS_NOTFOUND);
+					res.setMessage(String.format(NOT_FOUND, deviceInfo.getOfcIp()));
+					return res.toJson();
+				}
+			}
+
 			int status = dao.createNodeInfo(
 					conn,
 					deviceInfo.getDeviceName(),
 					deviceInfo.getDeviceType(),
+					deviceInfo.getLocation(),
+					deviceInfo.getTenant(),
 					deviceInfo.getDatapathId(),
 					deviceInfo.getOfcIp());
 
@@ -250,8 +274,11 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 					conn,
 					deviceName,
 					newDeviceInfo.getDeviceName(),
+					newDeviceInfo.getLocation(),
+					newDeviceInfo.getTenant(),
 					newDeviceInfo.getDatapathId(),
-					newDeviceInfo.getOfcIp());
+					newDeviceInfo.getOfcIp(),
+					newDeviceInfo.getDeviceType());
 
 			switch (status) {
 				case DB_RESPONSE_STATUS_NOT_FOUND:
@@ -264,6 +291,12 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 					utils.rollback(conn);
 					res.setStatus(STATUS_CONFLICT);
 					res.setMessage(String.format(ALREADY_EXIST, newDeviceInfo.getDeviceName()));
+					return res.toJson();
+
+				case DB_RESPONSE_STATUS_INVALID_ERR:
+					utils.rollback(conn);
+					res.setStatus(STATUS_BAD_REQUEST);
+					res.setMessage(String.format(INVALID_PARAMETER, "deviceType"));
 					return res.toJson();
 			}
 
@@ -327,6 +360,11 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 			dev.setDeviceType((String) infoMap.get("type"));
 			dev.setDatapathId((String) infoMap.get("datapathId"));
 			dev.setOfcIp((String) infoMap.get("ofcIp"));
+			dev.setLocation((String) infoMap.get("location"));
+			dev.setTenant((String) infoMap.get("tenant"));
+			if(infoMap.containsKey("ip") && infoMap.containsKey("port")){
+				dev.setOfcIp(((String)infoMap.get("ip") + ":" + (String)infoMap.get("port").toString()));
+			}
 
 			res.setResult(dev);
 			res.setStatus(STATUS_SUCCESS);
@@ -367,8 +405,14 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 				DeviceInfo dev = new DeviceInfo();
 				dev.setDeviceName((String) infoMap.get("name"));
 				dev.setDeviceType((String) infoMap.get("type"));
-				dev.setDatapathId((String) infoMap.get("datapathId"));
-				dev.setOfcIp((String) infoMap.get("ofcIp"));
+				dev.setLocation((String) infoMap.get("location"));
+				dev.setTenant((String) infoMap.get("tenant"));
+				if(infoMap.containsKey("datapathId")){
+					dev.setDatapathId((String)infoMap.get("datapathId"));
+				}
+				if(infoMap.containsKey("ip") && infoMap.containsKey("port")){
+					dev.setOfcIp(((String)infoMap.get("ip") + ":" + (String)infoMap.get("port").toString()));
+				}
 				result.add(dev);
 			}
 
@@ -464,7 +508,73 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 				logger.debug(String.format("%s(ret=%s) - end", fname, res));
 			}
 		}
+	}
 
+	@Override
+	public String readPortList(String deviceName) {
+		String fname = "readPortList";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(deviceName=%s) - start", fname, deviceName));
+		}
+		PortInfoListReadJsonOut res = new PortInfoListReadJsonOut();
+		res.setStatus(STATUS_SUCCESS);
+
+		/* PHASE 1: json -> obj and validation check */
+		PortInfoCreateJsonIn portInfo = null;
+		try {
+			BaseValidate.checkStringBlank(deviceName);
+		} catch (JsonSyntaxException e) {
+			OFPMUtils.logErrorStackTrace(logger, e);
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(INVALID_JSON);
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		} catch (ValidateException e) {
+			OFPMUtils.logErrorStackTrace(logger, e);
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+
+		/* PHASE 2: */
+		ConnectionUtilsJdbc utils = null;
+		Connection conn = null;
+		try {
+			utils = new ConnectionUtilsJdbcImpl();
+			conn  = utils.getConnection(true);
+
+			Dao dao = new DaoImpl(utils);
+			List<Map<String, Object>> infoMapList = dao.getPortInfoListFromDeviceName(conn, deviceName); 
+
+			List<PortInfo> result = new ArrayList<PortInfo>();
+			for (Map<String, Object> infoMap : infoMapList) {
+				PortInfo port = new PortInfo();
+				port.setPortName((String) infoMap.get("name"));
+				port.setPortNumber((Integer) infoMap.get("number"));
+				port.setBand((Integer) infoMap.get("band"));
+				result.add(port);
+			}
+
+			res.setResult(result);
+			return res.toJson();
+		} catch (SQLException | RuntimeException e) {
+			OFPMUtils.logErrorStackTrace(logger, e);
+    		res.setStatus(STATUS_INTERNAL_ERROR);
+    		res.setMessage(e.getMessage());
+    		return res.toJson();
+		} finally {
+			utils.close(conn);
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+		}
 	}
 
 	public String deletePort(String deviceName, String portName) {
@@ -665,7 +775,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 				}
 
 				/* Get neighbor device info from map. However, if the device info is null, get neighbor device info from ofp db */
-				String nghbrDevName = (String) nghbrPortMap.get("deviceName");
+				String nghbrDevName = (String) nghbrPortMap.get("node_name");
 				Map<String, Object> nghbrDevMap = devCache.get(nghbrDevName);
 				if (nghbrDevMap == null) {
 					nghbrDevMap = dao.getNodeInfoFromDeviceName(conn, nghbrDevName);
@@ -717,5 +827,338 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 			linkData.setOfpFlag(OFP_FLAG_FALSE);
 		}
 		resultData.addLinkData(linkData);
+	}
+
+	@Override
+	public String createOfc(String newOfcInfoJson) {
+		String fname = "createOfc";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(newOfcInfoJson=%s) - start", fname, newOfcInfoJson));
+		}
+		BaseResponse res = new BaseResponse();
+
+		/* PHASE 1: Convert to OfcInfoCreateJsonIn from json and validation check. */
+		OfcInfoCreateJsonIn ofcInfo = null;
+		try {
+			ofcInfo = OfcInfoCreateJsonIn.fromJson(newOfcInfoJson);
+			OfcInfoCreateJsonInValidate validator = new OfcInfoCreateJsonInValidate();
+			validator.checkValidation(ofcInfo);
+		} catch (JsonSyntaxException e) {
+			OFPMUtils.logErrorStackTrace(logger, e);
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(INVALID_JSON);
+
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return res.toString();
+		} catch (ValidateException e) {
+			OFPMUtils.logErrorStackTrace(logger, e);
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(e.getMessage());
+
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return res.toString();
+		}
+
+		/* PHASE 2: Add ofc info to ofpdb */
+		ConnectionUtilsJdbc utils = null;
+		Connection           conn = null;
+		try {
+			utils = new ConnectionUtilsJdbcImpl();
+			conn = utils.getConnection(false);
+
+			Dao dao = new DaoImpl(utils);
+
+//		/* Delete Ofc Not Found Check(from create device) */ 
+//			if (!StringUtils.isBlank(ofcInfo.getOfcIp())) {
+//				String ofcRid = dao.getOfcRid(conn, deviceInfo.getOfcIp());
+//				if (StringUtils.isBlank(ofcRid)) {
+//					res.setStatus(STATUS_NOTFOUND);
+//					res.setMessage(String.format(NOT_FOUND, deviceInfo.getOfcIp()));
+//					return res.toJson();
+//				}
+//			}
+
+			int status = dao.createOfcInfo(
+					conn,
+					ofcInfo.getIp(),
+					ofcInfo.getPort());
+
+			if (status == DB_RESPONSE_STATUS_EXIST) {
+				utils.rollback(conn);
+				res.setStatus(STATUS_BAD_REQUEST);
+				//TODO replace getIp
+				res.setMessage(String.format(ALREADY_EXIST, ofcInfo.getIp()));
+				return res.toJson();
+			}
+
+			utils.commit(conn);
+			res.setStatus(STATUS_CREATED);
+			return res.toJson();
+		} catch (SQLException | RuntimeException e) {
+			utils.rollback(conn);
+			OFPMUtils.logErrorStackTrace(logger, e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			return res.toJson();
+		} finally {
+			utils.close(conn);
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+		}
+		
+	}
+
+	@Override
+	public String deleteOfc(String ofcIpPort) {
+		String fname = "deleteOfc";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ofcIpPort=%s) - start", fname, ofcIpPort));
+		}
+		BaseResponse res = new BaseResponse();
+
+		/* PHASE 1: check validation */
+		try {
+			BaseValidate.checkStringBlank(ofcIpPort);
+		} catch (ValidateException e) {
+			OFPMUtils.logErrorStackTrace(logger, e);
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(e.getMessage());
+
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+
+		/* PHASE 2: Delete node from ofp db */
+		ConnectionUtilsJdbc utils = null;
+		Connection           conn = null;
+		try {
+			utils = new ConnectionUtilsJdbcImpl();
+			conn  = utils.getConnection(false);
+
+			Dao dao = new DaoImpl(utils);
+			Map<String, Object> infoMap = dao.getOfcInfo(conn, ofcIpPort);
+				
+			if(infoMap == null){
+				res.setStatus(STATUS_NOTFOUND);
+				return res.toJson();
+			}
+						
+			int status = dao.deleteOfcInfo(
+					conn,
+					ofcIpPort);
+
+			switch (status) {
+				case DB_RESPONSE_STATUS_NOT_FOUND:
+					utils.rollback(conn);
+					res.setStatus(DB_RESPONSE_STATUS_NOT_FOUND);
+					res.setMessage(String.format(NOT_FOUND, ofcIpPort));
+					return res.toJson();
+
+				case STATUS_FORBIDDEN:
+					utils.rollback(conn);
+					res.setStatus(STATUS_FORBIDDEN);
+					res.setMessage(String.format(IS_PATCHED, ofcIpPort));
+					return res.toJson();
+
+				case DB_RESPONSE_STATUS_FAIL:
+					utils.rollback(conn);
+					res.setStatus(STATUS_INTERNAL_ERROR);
+					res.setMessage(String.format(COULD_NOT_DELETE, ofcIpPort));
+					return res.toJson();
+			}
+
+			utils.commit(conn);
+			res.setStatus(STATUS_SUCCESS);
+			return res.toJson();
+		} catch (SQLException | RuntimeException e) {
+			utils.rollback(conn);
+			OFPMUtils.logErrorStackTrace(logger, e);
+    		res.setStatus(STATUS_INTERNAL_ERROR);
+    		res.setMessage(e.getMessage());
+    		return res.toJson();
+		} finally {
+			utils.close(conn);
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+		}
+	
+	
+	}
+
+	@Override
+	public String updateOfc(String ofcIpPort, String updateOfcInfoJson) {
+	String fname = "updateOfc";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(OfcPort=%s, updateOfcInfoJson=%s) - start", fname, ofcIpPort, updateOfcInfoJson));
+		}
+		BaseResponse res = new BaseResponse();
+
+		/* PHASE 1: json -> OfcInfoUpdateJosnIn and check validation */
+		OfcInfoUpdateJsonIn newOfcInfo = null;
+		try {
+			newOfcInfo = OfcInfoUpdateJsonIn.fromJson(updateOfcInfoJson);
+			OfcInfoUpdateJsonInValidate validator = new OfcInfoUpdateJsonInValidate();
+			validator.checkValidation(ofcIpPort, newOfcInfo);
+		} catch (JsonSyntaxException jse) {
+			logger.error(jse);
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(INVALID_JSON);
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		} catch (ValidateException ve) {
+			logger.error(ve);
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(ve.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}	
+			return ret;
+		}
+		
+		ConnectionUtilsJdbc utils = null;
+		Connection           conn = null;
+		try {
+			utils = new ConnectionUtilsJdbcImpl();
+			conn  = utils.getConnection(false);
+
+			Dao dao = new DaoImpl(utils);
+
+			int status = dao.updateOfcInfo(
+					conn,
+					ofcIpPort,
+					newOfcInfo.getIp(),
+					newOfcInfo.getPort());
+
+			switch (status) {
+				case DB_RESPONSE_STATUS_NOT_FOUND:
+					utils.rollback(conn);
+					res.setStatus(STATUS_NOTFOUND);
+					res.setMessage(String.format(NOT_FOUND, ofcIpPort));
+					return res.toJson();
+			
+/*
+				case DB_RESPONSE_STATUS_EXIST:
+					utils.rollback(conn);
+					res.setStatus(STATUS_CONFLICT);
+					res.setMessage(String.format(ALREADY_EXIST, newOfcInfo.getIp()));
+					return res.toJson();
+*/
+			}
+
+			utils.commit(conn);
+			res.setStatus(STATUS_SUCCESS);
+			return res.toJson();
+		} catch (SQLException | RuntimeException e) {
+			utils.rollback(conn);
+			OFPMUtils.logErrorStackTrace(logger, e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			return res.toJson();
+		} finally {
+			utils.close(conn);
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+		}
+	}
+
+
+	@Override
+	public String readOfcList() {
+		String fname = "readOfcList";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s() - start", fname));
+		}
+		OfcInfoListReadJsonOut res = new OfcInfoListReadJsonOut();
+		res.setStatus(STATUS_SUCCESS);
+
+		ConnectionUtilsJdbc utils = null;
+		Connection conn = null;
+		try {
+			utils = new ConnectionUtilsJdbcImpl();
+			conn  = utils.getConnection(true);
+
+			Dao dao = new DaoImpl(utils);
+			List<Map<String, Object>> infoMapList = dao.getOfcInfoList(conn);
+
+			List<OfcInfo> result = new ArrayList<OfcInfo>();
+			for (Map<String, Object> infoMap : infoMapList) {
+				OfcInfo ofc = new OfcInfo();
+				ofc.setIp((String) infoMap.get("ip"));
+				ofc.setPort((Integer) infoMap.get("port"));
+				result.add(ofc);
+			}
+
+			res.setResult(result);
+			return res.toJson();
+		} catch (SQLException | RuntimeException e) {
+			OFPMUtils.logErrorStackTrace(logger, e);
+    		res.setStatus(STATUS_INTERNAL_ERROR);
+    		res.setMessage(e.getMessage());
+    		return res.toJson();
+		} finally {
+			utils.close(conn);
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+		}
+	}
+
+	@Override
+	public String readOfc(String ofcIpPort) {
+		String fname = "readOfc";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s() - start", fname));
+		}
+		OfcInfoReadJsonOut res = new OfcInfoReadJsonOut();
+		res.setStatus(STATUS_SUCCESS);
+
+		ConnectionUtilsJdbc utils = null;
+		Connection conn = null;
+		try {
+			utils = new ConnectionUtilsJdbcImpl();
+			conn  = utils.getConnection(true);
+
+			Dao dao = new DaoImpl(utils);
+			Map<String, Object> infoMap = dao.getOfcInfo(conn, ofcIpPort);
+				
+			if(infoMap == null){
+				res.setStatus(STATUS_NOTFOUND);
+				return res.toJson();
+			}
+			
+			OfcInfo ofcInfo = new OfcInfo();
+			ofcInfo.setIp((String) infoMap.get("ip"));
+			ofcInfo.setPort((Integer) infoMap.get("port"));
+			res.setResult(ofcInfo);
+			return res.toJson();
+			
+		} catch (SQLException | RuntimeException e) {
+			OFPMUtils.logErrorStackTrace(logger, e);
+    		res.setStatus(STATUS_INTERNAL_ERROR);
+    		res.setMessage(e.getMessage());
+    		return res.toJson();
+		} finally {
+			utils.close(conn);
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+		}
 	}
 }

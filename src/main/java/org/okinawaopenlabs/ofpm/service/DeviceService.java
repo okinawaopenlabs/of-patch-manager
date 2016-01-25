@@ -98,6 +98,15 @@ public interface DeviceService {
 	public Response createPort(@PathParam("deviceName") String deviceName, @RequestBody String newPortInfoJson);
 
 	/**
+	 * Read ports list.
+	 * @return
+	 */
+	@GET
+	@Path("/port/{deviceName}")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Response readPortList(@PathParam("deviceName") String deviceName);
+	
+	/**
 	 * Delete Port
 	 * @param deviceName String
 	 * @param portName String
@@ -121,6 +130,59 @@ public interface DeviceService {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Response updatePort(@PathParam("deviceName") String deviceName, @PathParam("portName") String portName, @RequestBody String updatePortInfoJson);
 
+	// ofc service
+	/**
+	 * Create ofc
+     * @param newOfcInfoJson String
+	 * @return Http Response
+	 */
+	@POST
+	@Path("/ofc")
+	@Consumes({ MediaType.APPLICATION_JSON })
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Response createOfc(@RequestBody String newOfcInfoJson);
+
+	/**
+	 * Delete ofc
+	 * @param ofcIpPort String
+	 * @return Http Response
+	 */
+	@DELETE
+	@Path("/ofc/{ofcIpPort}")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Response deleteOfc(@PathParam("ofcIpPort") String ofcIpPort);
+	
+	/**
+	 * Update ofc
+	 * @param ofcIpPort String
+	 * @param updateOfcInfoJson String
+	 * @return Http Response
+	 */
+	@PUT
+	@Path("/ofc/{ofcIpPort}")
+	@Consumes({ MediaType.APPLICATION_JSON })
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Response updateOfc(@PathParam("ofcIpPort") String ofcIpPort, @RequestBody String updateOfcInfoJson);
+
+	/**
+	 * Read ofc List
+	 * @return 
+	 */
+	@GET
+	@Path("/ofc")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Response readOfcList();
+	
+	/**
+	 * Read ofc
+	 * @param ofcIpPort
+	 * @return Http Response
+	 */
+	@GET
+	@Path("/ofc/{ofcIpPort}")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Response readOfc(@PathParam("ofcIpPort") String ofcIpPort);
+
 	// other service
 	/**
 	 * get Port which connected device
@@ -128,8 +190,8 @@ public interface DeviceService {
 	 * @return Http Response
 	 */
 	@GET
-	@Path("/connectedPort")
-	@Consumes({ MediaType.APPLICATION_FORM_URLENCODED })
+	@Path("/connectedPort/{deviceName}")
 	@Produces({ MediaType.APPLICATION_JSON })
-	Response getConnectedPortInfo(@QueryParam("deviceName") String deviceName);
+	Response getConnectedPortInfo(@PathParam("deviceName") String deviceName);
+
 }

@@ -166,6 +166,28 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
+	public Response readPortList(String deviceName) {
+		final String fname = "readPortList";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(deviceName=%s) - start", fname, deviceName));
+		}
+
+		this.injector = Guice.createInjector(new AbstractModule() {
+			@Override
+			protected void configure() {
+				bind(DeviceBusiness.class).to(DeviceBusinessImpl.class);
+			}
+		});
+		DeviceServiceImpl main = this.injector.getInstance(DeviceServiceImpl.class);
+		String resDeviceBiz = main.deviceBiz.readPortList(deviceName);
+
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
+		}
+		return Response.ok(resDeviceBiz).type(MediaType.APPLICATION_JSON_TYPE).build();
+	}
+
+	@Override
 	public Response deletePort(String deviceName, String portName) {
 		final String fname = "deletePort";
 		if (logger.isDebugEnabled()) {
@@ -231,4 +253,107 @@ public class DeviceServiceImpl implements DeviceService {
     	}
 		return Response.ok(resDeviceBiz).type(MediaType.APPLICATION_JSON_TYPE).build();
 	}
+
+	@Override
+	public Response createOfc(String newOfcInfoJson) {
+		final String fname = "createOfc";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(deviceInfoJson=%s) - start", fname, newOfcInfoJson));
+		}
+
+		this.injector = Guice.createInjector(new AbstractModule() {
+			@Override
+			protected void configure() {
+				bind(DeviceBusiness.class).to(DeviceBusinessImpl.class);
+			}
+		});
+		DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
+		String resDeviceBiz = main.deviceBiz.createOfc(newOfcInfoJson);
+
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
+		}
+		return Response.ok(resDeviceBiz).type(MediaType.APPLICATION_JSON_TYPE).build();
+	}
+
+	@Override
+	public Response deleteOfc(String ofcIpPort) {
+		final String fname = "deleteOfc";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ofcIpPort=%s) - start", fname, ofcIpPort));
+		}
+
+		this.injector = Guice.createInjector(new AbstractModule() {
+			@Override
+			protected void configure() {
+				bind(DeviceBusiness.class).to(DeviceBusinessImpl.class);
+			}
+		});
+		DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
+		String resDeviceBiz = main.deviceBiz.deleteOfc(ofcIpPort);
+
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, ofcIpPort));
+		}
+		return Response.ok(resDeviceBiz).type(MediaType.APPLICATION_JSON_TYPE).build();	}
+
+	@Override
+	public Response updateOfc(String ofcIpPort, String updateOfcInfoJson) {
+		final String fname = "updateOfc";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ofcIpPort=%s, updateOfcInfoJson=%s) - start", fname, ofcIpPort, updateOfcInfoJson));
+		}
+
+		this.injector = Guice.createInjector(new AbstractModule() {
+			@Override
+			protected void configure() {
+				bind(DeviceBusiness.class).to(DeviceBusinessImpl.class);
+			}
+		});
+		DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
+		String resDeviceBiz = main.deviceBiz.updateOfc(ofcIpPort, updateOfcInfoJson);
+
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
+		}
+		return Response.ok(resDeviceBiz).type(MediaType.APPLICATION_JSON_TYPE).build();	}
+
+	@Override
+	public Response readOfcList() {
+		final String fname = "readOfcList";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s() - start", fname));
+		}
+		this.injector = Guice.createInjector(new AbstractModule() {
+			@Override
+			protected void configure() {
+				bind(DeviceBusiness.class).to(DeviceBusinessImpl.class);
+			}
+		});
+		DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
+		String resDeviceBiz = main.deviceBiz.readOfcList();
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
+		}
+		return Response.ok(resDeviceBiz).type(MediaType.APPLICATION_JSON_TYPE).build();	}
+
+	@Override
+	public Response readOfc(String ofcIpPort) {
+		final String fname = "readOfc";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ofcIpPort=%s) - start", fname, ofcIpPort));
+		}
+		this.injector = Guice.createInjector(new AbstractModule() {
+			@Override
+			protected void configure() {
+				bind(DeviceBusiness.class).to(DeviceBusinessImpl.class);
+			}
+		});
+		DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
+		String resDeviceBiz = main.deviceBiz.readOfc(ofcIpPort);
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
+		}
+		return Response.ok(resDeviceBiz).type(MediaType.APPLICATION_JSON_TYPE).build(); }
+
 }

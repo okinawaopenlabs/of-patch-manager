@@ -17,9 +17,14 @@
 package org.okinawaopenlabs.ofpm.validate.device;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.log4j.Logger;
 
 import static org.okinawaopenlabs.constants.ErrorMessage.*;
+import static org.okinawaopenlabs.constants.OfpmDefinition.*;
+
+import java.util.regex.Pattern;
+
 import org.okinawaopenlabs.ofpm.exception.ValidateException;
 import org.okinawaopenlabs.ofpm.json.device.PortInfoCreateJsonIn;
 import org.okinawaopenlabs.ofpm.validate.common.BaseValidate;
@@ -29,22 +34,71 @@ public class PortInfoCreateJsonInValidate extends BaseValidate {
 
 	public void checkValidation(String deviceName, PortInfoCreateJsonIn portInfoJson) throws ValidateException {
 		String fname = "checkValidateion";
+		boolean match;
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(portInfoJson=%s) - start", fname, portInfoJson));
 		}
 
-		if (StringUtils.isBlank(deviceName)) {
-			throw new ValidateException(String.format(IS_BLANK, "deviceName"));
+		//Check DeviceName
+		try{
+			if (StringUtils.isBlank(deviceName)) {
+				throw new ValidateException(String.format(IS_BLANK, "deviceName"));
+			}
 		}
-		if (BaseValidate.checkNull(portInfoJson)) {
-			throw new ValidateException(String.format(IS_BLANK, "Input parameter"));
+		catch(Exception e)
+		{
+			throw new ValidateException(String.format(INVALID_PARAMETER, "deviceName"));
 		}
-		if (StringUtils.isBlank(portInfoJson.getPortName())) {
-			throw new ValidateException(String.format(IS_BLANK, "portName"));
+
+		//Check Input Parameter
+		try{
+			if (BaseValidate.checkNull(portInfoJson)) {
+				throw new ValidateException(String.format(IS_BLANK, "Input parameter"));
+			}
 		}
-		if (StringUtils.isBlank(portInfoJson.getBand())) {
-			throw new ValidateException(String.format(IS_BLANK, "band"));
+		catch(Exception e)
+		{
+			throw new ValidateException(String.format(INVALID_PARAMETER, "Input parameter"));
 		}
+
+		//Check PortName
+		try{
+			if (StringUtils.isBlank(portInfoJson.getPortName())) {
+				throw new ValidateException(String.format(IS_BLANK, "portName"));
+			}
+			if (portInfoJson.getPortName().length() > PORT_NAME_MAX_LENGTH)
+			{
+				throw new ValidateException(String.format(INVALID_PARAMETER, "portName"));				
+			}
+		}
+		catch(Exception e)
+		{
+			throw new ValidateException(String.format(INVALID_PARAMETER, "portName"));
+		}
+
+		//Check PortNumber
+		try{
+			System.out.println(portInfoJson.getPortNumber());
+			if(portInfoJson.getPortNumber()==0){
+				throw new ValidateException(String.format(IS_BLANK, "portNumber"));
+			}
+		}
+		catch(Exception e)
+		{
+			throw new ValidateException(String.format(INVALID_PARAMETER, "portNumber"));
+		}
+
+		//Check Band
+		try{
+			if (portInfoJson.getBand()==0) {
+				throw new ValidateException(String.format(IS_BLANK, "band"));
+			}
+		}
+		catch(Exception e)
+		{
+			throw new ValidateException(String.format(INVALID_PARAMETER, "band"));
+		}
+
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s() - end", fname));
 		}

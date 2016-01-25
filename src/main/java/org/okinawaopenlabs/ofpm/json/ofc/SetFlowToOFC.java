@@ -18,44 +18,50 @@
 package org.okinawaopenlabs.ofpm.json.ofc;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.okinawaopenlabs.ofpm.json.topology.logical.LogicalTopology.OfpConDeviceInfo;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 public class SetFlowToOFC {
 
-	private String dpid;
+	private Long dpid;
+	private Long priority;
+	
 
-	public String getDpid() {
+	public Long getDpid() {
 		return dpid;
 	}
-	public void setDpid(String dpid) {
+	public void setDpid(Long dpid) {
 		this.dpid = dpid;
 	}
 
-	public class Match {
-		private Integer inPort;
-		private String srcMac;
-		private String dstMac;
+	public Long getPriority() {
+		return priority;
+	}
+	public void setPriority(Long priority) {
+		this.priority = priority;
+	}
 
-		public Integer getInPort() {
-			return inPort;
+	public class Match {
+		private Long in_port;
+		private Long dl_vlan;
+
+		public Long getIn_port() {
+			return in_port;
 		}
-		public void setInPort(Integer inPort) {
-			this.inPort = inPort;
+		public void setIn_port(Long in_port) {
+			this.in_port = in_port;
 		}
-		public String getSrcMac() {
-			return srcMac;
+
+		public Long getDl_vlan() {
+			return dl_vlan;
 		}
-		public void setSrcMac(String srcMac) {
-			this.srcMac = srcMac;
-		}
-		public String getDstMac() {
-			return dstMac;
-		}
-		public void setDstMac(
-				String dstMac) {
-			this.dstMac = dstMac;
+		public void setDl_vlan(Long dl_vlan) {
+			this.dl_vlan = dl_vlan;
 		}
 	}
 
@@ -69,55 +75,55 @@ public class SetFlowToOFC {
 	}
 
 	public class Action {
-		private Integer outPort;
-		private String modSrcMac;
-		private String modDstMac;
-		private String packetIn;
-		private String drop;
+		private String type;
+		private Long port;
+		private Long ethertype;
+		private String field;
+		private Long value;
 
-		public Integer getOutPort() {
-			return outPort;
+		public String getType() {
+			return type;
 		}
-		public void setOutPort(Integer outPort) {
-			this.outPort = outPort;
-		}
-
-		public String getModSrcMac() {
-			return modSrcMac;
-		}
-		public void setModSrcMac(String modSrcMac) {
-			this.modSrcMac = modSrcMac;
+		public void setType(String type) {
+			this.type = type;
 		}
 
-		public String getModDstMac() {
-			return modDstMac;
+		public Long getPort() {
+			return port;
 		}
-		public void setModDstMac(String modDstMac) {
-			this.modDstMac = modDstMac;
-		}
-
-		public String getPacketIn() {
-			return packetIn;
-		}
-		public void setPacketIn(String packetIn) {
-			this.packetIn = packetIn;
+		public void setPort(Long port) {
+			this.port = port;
 		}
 
-		public String getDrop() {
-			return drop;
+		public Long getEthertype() {
+			return ethertype;
 		}
-		public void setDrop(String drop) {
-			this.drop = drop;
+		public void setEthertype(Long ethertype) {
+			this.ethertype = ethertype;
+		}
+
+		public String getField() {
+			return field;
+		}
+		public void setField(String field) {
+			this.field = field;
+		}
+
+		public Long getValue() {
+			return value;
+		}
+		public void setValue(Long value) {
+			this.value = value;
 		}
 	}
 
-	private Action action;
+	private List<Action> actions = new ArrayList<Action>();
 
-	public Action getAction() {
-		return action;
+	public List<Action> getActions() {
+		return actions;
 	}
-	public void setAction(Action action) {
-		this.action = action;
+	public void setActions(List<Action> actions) {
+		this.actions = actions;
 	}
 
 	public static SetFlowToOFC fromJson(String json) {

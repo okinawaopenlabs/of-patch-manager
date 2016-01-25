@@ -14,13 +14,27 @@
  *   limitations under the License.
  */
 
-package org.okinawaopenlabs.ofpm.business;
+package org.okinawaopenlabs.ofpm.json.device;
 
-public interface PhysicalBusiness {
+import java.lang.reflect.Type;
 
-	public String getPhysicalTopology();
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
-	public String connectPhysicalLink(String physicalLinkJson);
 
-	public String disconnectPhysicalLink(String physicalLinkJson);
+public class OfcInfoCreateJsonIn extends OfcInfo {
+	public static OfcInfoCreateJsonIn fromJson(String json) {
+		Gson gson = new Gson();
+		Type type = new TypeToken<OfcInfoCreateJsonIn>(){}.getType();
+		return gson.fromJson(json, type);
+	}
+	public String toJson() {
+		Gson gson = new Gson();
+		Type type = new TypeToken<OfcInfoCreateJsonIn>(){}.getType();
+		return gson.toJson(this, type);
+	}
+	@Override
+	public String toString() {
+		return this.toJson();
+	}
 }

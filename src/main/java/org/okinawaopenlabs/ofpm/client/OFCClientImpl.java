@@ -19,11 +19,15 @@ package org.okinawaopenlabs.ofpm.client;
 import static org.okinawaopenlabs.constants.ErrorMessage.*;
 import static org.okinawaopenlabs.constants.OfpmDefinition.*;
 
+import java.util.List;
+import java.util.Map;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.okinawaopenlabs.constants.OfcClientDefinition;
 import org.okinawaopenlabs.ofpm.exception.OFCClientException;
 import org.okinawaopenlabs.ofpm.json.common.BaseResponse;
 import org.okinawaopenlabs.ofpm.json.ofc.SetFlowToOFC;
@@ -40,70 +44,98 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class OFCClientImpl implements OFCClient {
 	private static final Logger logger = Logger.getLogger(OFCClientImpl.class);
-	private WebResource resource;
-	private String ip;
 
-	public OFCClientImpl(String ip) {
-		final String fname = "OFCClientImpl";
+	/* (non-Javadoc)
+	 * @see org.okinawaopenlabs.ofpm.client.OFCClient#setFlows(Map<String, Object>)
+	 */
+	@Override
+	public BaseResponse addFlows(String ofIp, SetFlowToOFC requestData) throws OFCClientException {
+		final String fname = "setFlows";
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(ip=%s) - start", fname, ip));
+			logger.debug(String.format("%s(ofIp=%s, requestData=%s) - start", fname, ofIp, requestData));
 		}
-		this.ip = ip;
-		this.resource = Client.create().resource("http://" + ip + OFC_PATH);
+
+		BaseResponse ret = new BaseResponse();
+		ret.setStatus(STATUS_INTERNAL_ERROR);
+		try {
+
+			String url = "http://" + ofIp + OFC_ADD_FLOWENTRY_PATH;
+			ret = postRequest(url, requestData);
+
+		} catch (UniformInterfaceException uie) {
+			logger.error(uie.getMessage());
+			throw new OFCClientException(String.format(CONNECTION_FAIL, "OFC-" + ofIp));
+		} catch (ClientHandlerException che) {
+			logger.error(che);
+			throw new OFCClientException(String.format(CONNECTION_FAIL, "OFC-" + ofIp));
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new OFCClientException(UNEXPECTED_ERROR);
+		}
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s() - end", fname));
+			logger.debug(String.format("%s(ret=%s) - end", fname, ret.toJson()));
 		}
+		return ret;
+
 	}
 
 	/* (non-Javadoc)
-	 * @see org.okinawaopenlabs.ofpm.client.OFCClient#setFlows(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean)
+	 * @see org.okinawaopenlabs.ofpm.client.OFCClient#deleteFlows(Map<String, Object> flow)
 	 */
 	@Override
-	public BaseResponse setFlows(String dpid, Integer inPort, String srcMac, String dstMac, Integer outPort, String modSrcMac, String modDstMac,
-			Boolean packetIn, Boolean drop) throws OFCClientException {
+	public BaseResponse deleteFlows(String ofIp, SetFlowToOFC requestData) throws OFCClientException {
+		final String fname = "deleteFlows";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ofIp=%s, requestData=%s) - start", fname, ofIp, requestData));
+		}
+
+		BaseResponse ret = new BaseResponse();
+		ret.setStatus(STATUS_INTERNAL_ERROR);
+		try {
+
+			String url = "http://" + ofIp + OFC_DELETE_FLOWENTRY_PATH;
+			ret = postRequest(url, requestData);
+
+		} catch (UniformInterfaceException uie) {
+			logger.error(uie.getMessage());
+			throw new OFCClientException(String.format(CONNECTION_FAIL, "OFC-" + ofIp));
+		} catch (ClientHandlerException che) {
+			logger.error(che);
+			throw new OFCClientException(String.format(CONNECTION_FAIL, "OFC-" + ofIp));
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new OFCClientException(UNEXPECTED_ERROR);
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, ret.toJson()));
+		}
+		return ret;
+	}
+
+	public BaseResponse postRequest(String url, SetFlowToOFC requestData) throws OFCClientException {
 		final String fname = "setFlows";
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(dpid=%s,inPort=%s,srcMac=%s,dstMac=%s,outPort=%s,modSrcMac=%s,modDstMac=%s,packetIn=%s,drop=%s) - start",
-					fname, dpid, inPort, srcMac, dstMac, outPort, modSrcMac, modDstMac, packetIn, drop));
+			logger.debug(String.format("%s(url=%s, requestData=%s) - start", fname, url, requestData));
 		}
 
 		BaseResponse ret = new BaseResponse();
 		try {
-			SetFlowToOFC requestData = new SetFlowToOFC();
-			requestData.setDpid(dpid);
-			Match match = requestData.new Match();
-			Action action = requestData.new Action();
-			match.setInPort(inPort);
-			match.setSrcMac(srcMac);
-			match.setDstMac(dstMac);
-			action.setOutPort(outPort);
-			action.setModSrcMac(modSrcMac);
-			action.setModDstMac(modDstMac);
-			if (!isNull(packetIn)) {
-				action.setPacketIn(packetIn.toString());
-			}
-			if (!isNull(drop)) {
-				action.setDrop(drop.toString());
-			}
-			requestData.setMatch(match);
-			requestData.setAction(action);
-
-			Builder resBuilder = this.resource.entity(requestData.toJson());
+			WebResource resource = Client.create().resource(url);
+			Builder resBuilder = resource.entity(requestData.toJson());
 			resBuilder = resBuilder.accept(MediaType.APPLICATION_JSON);
 			resBuilder = resBuilder.type(MediaType.APPLICATION_JSON);
 			ClientResponse res = resBuilder.post(ClientResponse.class);
-
-			if (res.getStatus() != STATUS_CREATED) {
-				logger.error(res.getEntity(String.class));
-				throw new OFCClientException(String.format(WRONG_RESPONSE, "OFC-" + this.ip));
+			if (res.getStatus() != STATUS_SUCCESS) {
+				logger.error(res.getStatus());
+				throw new OFCClientException(String.format(WRONG_RESPONSE, "OFC-" + url));
 			}
-			ret = BaseResponse.fromJson(res.getEntity(String.class));
+			ret.setStatus(res.getStatus());
 		} catch (UniformInterfaceException uie) {
 			logger.error(uie.getMessage());
-			throw new OFCClientException(String.format(CONNECTION_FAIL, "OFC-" + this.ip));
+			throw new OFCClientException(String.format(CONNECTION_FAIL, "OFC-" + url));
 		} catch (ClientHandlerException che) {
 			logger.error(che);
-			throw new OFCClientException(String.format(CONNECTION_FAIL, "OFC-" + this.ip));
+			throw new OFCClientException(String.format(CONNECTION_FAIL, "OFC-" + url));
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new OFCClientException(UNEXPECTED_ERROR);
@@ -114,71 +146,146 @@ public class OFCClientImpl implements OFCClient {
 		return ret;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.okinawaopenlabs.ofpm.client.OFCClient#deleteFlows(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean)
-	 */
-	@Override
-	public BaseResponse deleteFlows(String dpid, Integer inPort, String srcMac, String dstMac, Integer outPort, String modSrcMac, String modDstMac,
-			Boolean packetIn, Boolean drop) throws OFCClientException {
-		final String fname = "deleteFlows";
+	public SetFlowToOFC createRequestData(Long dpid, Long priority, Match match, List<Action> actions) {
+		final String fname = "createRequestData";
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(dpid=%s,inPort=%s,srcMac=%s,dstMac=%s,outPort=%s,modSrcMac=%s,modDstMac=%s,packetIn=%s,drop=%s) - start",
-					fname, dpid, inPort, srcMac, dstMac, outPort, modSrcMac, modDstMac, packetIn, drop));
+			logger.debug(String.format("%s(dpid=%s, priority=%s, match=%s, actions=%s) - start", fname, dpid, priority, match, actions));
 		}
 
-		BaseResponse ret = new BaseResponse();
-		try {
-			MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-
-			if (!isNullAndEmpty(dpid)) {
-				queryParams.add("dpid", dpid);
-			}
-			if (!isNull(inPort)) {
-				queryParams.add("inPort", inPort.toString());
-			}
-			if (!isNullAndEmpty(srcMac)) {
-				queryParams.add("srcMac", srcMac);
-			}
-			if (!isNullAndEmpty(dstMac)) {
-				queryParams.add("dstMac", dstMac);
-			}
-			if (!isNull(outPort)) {
-				queryParams.add("outPort", outPort.toString());
-			}
-			if (!isNullAndEmpty(modSrcMac)) {
-				queryParams.add("modSrcMac", modSrcMac);
-			}
-			if (!isNullAndEmpty(modDstMac)) {
-				queryParams.add("modDstMac", modDstMac);
-			}
-			if (!isNull(packetIn)) {
-				queryParams.add("packetIn", packetIn.toString());
-			}
-			if (!isNull(drop)) {
-				queryParams.add("drop", drop.toString());
-			}
-
-			ClientResponse res = this.resource.queryParams(queryParams).delete(ClientResponse.class);
-
-			if (res.getStatus() != STATUS_SUCCESS) {
-				logger.error(res.getEntity(String.class));
-				throw new OFCClientException(String.format(WRONG_RESPONSE, "OFC-" + this.ip));
-			}
-			ret = BaseResponse.fromJson(res.getEntity(String.class));
-		} catch (UniformInterfaceException uie) {
-			logger.error(uie.getMessage());
-			throw new OFCClientException(String.format(CONNECTION_FAIL, "OFC-" + this.ip));
-		} catch (ClientHandlerException che) {
-			logger.error(che);
-			throw new OFCClientException(String.format(CONNECTION_FAIL, "OFC-" + this.ip));
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-			throw new OFCClientException(UNEXPECTED_ERROR);
+		SetFlowToOFC requestData = new SetFlowToOFC();
+		requestData.setDpid(dpid);
+		requestData.setPriority(priority);
+		if (match != null) {
+			requestData.setMatch(match);
+		} else {
+			requestData.setMatch(requestData.new Match());			
 		}
+		if (actions != null) {
+			requestData.setActions(actions);
+		}
+
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(ret=%s) - end", fname, ret.toJson()));
+			logger.debug(String.format("%s(requestData=%s) - end", fname, requestData.toJson()));
 		}
-		return ret;
+		return requestData;
+	}
+
+	public SetFlowToOFC createMatchForInPort(SetFlowToOFC requestData, Long inPort) {
+		final String fname = "createMatchForInPort";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(requestData=%s, inPort=%s) - start", fname, requestData, inPort));
+		}
+
+		Match match = requestData.getMatch();
+		match.setIn_port(inPort);
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, requestData.toJson()));
+		}
+		return requestData;
+	}
+	
+	public SetFlowToOFC createMatchForInPortDlVlan(SetFlowToOFC requestData, Long inPort, Long vlanId) {
+		final String fname = "createMatchForInPortDlVlan";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(requestData=%s, inPort=%s, vlanId=%s) - start", fname, requestData, inPort, vlanId));
+		}
+
+		Match match = requestData.getMatch();
+		match.setIn_port(inPort);
+		match.setDl_vlan(vlanId);
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, requestData.toJson()));
+		}
+		return requestData;
+	}
+
+	public SetFlowToOFC createMatchForDlVlan(SetFlowToOFC requestData, Long vlanId) {
+		final String fname = "createMatchForDlVlan";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(requestData=%s, vlanId=%s) - start", fname, requestData, vlanId));
+		}
+
+		Match match = requestData.getMatch();
+		match.setDl_vlan(vlanId);
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, requestData.toJson()));
+		}
+		return requestData;
+	}
+
+	public SetFlowToOFC createActionsForPushVlan(SetFlowToOFC requestData, Long outPort, Long vlanId) {
+		final String fname = "createActionsForPushVlan";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(requestData=%s, outPort=%s, vlanId=%s) - start", fname, requestData, outPort, vlanId));
+		}
+
+		List<SetFlowToOFC.Action> retActions = requestData.getActions();
+		
+		Action pushVlanAction = requestData.new Action();
+		pushVlanAction.setType(OfcClientDefinition.ACTION_TYPE_PUSH_VLAN);
+		pushVlanAction.setEthertype(OfcClientDefinition.ACTION_TYPE_PUSH_VLAN_ETH_TYPE);
+		retActions.add(pushVlanAction);
+		
+		Action pushSetFieldAction = requestData.new Action();
+		pushSetFieldAction.setType(OfcClientDefinition.ACTION_TYPE_SET_FIELD);
+		pushSetFieldAction.setField(OfcClientDefinition.ACTION_TYPE_SET_FIELD_VLAN_VID);
+		pushSetFieldAction.setValue(vlanId);
+		retActions.add(pushSetFieldAction);
+		
+		Action pushOutputAction = requestData.new Action();
+		pushOutputAction.setType(OfcClientDefinition.ACTION_TYPE_OUTPUT);
+		pushOutputAction.setPort(outPort);
+		retActions.add(pushOutputAction);
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, requestData.toJson()));
+		}
+		return requestData;
+	}
+
+	public SetFlowToOFC createActionsForPopVlan(SetFlowToOFC requestData, Long outPort) {
+		final String fname = "createActionsForPopVlan";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(requestData=%s, outPort=%s) - start", fname, requestData, outPort));
+		}
+
+		List<SetFlowToOFC.Action> retActions = requestData.getActions();
+		
+		Action popVlanAction = requestData.new Action();
+		popVlanAction.setType(OfcClientDefinition.ACTION_TYPE_POP_VLAN);
+		retActions.add(popVlanAction);
+
+		Action pushOutputAction = requestData.new Action();
+		pushOutputAction.setType(OfcClientDefinition.ACTION_TYPE_OUTPUT);
+		pushOutputAction.setPort(outPort);
+		retActions.add(pushOutputAction);
+
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, requestData.toJson()));
+		}
+		return requestData;
+	}
+
+	public SetFlowToOFC createActionsForOutputPort(SetFlowToOFC requestData, Long outPort) {
+		final String fname = "createActionsForPopVlan";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(requestData=%s, outPort=%s) - start", fname, requestData, outPort));
+		}
+
+		List<SetFlowToOFC.Action> retActions = requestData.getActions();
+
+		Action pushOutputAction = requestData.new Action();
+		pushOutputAction.setType(OfcClientDefinition.ACTION_TYPE_OUTPUT);
+		pushOutputAction.setPort(outPort);
+		retActions.add(pushOutputAction);
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, requestData.toJson()));
+		}
+		return requestData;
 	}
 
 	private boolean isNullAndEmpty(String param) {
@@ -200,14 +307,5 @@ public class OFCClientImpl implements OFCClient {
 			return false;
 		}
 		return true;
-	}
-
-	public String getIp() {
-		return this.ip;
-	}
-
-	@Override
-	public String toString() {
-		return super.toString() + ":" + this.ip;
 	}
 }

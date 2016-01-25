@@ -17,6 +17,12 @@
 package org.okinawaopenlabs.ofpm.validate.device;
 
 import static org.okinawaopenlabs.constants.ErrorMessage.*;
+import static org.okinawaopenlabs.constants.OfpmDefinition.MAX_PORT_VALUE;
+import static org.okinawaopenlabs.constants.OfpmDefinition.MIN_PORT_VALUE;
+import static org.okinawaopenlabs.constants.OfpmDefinition.PORT_NAME_MAX_LENGTH;
+import static org.okinawaopenlabs.constants.OfpmDefinition.REGEX_NUMBER;
+
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -38,15 +44,11 @@ public class PortInfoUpdateJsonInValidate extends BaseValidate {
 			logger.debug(String.format("%s(updatePortInfo=%s) - start", fname, updatePortInfo));
 		}
 
-		if (StringUtils.isBlank(deviceName)) {
-			throw new ValidateException(String.format(IS_BLANK, "deviceName"));
-		}
-		if (StringUtils.isBlank(portName)) {
-			throw new ValidateException(String.format(IS_BLANK, "portName"));
-		}
-
-		if (BaseValidate.checkNull(updatePortInfo)) {
-			throw new ValidateException(String.format(IS_BLANK, "parameter"));
+		//Chack PortName
+		//System.out.println(updatePortInfo.getPortName().length() + "," + PORT_NAME_MAX_LENGTH);
+		if (updatePortInfo.getPortName().length() > PORT_NAME_MAX_LENGTH)
+		{
+			throw new ValidateException(String.format(INVALID_PARAMETER, "portName"));				
 		}
 
 		if (logger.isDebugEnabled()) {
