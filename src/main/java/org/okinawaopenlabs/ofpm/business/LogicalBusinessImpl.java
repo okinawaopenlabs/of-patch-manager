@@ -269,14 +269,12 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		return linkSet;
 	}
 
-	public String getLogicalTopology(String deviceNamesCSV) {
+	public String getLogicalTopology(String deviceNamesCSV, String tokenId) {
 		String fname = "getLogicalTopology";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceNames=%s) - start", fname, deviceNamesCSV));
 		}
 		LogicalTopologyGetJsonOut res = new LogicalTopologyGetJsonOut();
-
-		String tokenId = "aaa"; // dummy 20160125
 		
 		/* PHASE 0: Authentication */
 		try {

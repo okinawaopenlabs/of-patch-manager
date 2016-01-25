@@ -38,7 +38,7 @@ public class LogicalServiceImpl implements LogicalService {
 	Injector injector;
 
 	@Override
-	public Response getLogicalTopology(String deviceNamesCSV) {
+	public Response getLogicalTopology(String deviceNamesCSV, String tokenId) {
 		final String fname = "getLogicalTopology";
 		long time = 0L;
 		if (logger.isInfoEnabled()) {
@@ -56,7 +56,7 @@ public class LogicalServiceImpl implements LogicalService {
 			}
 		});
 		LogicalServiceImpl main = this.injector.getInstance(LogicalServiceImpl.class);
-		String resLogiBiz = main.logiBiz.getLogicalTopology(deviceNamesCSV);
+		String resLogiBiz = main.logiBiz.getLogicalTopology(deviceNamesCSV, tokenId);
 
 
 		if (logger.isDebugEnabled()) {

@@ -38,7 +38,7 @@ public interface LogicalService {
 	@GET
 	@Consumes({ MediaType.APPLICATION_FORM_URLENCODED })
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Response getLogicalTopology(@QueryParam("deviceNames") String deviceNamesCSV);
+	public Response getLogicalTopology(@QueryParam("deviceNames") String deviceNamesCSV, @QueryParam("tokenId") String tokenId);
 
 	@PUT
 	@Consumes({ MediaType.APPLICATION_JSON })
