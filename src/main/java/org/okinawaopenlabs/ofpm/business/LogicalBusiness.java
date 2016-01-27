@@ -19,7 +19,7 @@ package org.okinawaopenlabs.ofpm.business;
 public interface LogicalBusiness {
 	public String getLogicalTopology(String deviceNames, String tokenId);
 
-	public String updateLogicalTopology(String requestedTopologyJson, String tokenId);
+	public String updateLogicalTopology(String requestedTopologyJson);
 
 	/**
 	 * Set all flow in OFP-DB to OFPS that is presented by datapathId.

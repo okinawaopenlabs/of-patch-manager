@@ -24,7 +24,8 @@ import com.google.gson.reflect.TypeToken;
 
 public class DisconnectPhysicalLinksJsonIn {
 	private List<PhysicalLink> links;
-
+	private String tokenId;
+	
 	public static DisconnectPhysicalLinksJsonIn fromJson(String json) {
 		Gson gson = new Gson();
 		Type type = new TypeToken<DisconnectPhysicalLinksJsonIn>() {}.getType();
@@ -47,5 +48,12 @@ public class DisconnectPhysicalLinksJsonIn {
 	}
 	public void setLinks(List<PhysicalLink> links) {
 		this.links = links;
+	}
+
+	public String getTokenId() {
+		return tokenId;
+	}
+	public void setTokenId(String tokenId) {
+		this.tokenId = tokenId;
 	}
 }

@@ -372,7 +372,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		return ret;
 	}
 
-	public String updateLogicalTopology(String requestedTopologyJson, String tokenId) {
+	public String updateLogicalTopology(String requestedTopologyJson) {
 		String fname = "updateLogicalTopology";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(requestedTopology=%s) - start", fname, requestedTopologyJson));
@@ -382,9 +382,38 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		res.setStatus(STATUS_SUCCESS);
 		res.setResult(null);
 		
-		/* PHASE 0: Authentication */
+		/* PHASE 1: Validation */
+		LogicalTopologyUpdateJsonIn requestedTopology = null;
+		try {
+			requestedTopology = LogicalTopologyUpdateJsonIn.fromJson(requestedTopologyJson);
+		} catch (JsonSyntaxException jse) {
+			OFPMUtils.logErrorStackTrace(logger, jse);
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(INVALID_JSON);
+			String ret = res.toString();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+
+		try {
+			LogicalTopologyValidate validator = new LogicalTopologyValidate();
+			validator.checkValidationRequestIn(requestedTopology);
+		} catch (ValidateException ve) {
+			OFPMUtils.logErrorStackTrace(logger, ve);
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(ve.getMessage());
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+			return res.toJson();
+		}
+
+		/* PHASE 2: Authentication */
 		try {
 			OpenamAuthentication opam = new OpenamAuthentication();
+			String tokenId = requestedTopology.getTokenId();
 			boolean isTokenValid = false;
 			isTokenValid = opam.authenticationTokenId(tokenId);
 
@@ -408,36 +437,8 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			}
 			return ret;
 		}
-		
-		/* PHASE 1: Validation */
-		LogicalTopologyUpdateJsonIn requestedTopology = null;
-		try {
-			requestedTopology = LogicalTopologyUpdateJsonIn.fromJson(requestedTopologyJson);
-		} catch (JsonSyntaxException jse) {
-			OFPMUtils.logErrorStackTrace(logger, jse);
-			res.setStatus(STATUS_BAD_REQUEST);
-			res.setMessage(INVALID_JSON);
-			String ret = res.toString();
-			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
-			}
-			return ret;
-		}
 
-		try {
-			LogicalTopologyValidate validator = new LogicalTopologyValidate();
-			validator.checkValidationRequestIn(requestedTopology);
-			// TODO: check user tenant (by used-info in DMDB).
-		} catch (ValidateException ve) {
-			OFPMUtils.logErrorStackTrace(logger, ve);
-			res.setStatus(STATUS_BAD_REQUEST);
-			res.setMessage(ve.getMessage());
-			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("%s(ret=%s) - end", fname, res));
-			}
-			return res.toJson();
-		}
-
+		/* PHASE 3 */
 		MultivaluedMap<String, SetFlowToOFC> reducedFlows   = new MultivaluedHashMap<String, SetFlowToOFC>();
 		MultivaluedMap<String, SetFlowToOFC> augmentedFlows = new MultivaluedHashMap<String, SetFlowToOFC>();
 		ConnectionUtilsJdbc utilsJdbc = null;

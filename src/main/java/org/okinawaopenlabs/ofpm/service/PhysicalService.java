@@ -38,11 +38,11 @@ public interface PhysicalService {
 	@Path("/connect")
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Response connectPhysicalLink(@RequestBody String physicalLinkJson, @QueryParam("tokenId") String tokenId);
+	public Response connectPhysicalLink(@RequestBody String physicalLinkJson);
 
 	@POST
 	@Path("/disconnect")
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Response disconnectPhysicalLink(@RequestBody String physicalLinkJson, @QueryParam("tokenId") String tokenId);
+	public Response disconnectPhysicalLink(@RequestBody String physicalLinkJson);
 }

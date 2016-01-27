@@ -68,7 +68,7 @@ public class PhysicalServiceImpl implements PhysicalService {
 	}
 
 	@Override
-	public Response connectPhysicalLink(String physicalLinkJson, String tokenId) {
+	public Response connectPhysicalLink(String physicalLinkJson) {
 		String fname = "connectPhysicalLink";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(req=%s) - start", fname, physicalLinkJson));
@@ -81,7 +81,7 @@ public class PhysicalServiceImpl implements PhysicalService {
 			}
 		});
 		PhysicalServiceImpl main = this.injector.getInstance(PhysicalServiceImpl.class);
-		String resPhysBiz = main.physBiz.connectPhysicalLink(physicalLinkJson, tokenId);
+		String resPhysBiz = main.physBiz.connectPhysicalLink(physicalLinkJson);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resPhysBiz));
@@ -90,7 +90,7 @@ public class PhysicalServiceImpl implements PhysicalService {
 	}
 
 	@Override
-	public Response disconnectPhysicalLink(String physicalLinkJson, String tokenId) {
+	public Response disconnectPhysicalLink(String physicalLinkJson) {
 		String fname = "disconnectPhysicalLink";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(req=%s) - start", fname, physicalLinkJson));
@@ -103,7 +103,7 @@ public class PhysicalServiceImpl implements PhysicalService {
 			}
 		});
 		PhysicalServiceImpl main = this.injector.getInstance(PhysicalServiceImpl.class);
-		String resPhysBiz = main.physBiz.disconnectPhysicalLink(physicalLinkJson, tokenId);
+		String resPhysBiz = main.physBiz.disconnectPhysicalLink(physicalLinkJson);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resPhysBiz));

@@ -23,6 +23,15 @@ import com.google.gson.reflect.TypeToken;
 
 
 public class DeviceInfoCreateJsonIn extends DeviceInfo {
+	private String tokenId;
+	
+	public String getTokenId() {
+		return tokenId;
+	}
+	public void setTokenId(String tokenId) {
+		this.tokenId = tokenId;
+	}
+
 	public static DeviceInfoCreateJsonIn fromJson(String json) {
 		Gson gson = new Gson();
 		Type type = new TypeToken<DeviceInfoCreateJsonIn>(){}.getType();

@@ -42,7 +42,7 @@ public interface DeviceService {
 	@POST
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Response createDevice(@RequestBody String newDeviceInfoJson, @QueryParam("tokenId") String tokenId);
+	public Response createDevice(@RequestBody String newDeviceInfoJson);
 
 	/**
 	 * Delete Device
@@ -64,7 +64,7 @@ public interface DeviceService {
 	@Path("/{deviceName}")
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Response updateDevice(@PathParam("deviceName") String deviceName, @RequestBody String updateDeviceInfoJson, @QueryParam("tokenId") String tokenId);
+	public Response updateDevice(@PathParam("deviceName") String deviceName, @RequestBody String updateDeviceInfoJson);
 
 	/**
 	 * Read Device
@@ -95,7 +95,7 @@ public interface DeviceService {
 	@Path("/port/{deviceName}")
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Response createPort(@PathParam("deviceName") String deviceName, @RequestBody String newPortInfoJson, @QueryParam("tokenId") String tokenId);
+	public Response createPort(@PathParam("deviceName") String deviceName, @RequestBody String newPortInfoJson);
 
 	/**
 	 * Read ports list.
@@ -128,7 +128,7 @@ public interface DeviceService {
 	@Path("/port/{deviceName}/{portName}")
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Response updatePort(@PathParam("deviceName") String deviceName, @PathParam("portName") String portName, @RequestBody String updatePortInfoJson, @QueryParam("tokenId") String tokenId);
+	public Response updatePort(@PathParam("deviceName") String deviceName, @PathParam("portName") String portName, @RequestBody String updatePortInfoJson);
 
 	// ofc service
 	/**
@@ -140,7 +140,7 @@ public interface DeviceService {
 	@Path("/ofc")
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Response createOfc(@RequestBody String newOfcInfoJson, @QueryParam("tokenId") String tokenId);
+	public Response createOfc(@RequestBody String newOfcInfoJson);
 
 	/**
 	 * Delete ofc
@@ -162,7 +162,7 @@ public interface DeviceService {
 	@Path("/ofc/{ofcIpPort}")
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Response updateOfc(@PathParam("ofcIpPort") String ofcIpPort, @RequestBody String updateOfcInfoJson, @QueryParam("tokenId") String tokenId);
+	public Response updateOfc(@PathParam("ofcIpPort") String ofcIpPort, @RequestBody String updateOfcInfoJson);
 
 	/**
 	 * Read ofc List

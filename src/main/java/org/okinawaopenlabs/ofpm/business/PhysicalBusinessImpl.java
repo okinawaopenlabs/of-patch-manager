@@ -175,40 +175,13 @@ public class PhysicalBusinessImpl implements PhysicalBusiness {
 	}
 
 	@Override
-	public String connectPhysicalLink(String physicalLinkJson, String tokenId) {
+	public String connectPhysicalLink(String physicalLinkJson) {
 		final String fname = "connectPhysicalLink";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(physicalLinkJson=%s) - start", fname, physicalLinkJson));
 		}
 		BaseResponse res = new BaseResponse();
 
-		/* PHASE 0: Authentication */
-		try {
-			OpenamAuthentication opam = new OpenamAuthentication();
-			boolean isTokenValid = false;
-			isTokenValid = opam.authenticationTokenId(tokenId);
-
-			if (isTokenValid != true) {
-				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
-				res.setStatus(STATUS_UNAUTHORIZED);
-				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
-				String ret = res.toJson();
-				if (logger.isDebugEnabled()) {
-					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
-				}
-				return ret;
-			}
-		} catch (OpenAmClientException e) {
-			logger.error(e);
-			res.setStatus(STATUS_INTERNAL_ERROR);
-			res.setMessage(e.getMessage());
-			String ret = res.toJson();
-			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
-			}
-			return ret;
-		}		
-		
 		/* PHASE 1: json -> obj and validation check */
 		ConnectPhysicalLinksJsonIn inParam = null;
 		try {
@@ -233,7 +206,35 @@ public class PhysicalBusinessImpl implements PhysicalBusiness {
 			return res.toJson();
 		}
 
-		/* PHASE 2: Create cable-link */
+		/* PHASE 2: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			String tokenId = inParam.getTokenId();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}		
+		
+		/* PHASE 3: Create cable-link */
 		ConnectionUtilsJdbc utils = null;
 		Connection          conn  = null;
 		try {
@@ -293,40 +294,13 @@ public class PhysicalBusinessImpl implements PhysicalBusiness {
 	}
 
 	@Override
-	public String disconnectPhysicalLink(String physicalLinkJson, String tokenId) {
+	public String disconnectPhysicalLink(String physicalLinkJson) {
 		final String fname = "disconnectPhysicalLink";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(physicalLinkJson=%s) - start", fname, physicalLinkJson));
 		}
 		BaseResponse res = new BaseResponse();
 
-		/* PHASE 0: Authentication */
-		try {
-			OpenamAuthentication opam = new OpenamAuthentication();
-			boolean isTokenValid = false;
-			isTokenValid = opam.authenticationTokenId(tokenId);
-
-			if (isTokenValid != true) {
-				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
-				res.setStatus(STATUS_UNAUTHORIZED);
-				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
-				String ret = res.toJson();
-				if (logger.isDebugEnabled()) {
-					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
-				}
-				return ret;
-			}
-		} catch (OpenAmClientException e) {
-			logger.error(e);
-			res.setStatus(STATUS_INTERNAL_ERROR);
-			res.setMessage(e.getMessage());
-			String ret = res.toJson();
-			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
-			}
-			return ret;
-		}
-		
 		/* PHASE 1: json -> obj and validation check */
 		DisconnectPhysicalLinksJsonIn disconPhysicalLinks = null;
 		try {
@@ -351,7 +325,35 @@ public class PhysicalBusinessImpl implements PhysicalBusiness {
 			return res.toJson();
 		}
 
-		/* PHASE 2: Delete cable-link */
+		/* PHASE 2: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			String tokenId = disconPhysicalLinks.getTokenId();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+
+		/* PHASE 3: Delete cable-link */
 		ConnectionUtilsJdbc utils = null;
 		Connection          conn  = null;
 		try {

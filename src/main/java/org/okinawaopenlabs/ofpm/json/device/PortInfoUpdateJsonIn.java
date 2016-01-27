@@ -21,6 +21,15 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 public class PortInfoUpdateJsonIn extends PortInfo {
+	private String tokenId;
+	
+	public String getTokenId() {
+		return tokenId;
+	}
+	public void setTokenId(String tokenId) {
+		this.tokenId = tokenId;
+	}
+
 	public String toJson() {
 		Gson gson = new Gson();
 		return gson.toJson(this, new TypeToken<PortInfoUpdateJsonIn>(){}.getType());
