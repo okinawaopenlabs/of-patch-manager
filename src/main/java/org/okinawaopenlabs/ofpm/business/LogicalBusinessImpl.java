@@ -47,6 +47,7 @@ import org.okinawaopenlabs.ofpm.json.topology.logical.LogicalTopology.OfpConPort
 import org.okinawaopenlabs.ofpm.json.topology.logical.LogicalTopologyGetJsonOut;
 import org.okinawaopenlabs.ofpm.json.topology.logical.LogicalTopologyUpdateJsonIn;
 import org.okinawaopenlabs.ofpm.json.topology.logical.LogicalTopologyUpdateJsonOut;
+import org.okinawaopenlabs.ofpm.openam.OpenamAuthentication;
 import org.okinawaopenlabs.ofpm.utils.Config;
 import org.okinawaopenlabs.ofpm.utils.ConfigImpl;
 import org.okinawaopenlabs.ofpm.utils.OFPMUtils;
@@ -278,13 +279,10 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		
 		/* PHASE 0: Authentication */
 		try {
-			String openamUrl = conf.getString(OPEN_AM_URL);
-			OpenAmClient openAmClient = new OpenAmClientImpl(openamUrl);
+			OpenamAuthentication opam = new OpenamAuthentication();
 			boolean isTokenValid = false;
-			if (!StringUtils.isBlank(tokenId) && openAmClient != null) {
-				TokenValidChkOut tokenValidchkOut = openAmClient.tokenValidateCheck(tokenId);
-				isTokenValid = tokenValidchkOut.getIsTokenValid();
-			}
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
 			if (isTokenValid != true) {
 				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
 				res.setStatus(STATUS_UNAUTHORIZED);
@@ -374,15 +372,44 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		return ret;
 	}
 
-	public String updateLogicalTopology(String requestedTopologyJson) {
+	public String updateLogicalTopology(String requestedTopologyJson, String tokenId) {
 		String fname = "updateLogicalTopology";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(requestedTopology=%s) - start", fname, requestedTopologyJson));
 		}
+
 		LogicalTopologyUpdateJsonOut res = new LogicalTopologyUpdateJsonOut();
 		res.setStatus(STATUS_SUCCESS);
 		res.setResult(null);
+		
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
 
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+		
+		/* PHASE 1: Validation */
 		LogicalTopologyUpdateJsonIn requestedTopology = null;
 		try {
 			requestedTopology = LogicalTopologyUpdateJsonIn.fromJson(requestedTopologyJson);

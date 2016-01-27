@@ -20,7 +20,7 @@ public interface PhysicalBusiness {
 
 	public String getPhysicalTopology();
 
-	public String connectPhysicalLink(String physicalLinkJson);
+	public String connectPhysicalLink(String physicalLinkJson, String tokenId);
 
-	public String disconnectPhysicalLink(String physicalLinkJson);
+	public String disconnectPhysicalLink(String physicalLinkJson, String tokenId);
 }

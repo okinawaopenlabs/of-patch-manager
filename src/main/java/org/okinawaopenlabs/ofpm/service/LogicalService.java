@@ -43,7 +43,7 @@ public interface LogicalService {
 	@PUT
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Response updateLogicalTopology(@RequestBody String requestedTopologyJson);
+	public Response updateLogicalTopology(@RequestBody String requestedTopologyJson, @QueryParam("tokenId") String tokenId);
 
 	@POST
 	@Consumes({ MediaType.APPLICATION_JSON })

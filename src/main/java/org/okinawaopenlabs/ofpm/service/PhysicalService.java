@@ -21,6 +21,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -37,11 +38,11 @@ public interface PhysicalService {
 	@Path("/connect")
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Response connectPhysicalLink(@RequestBody String physicalLinkJson);
+	public Response connectPhysicalLink(@RequestBody String physicalLinkJson, @QueryParam("tokenId") String tokenId);
 
 	@POST
 	@Path("/disconnect")
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Response disconnectPhysicalLink(@RequestBody String physicalLinkJson);
+	public Response disconnectPhysicalLink(@RequestBody String physicalLinkJson, @QueryParam("tokenId") String tokenId);
 }

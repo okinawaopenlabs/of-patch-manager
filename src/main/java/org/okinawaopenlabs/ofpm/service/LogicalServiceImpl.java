@@ -70,7 +70,7 @@ public class LogicalServiceImpl implements LogicalService {
 	}
 
 	@Override
-	public Response updateLogicalTopology(String requestedTopologyJson) {
+	public Response updateLogicalTopology(String requestedTopologyJson, String tokenId) {
 		final String fname = "updateLogicalTopology";
 		long time = 0L;
 		if (logger.isInfoEnabled()) {
@@ -88,7 +88,7 @@ public class LogicalServiceImpl implements LogicalService {
 			}
 		});
 		LogicalServiceImpl main = this.injector.getInstance(LogicalServiceImpl.class);
-		String resLogiBiz = main.logiBiz.updateLogicalTopology(requestedTopologyJson);
+		String resLogiBiz = main.logiBiz.updateLogicalTopology(requestedTopologyJson, tokenId);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resLogiBiz));

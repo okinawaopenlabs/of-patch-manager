@@ -23,14 +23,14 @@ public interface DeviceBusiness {
 	 * @param newDeviceInfoJson String
 	 * @return response entity Json String
 	 */
-	public String createDevice(String newDeviceInfoJson);
+	public String createDevice(String newDeviceInfoJson, String tokenId);
 
 	/**
 	 * delete Device business Logic
 	 * @param deviceName String
 	 * @return response entity Json String
 	 */
-	public String deleteDevice(String deviceName);
+	public String deleteDevice(String deviceName, String tokenId);
 
 	/**
 	 * Update Device business Logic
@@ -38,20 +38,20 @@ public interface DeviceBusiness {
 	 * @param updateDeviceInfoJson String
 	 * @return response entity Json String
 	 */
-	public String updateDevice(String deviceName, String updateDeviceInfoJson);
+	public String updateDevice(String deviceName, String updateDeviceInfoJson, String tokenId);
 
 	/**
 	 * Read Device from db.
 	 * @param deviceName
 	 * @return
 	 */
-	public String readDevice(String deviceName);
+	public String readDevice(String deviceName, String tokenId);
 
 	/**
 	 * Read Devices list from db.
 	 * @return
 	 */
-	public String readDeviceList();
+	public String readDeviceList(String tokenId);
 
 	/* Port */
 	/**
@@ -59,14 +59,14 @@ public interface DeviceBusiness {
 	 * @param newPortInfoJson String
 	 * @return response entity Json String
 	 */
-	public String createPort(String deviceName, String newPortInfoJson);
+	public String createPort(String deviceName, String newPortInfoJson, String tokenId);
 
 	/**
 	 * read Port list business Logic
 	 * @param newPortInfoJson String
 	 * @return response entity Json String
 	 */
-	public String readPortList(String deviceName);
+	public String readPortList(String deviceName, String tokenId);
 
 	/**
 	 * delete Port business Logic
@@ -74,7 +74,7 @@ public interface DeviceBusiness {
 	 * @param portName String
 	 * @return response entity Json String
 	 */
-	public String deletePort(String deviceName, String portName);
+	public String deletePort(String deviceName, String portName, String tokenId);
 
 	/**
 	 * update Device business Logic
@@ -83,7 +83,7 @@ public interface DeviceBusiness {
 	 * @param updatePortInfoJson String
 	 * @return response entity Json String
 	 */
-	public String updatePort(String deviceName, String portName, String updatePortInfoJson);
+	public String updatePort(String deviceName, String portName, String updatePortInfoJson, String tokenId);
 
 	/* Connect */
 	/**
@@ -91,21 +91,21 @@ public interface DeviceBusiness {
 	 * @param deviceName String
 	 * @return response entity Json String
 	 */
-	public String getConnectedPortInfo(String deviceName);
+	public String getConnectedPortInfo(String deviceName, String tokenId);
 
 	/**
 	 * Create Ofc business Logic
 	 * @param newOfcInfoJson String
 	 * @return response entity Json String
 	 */	
-	public String createOfc(String newOfcInfoJson);
+	public String createOfc(String newOfcInfoJsonm, String tokenId);
 
 	/**
 	 * delete Ofc business Logic
 	 * @param ofcIpPort String
 	 * @return response entity Json String
 	 */	
-	public String deleteOfc(String ofcIpPort);
+	public String deleteOfc(String ofcIpPort, String tokenId);
 
 	/**
 	 * Update Ofc business Logic
@@ -113,18 +113,18 @@ public interface DeviceBusiness {
 	 * @param updateOfcInfoJson String
 	 * @return response entity Json String
 	 */	
-	public String updateOfc(String ofcIpPort, String updateOfcInfoJson);
+	public String updateOfc(String ofcIpPort, String updateOfcInfoJson, String tokenId);
 
 	/**
 	 * Read ofces list from db.
 	 * @return
 	 */
-	public String readOfcList();
+	public String readOfcList(String tokenId);
 
 	/**
 	 * Read ofc from db.
 	 * @param ofcIpPort
 	 * @return
 	 */
-	public String readOfc(String ofcIpPort);
+	public String readOfc(String ofcIpPort, String tokenId);
 }

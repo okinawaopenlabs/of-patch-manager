@@ -38,7 +38,7 @@ public class DeviceServiceImpl implements DeviceService {
 	Injector injector;
 
 	@Override
-	public Response createDevice(String newDeviceInfoJson) {
+	public Response createDevice(String newDeviceInfoJson, String tokenId) {
 		final String fname = "createDevice";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceInfoJson=%s) - start", fname, newDeviceInfoJson));
@@ -51,7 +51,7 @@ public class DeviceServiceImpl implements DeviceService {
 			}
 		});
 		DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
-		String resDeviceBiz = main.deviceBiz.createDevice(newDeviceInfoJson);
+		String resDeviceBiz = main.deviceBiz.createDevice(newDeviceInfoJson, tokenId);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
@@ -60,7 +60,7 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
-	public Response deleteDevice(String deviceName) {
+	public Response deleteDevice(String deviceName, String tokenId) {
 		final String fname = "deleteDevice";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s) - start", fname, deviceName));
@@ -73,7 +73,7 @@ public class DeviceServiceImpl implements DeviceService {
 			}
 		});
 		DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
-		String resDeviceBiz = main.deviceBiz.deleteDevice(deviceName);
+		String resDeviceBiz = main.deviceBiz.deleteDevice(deviceName, tokenId);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
@@ -82,7 +82,7 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
-	public Response updateDevice(String deviceName, String updateDeviceInfoJson) {
+	public Response updateDevice(String deviceName, String updateDeviceInfoJson, String tokenId) {
 		final String fname = "updateDevice";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s, deviceInfoJson=%s) - start", fname, deviceName, updateDeviceInfoJson));
@@ -95,7 +95,7 @@ public class DeviceServiceImpl implements DeviceService {
 			}
 		});
 		DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
-		String resDeviceBiz = main.deviceBiz.updateDevice(deviceName, updateDeviceInfoJson);
+		String resDeviceBiz = main.deviceBiz.updateDevice(deviceName, updateDeviceInfoJson, tokenId);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
@@ -104,7 +104,7 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
-	public Response readDevice(String deviceName) {
+	public Response readDevice(String deviceName, String tokenId) {
 		final String fname = "readDevice";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s) - start", fname, deviceName));
@@ -116,7 +116,7 @@ public class DeviceServiceImpl implements DeviceService {
 			}
 		});
 		DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
-		String resDeviceBiz = main.deviceBiz.readDevice(deviceName);
+		String resDeviceBiz = main.deviceBiz.readDevice(deviceName, tokenId);
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
 		}
@@ -124,7 +124,7 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
-	public Response readDeviceList() {
+	public Response readDeviceList(String tokenId) {
 		final String fname = "readDeviceList";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s() - start", fname));
@@ -136,7 +136,7 @@ public class DeviceServiceImpl implements DeviceService {
 			}
 		});
 		DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
-		String resDeviceBiz = main.deviceBiz.readDeviceList();
+		String resDeviceBiz = main.deviceBiz.readDeviceList(tokenId);
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
 		}
@@ -144,7 +144,7 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
-	public Response createPort(String deviceName, String newPortInfoJson) {
+	public Response createPort(String deviceName, String newPortInfoJson, String tokenId) {
 		final String fname = "createPort";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(portInfoJson=%s) - start", fname, newPortInfoJson));
@@ -157,7 +157,7 @@ public class DeviceServiceImpl implements DeviceService {
 			}
 		});
 		DeviceServiceImpl main = this.injector.getInstance(DeviceServiceImpl.class);
-		String resDeviceBiz = main.deviceBiz.createPort(deviceName, newPortInfoJson);
+		String resDeviceBiz = main.deviceBiz.createPort(deviceName, newPortInfoJson, tokenId);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
@@ -166,7 +166,7 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
-	public Response readPortList(String deviceName) {
+	public Response readPortList(String deviceName, String tokenId) {
 		final String fname = "readPortList";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s) - start", fname, deviceName));
@@ -179,7 +179,7 @@ public class DeviceServiceImpl implements DeviceService {
 			}
 		});
 		DeviceServiceImpl main = this.injector.getInstance(DeviceServiceImpl.class);
-		String resDeviceBiz = main.deviceBiz.readPortList(deviceName);
+		String resDeviceBiz = main.deviceBiz.readPortList(deviceName, tokenId);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
@@ -188,7 +188,7 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
-	public Response deletePort(String deviceName, String portName) {
+	public Response deletePort(String deviceName, String portName, String tokenId) {
 		final String fname = "deletePort";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s, portName=%s) - start", fname, deviceName, portName));
@@ -201,7 +201,7 @@ public class DeviceServiceImpl implements DeviceService {
 			}
 		});
 		DeviceServiceImpl main = this.injector.getInstance(DeviceServiceImpl.class);
-		String resDeviceBiz = main.deviceBiz.deletePort(deviceName, portName);
+		String resDeviceBiz = main.deviceBiz.deletePort(deviceName, portName, tokenId);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
@@ -210,7 +210,7 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
-	public Response updatePort(String deviceName, String portName, String updatePortInfoJson) {
+	public Response updatePort(String deviceName, String portName, String updatePortInfoJson, String tokenId) {
 		final String fname = "updatePort";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(updatePortInfoJson=%s) - start", fname, updatePortInfoJson));
@@ -223,7 +223,7 @@ public class DeviceServiceImpl implements DeviceService {
 			}
 		});
 		DeviceServiceImpl main = this.injector.getInstance(DeviceServiceImpl.class);
-		String resDeviceBiz = main.deviceBiz.updatePort(deviceName, portName, updatePortInfoJson);
+		String resDeviceBiz = main.deviceBiz.updatePort(deviceName, portName, updatePortInfoJson, tokenId);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
@@ -232,7 +232,7 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
-	public Response getConnectedPortInfo(String deviceName) {
+	public Response getConnectedPortInfo(String deviceName, String tokenId) {
 		final String fname = "getConnectedPortInfo";
     	if (logger.isDebugEnabled()) {
     		logger.debug(String.format("%s(deviceName=%s) - start ", fname, deviceName));
@@ -246,7 +246,7 @@ public class DeviceServiceImpl implements DeviceService {
         });
 
         DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
-        String resDeviceBiz = main.deviceBiz.getConnectedPortInfo(deviceName);
+        String resDeviceBiz = main.deviceBiz.getConnectedPortInfo(deviceName, tokenId);
 
         if (logger.isDebugEnabled()) {
     		logger.debug(String.format("%s(ret=%s) - end ", fname, resDeviceBiz));
@@ -255,7 +255,7 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
-	public Response createOfc(String newOfcInfoJson) {
+	public Response createOfc(String newOfcInfoJson, String tokenId) {
 		final String fname = "createOfc";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceInfoJson=%s) - start", fname, newOfcInfoJson));
@@ -268,7 +268,7 @@ public class DeviceServiceImpl implements DeviceService {
 			}
 		});
 		DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
-		String resDeviceBiz = main.deviceBiz.createOfc(newOfcInfoJson);
+		String resDeviceBiz = main.deviceBiz.createOfc(newOfcInfoJson, tokenId);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
@@ -277,7 +277,7 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
-	public Response deleteOfc(String ofcIpPort) {
+	public Response deleteOfc(String ofcIpPort, String tokenId) {
 		final String fname = "deleteOfc";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ofcIpPort=%s) - start", fname, ofcIpPort));
@@ -290,7 +290,7 @@ public class DeviceServiceImpl implements DeviceService {
 			}
 		});
 		DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
-		String resDeviceBiz = main.deviceBiz.deleteOfc(ofcIpPort);
+		String resDeviceBiz = main.deviceBiz.deleteOfc(ofcIpPort, tokenId);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, ofcIpPort));
@@ -298,7 +298,7 @@ public class DeviceServiceImpl implements DeviceService {
 		return Response.ok(resDeviceBiz).type(MediaType.APPLICATION_JSON_TYPE).build();	}
 
 	@Override
-	public Response updateOfc(String ofcIpPort, String updateOfcInfoJson) {
+	public Response updateOfc(String ofcIpPort, String updateOfcInfoJson, String tokenId) {
 		final String fname = "updateOfc";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ofcIpPort=%s, updateOfcInfoJson=%s) - start", fname, ofcIpPort, updateOfcInfoJson));
@@ -311,7 +311,7 @@ public class DeviceServiceImpl implements DeviceService {
 			}
 		});
 		DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
-		String resDeviceBiz = main.deviceBiz.updateOfc(ofcIpPort, updateOfcInfoJson);
+		String resDeviceBiz = main.deviceBiz.updateOfc(ofcIpPort, updateOfcInfoJson, tokenId);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
@@ -319,7 +319,7 @@ public class DeviceServiceImpl implements DeviceService {
 		return Response.ok(resDeviceBiz).type(MediaType.APPLICATION_JSON_TYPE).build();	}
 
 	@Override
-	public Response readOfcList() {
+	public Response readOfcList(String tokenId) {
 		final String fname = "readOfcList";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s() - start", fname));
@@ -331,14 +331,14 @@ public class DeviceServiceImpl implements DeviceService {
 			}
 		});
 		DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
-		String resDeviceBiz = main.deviceBiz.readOfcList();
+		String resDeviceBiz = main.deviceBiz.readOfcList(tokenId);
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
 		}
 		return Response.ok(resDeviceBiz).type(MediaType.APPLICATION_JSON_TYPE).build();	}
 
 	@Override
-	public Response readOfc(String ofcIpPort) {
+	public Response readOfc(String ofcIpPort, String tokenId) {
 		final String fname = "readOfc";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ofcIpPort=%s) - start", fname, ofcIpPort));
@@ -350,7 +350,7 @@ public class DeviceServiceImpl implements DeviceService {
 			}
 		});
 		DeviceServiceImpl main = injector.getInstance(DeviceServiceImpl.class);
-		String resDeviceBiz = main.deviceBiz.readOfc(ofcIpPort);
+		String resDeviceBiz = main.deviceBiz.readOfc(ofcIpPort, tokenId);
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, resDeviceBiz));
 		}

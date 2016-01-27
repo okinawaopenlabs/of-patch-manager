@@ -46,6 +46,7 @@ import org.okinawaopenlabs.ofpm.json.device.PortInfoListReadJsonOut;
 import org.okinawaopenlabs.ofpm.json.device.PortInfoUpdateJsonIn;
 import org.okinawaopenlabs.ofpm.json.device.DeviceManagerGetConnectedPortInfoJsonOut.ResultData;
 import org.okinawaopenlabs.ofpm.json.device.DeviceManagerGetConnectedPortInfoJsonOut.ResultData.LinkData;
+import org.okinawaopenlabs.ofpm.openam.OpenamAuthentication;
 import org.okinawaopenlabs.ofpm.json.device.OfcInfo;
 import org.okinawaopenlabs.ofpm.json.device.OfcInfoCreateJsonIn;
 import org.okinawaopenlabs.ofpm.json.device.OfcInfoListReadJsonOut;
@@ -66,20 +67,53 @@ import org.okinawaopenlabs.orientdb.client.ConnectionUtilsJdbc;
 import org.okinawaopenlabs.orientdb.client.ConnectionUtilsJdbcImpl;
 import org.okinawaopenlabs.orientdb.client.Dao;
 import org.okinawaopenlabs.orientdb.client.DaoImpl;
-
+import ool.com.openam.client.OpenAmClient;
+import ool.com.openam.client.OpenAmClientException;
+import ool.com.openam.client.OpenAmClientImpl;
+import ool.com.openam.json.OpenAmAttributesOut;
+import ool.com.openam.json.OpenAmIdentitiesOut;
+import ool.com.openam.json.TokenIdOut;
+import ool.com.openam.json.TokenValidChkOut;
 
 public class DeviceBusinessImpl implements DeviceBusiness {
 	private static final Logger logger = Logger.getLogger(DeviceBusinessImpl.class);
 
 	Config conf = new ConfigImpl();
 
-	public String createDevice(String newDeviceInfoJson) {
+	public String createDevice(String newDeviceInfoJson, String tokenId) {
 		String fname = "createDevice";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(newDeviceInfoJson=%s) - start", fname, newDeviceInfoJson));
 		}
 		BaseResponse res = new BaseResponse();
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+		
 		/* PHASE 1: Convert to DeviceInfoCreateJsonIn from json and validation check. */
 		DeviceInfoCreateJsonIn deviceInfo = null;
 		try {
@@ -159,13 +193,40 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		}
 	}
 
-	public String deleteDevice(String deviceName) {
+	public String deleteDevice(String deviceName, String tokenId) {
 		String fname = "deleteDevice";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s) - start", fname, deviceName));
 		}
 		BaseResponse res = new BaseResponse();
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+		
 		/* PHASE 1: check validation */
 		try {
 			BaseValidate.checkStringBlank(deviceName);
@@ -228,7 +289,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		}
 	}
 
-	public String updateDevice(String deviceName, String updateDeviceInfoJson) {
+	public String updateDevice(String deviceName, String updateDeviceInfoJson, String tokenId) {
 
 		String fname = "updateDevice";
 		if (logger.isDebugEnabled()) {
@@ -236,6 +297,33 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		}
 		BaseResponse res = new BaseResponse();
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+	
 		/* PHASE 1: json -> DeviceInfoUpdateJosnIn and check validation */
 		DeviceInfoUpdateJsonIn newDeviceInfo = null;
 		try {
@@ -318,13 +406,40 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		}
 	}
 
-	public String readDevice(String deviceName) {
+	public String readDevice(String deviceName, String tokenId) {
 		String fname = "readDevice";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s) - start", fname, deviceName));
 		}
 		DeviceInfoReadJsonOut res = new DeviceInfoReadJsonOut();
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+	
 		/* PHASE 1: check validation */
 		try {
 			BaseValidate.checkStringBlank(deviceName);
@@ -382,7 +497,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		}
 	}
 
-	public String readDeviceList() {
+	public String readDeviceList(String tokenId) {
 		String fname = "readDeviceList";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s() - start", fname));
@@ -391,6 +506,33 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		DeviceInfoListReadJsonOut res = new DeviceInfoListReadJsonOut();
 		res.setStatus(STATUS_SUCCESS);
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+	
 		ConnectionUtilsJdbc utils = null;
 		Connection conn = null;
 		try {
@@ -431,13 +573,40 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		}
 	}
 
-	public String createPort(String deviceName, String newPortInfoJson) {
+	public String createPort(String deviceName, String newPortInfoJson, String tokenId) {
 		String fname = "createPort";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(newPortInfoJson=%s) - start", fname, newPortInfoJson));
 		}
 		BaseResponse res = new BaseResponse();
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+		
 		/* PHASE 1: json -> obj and validation check */
 		PortInfoCreateJsonIn portInfo = null;
 		try {
@@ -511,7 +680,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 	}
 
 	@Override
-	public String readPortList(String deviceName) {
+	public String readPortList(String deviceName, String tokenId) {
 		String fname = "readPortList";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s) - start", fname, deviceName));
@@ -519,6 +688,33 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		PortInfoListReadJsonOut res = new PortInfoListReadJsonOut();
 		res.setStatus(STATUS_SUCCESS);
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+		
 		/* PHASE 1: json -> obj and validation check */
 		PortInfoCreateJsonIn portInfo = null;
 		try {
@@ -577,13 +773,40 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		}
 	}
 
-	public String deletePort(String deviceName, String portName) {
+	public String deletePort(String deviceName, String portName, String tokenId) {
 		String fname = "deletePort";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s, portName=%s) - start", fname, deviceName, portName));
 		}
 		BaseResponse res = new BaseResponse();
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+	
 		/* PHASE 1: check validation */
 		try {
 			BaseValidate.checkStringBlank(deviceName);
@@ -645,13 +868,40 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		}
 	}
 
-	public String updatePort(String deviceName, String portName, String updatePortInfoJson) {
+	public String updatePort(String deviceName, String portName, String updatePortInfoJson, String tokenId) {
 		String fname = "updatePort";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s, portName=%s, updatePortInfoJson=%s) - start", fname, deviceName, portName, updatePortInfoJson));
 		}
 		BaseResponse res = new BaseResponse();
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+		
 		/* PHASE 1: json -> obj and check validation */
 		PortInfoUpdateJsonIn portInfo = null;
 		try {
@@ -726,13 +976,40 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 	}
 
 	@Override
-	public String getConnectedPortInfo(String deviceName) {
+	public String getConnectedPortInfo(String deviceName, String tokenId) {
 		final String fname = "getConnectedPortInfo";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(params=%s) - start ", fname, deviceName));
 		}
 		DeviceManagerGetConnectedPortInfoJsonOut res = new DeviceManagerGetConnectedPortInfoJsonOut();
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+		
 		/* PHASE 1: validation check */
 		try {
 			BaseValidate.checkStringBlank(deviceName);
@@ -830,13 +1107,40 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 	}
 
 	@Override
-	public String createOfc(String newOfcInfoJson) {
+	public String createOfc(String newOfcInfoJson, String tokenId) {
 		String fname = "createOfc";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(newOfcInfoJson=%s) - start", fname, newOfcInfoJson));
 		}
 		BaseResponse res = new BaseResponse();
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+		
 		/* PHASE 1: Convert to OfcInfoCreateJsonIn from json and validation check. */
 		OfcInfoCreateJsonIn ofcInfo = null;
 		try {
@@ -916,13 +1220,40 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 	}
 
 	@Override
-	public String deleteOfc(String ofcIpPort) {
+	public String deleteOfc(String ofcIpPort, String tokenId) {
 		String fname = "deleteOfc";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ofcIpPort=%s) - start", fname, ofcIpPort));
 		}
 		BaseResponse res = new BaseResponse();
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+	
 		/* PHASE 1: check validation */
 		try {
 			BaseValidate.checkStringBlank(ofcIpPort);
@@ -997,13 +1328,40 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 	}
 
 	@Override
-	public String updateOfc(String ofcIpPort, String updateOfcInfoJson) {
+	public String updateOfc(String ofcIpPort, String updateOfcInfoJson, String tokenId) {
 	String fname = "updateOfc";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(OfcPort=%s, updateOfcInfoJson=%s) - start", fname, ofcIpPort, updateOfcInfoJson));
 		}
 		BaseResponse res = new BaseResponse();
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+	
 		/* PHASE 1: json -> OfcInfoUpdateJosnIn and check validation */
 		OfcInfoUpdateJsonIn newOfcInfo = null;
 		try {
@@ -1080,7 +1438,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 
 
 	@Override
-	public String readOfcList() {
+	public String readOfcList(String tokenId) {
 		String fname = "readOfcList";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s() - start", fname));
@@ -1088,6 +1446,33 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		OfcInfoListReadJsonOut res = new OfcInfoListReadJsonOut();
 		res.setStatus(STATUS_SUCCESS);
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+		
 		ConnectionUtilsJdbc utils = null;
 		Connection conn = null;
 		try {
@@ -1121,7 +1506,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 	}
 
 	@Override
-	public String readOfc(String ofcIpPort) {
+	public String readOfc(String ofcIpPort, String tokenId) {
 		String fname = "readOfc";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s() - start", fname));
@@ -1129,6 +1514,33 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		OfcInfoReadJsonOut res = new OfcInfoReadJsonOut();
 		res.setStatus(STATUS_SUCCESS);
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+		
 		ConnectionUtilsJdbc utils = null;
 		Connection conn = null;
 		try {

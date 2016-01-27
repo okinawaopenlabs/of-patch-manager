@@ -44,6 +44,7 @@ import org.okinawaopenlabs.ofpm.json.topology.logical.LogicalTopology.OfpConPort
 import org.okinawaopenlabs.ofpm.json.topology.physical.ConnectPhysicalLinksJsonIn;
 import org.okinawaopenlabs.ofpm.json.topology.physical.DisconnectPhysicalLinksJsonIn;
 import org.okinawaopenlabs.ofpm.json.topology.physical.PhysicalLink;
+import org.okinawaopenlabs.ofpm.openam.OpenamAuthentication;
 import org.okinawaopenlabs.ofpm.utils.Config;
 import org.okinawaopenlabs.ofpm.utils.ConfigImpl;
 import org.okinawaopenlabs.ofpm.utils.OFPMUtils;
@@ -54,6 +55,13 @@ import org.okinawaopenlabs.orientdb.client.ConnectionUtilsJdbc;
 import org.okinawaopenlabs.orientdb.client.ConnectionUtilsJdbcImpl;
 import org.okinawaopenlabs.orientdb.client.Dao;
 import org.okinawaopenlabs.orientdb.client.DaoImpl;
+import ool.com.openam.client.OpenAmClient;
+import ool.com.openam.client.OpenAmClientException;
+import ool.com.openam.client.OpenAmClientImpl;
+import ool.com.openam.json.OpenAmAttributesOut;
+import ool.com.openam.json.OpenAmIdentitiesOut;
+import ool.com.openam.json.TokenIdOut;
+import ool.com.openam.json.TokenValidChkOut;
 
 public class PhysicalBusinessImpl implements PhysicalBusiness {
 	private static final Logger logger = Logger.getLogger(PhysicalBusinessImpl.class);
@@ -167,13 +175,40 @@ public class PhysicalBusinessImpl implements PhysicalBusiness {
 	}
 
 	@Override
-	public String connectPhysicalLink(String physicalLinkJson) {
+	public String connectPhysicalLink(String physicalLinkJson, String tokenId) {
 		final String fname = "connectPhysicalLink";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(physicalLinkJson=%s) - start", fname, physicalLinkJson));
 		}
 		BaseResponse res = new BaseResponse();
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}		
+		
 		/* PHASE 1: json -> obj and validation check */
 		ConnectPhysicalLinksJsonIn inParam = null;
 		try {
@@ -258,13 +293,40 @@ public class PhysicalBusinessImpl implements PhysicalBusiness {
 	}
 
 	@Override
-	public String disconnectPhysicalLink(String physicalLinkJson) {
+	public String disconnectPhysicalLink(String physicalLinkJson, String tokenId) {
 		final String fname = "disconnectPhysicalLink";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(physicalLinkJson=%s) - start", fname, physicalLinkJson));
 		}
 		BaseResponse res = new BaseResponse();
 
+		/* PHASE 0: Authentication */
+		try {
+			OpenamAuthentication opam = new OpenamAuthentication();
+			boolean isTokenValid = false;
+			isTokenValid = opam.authenticationTokenId(tokenId);
+
+			if (isTokenValid != true) {
+				logger.error(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				res.setStatus(STATUS_UNAUTHORIZED);
+				res.setMessage(String.format("Invalid tokenId. tokenId=%s", tokenId));
+				String ret = res.toJson();
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				}
+				return ret;
+			}
+		} catch (OpenAmClientException e) {
+			logger.error(e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			String ret = res.toJson();
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			}
+			return ret;
+		}
+		
 		/* PHASE 1: json -> obj and validation check */
 		DisconnectPhysicalLinksJsonIn disconPhysicalLinks = null;
 		try {
