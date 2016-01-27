@@ -384,9 +384,10 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 
 	public String readDeviceList() {
 		String fname = "readDeviceList";
+		String ofpm_version = conf.getString(CONFIG_KEY_VERSION);
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s() - start", fname));
-			logger.debug(String.format("OF-Patch manager version = " + MAJOR_VERSION + "." + MINOR_VERSION + "." + BUILD_VERSION));
+			logger.debug(String.format("OF-Patch manager version = " + ofpm_version));
 		}
 		DeviceInfoListReadJsonOut res = new DeviceInfoListReadJsonOut();
 		res.setStatus(STATUS_SUCCESS);
