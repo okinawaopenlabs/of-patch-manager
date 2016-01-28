@@ -39,44 +39,50 @@ public class PortInfoCreateJsonInValidate extends BaseValidate {
 			logger.debug(String.format("%s(portInfoJson=%s) - start", fname, portInfoJson));
 		}
 
-		//Check DeviceName
+		/*
+		 * Check DeviceName
+		 */
 		try{
 			if (StringUtils.isBlank(deviceName)) {
 				throw new ValidateException(String.format(IS_BLANK, "deviceName"));
 			}
 		}
-		catch(Exception e)
-		{
+		catch(Exception e){
 			throw new ValidateException(String.format(INVALID_PARAMETER, "deviceName"));
 		}
 
-		//Check Input Parameter
+		/*
+		 * Check Input Parameter
+		 */
 		try{
 			if (BaseValidate.checkNull(portInfoJson)) {
 				throw new ValidateException(String.format(IS_BLANK, "Input parameter"));
 			}
 		}
-		catch(Exception e)
-		{
+		catch(Exception e){
 			throw new ValidateException(String.format(INVALID_PARAMETER, "Input parameter"));
 		}
 
-		//Check PortName
+		/*
+		 * Check port name
+		 * PORT_NAME_MAX_LENGTH = 30
+		 */
 		try{
 			if (StringUtils.isBlank(portInfoJson.getPortName())) {
 				throw new ValidateException(String.format(IS_BLANK, "portName"));
 			}
-			if (portInfoJson.getPortName().length() > PORT_NAME_MAX_LENGTH)
-			{
+
+			if (portInfoJson.getPortName().length() > PORT_NAME_MAX_LENGTH){
 				throw new ValidateException(String.format(INVALID_PARAMETER, "portName"));				
 			}
 		}
-		catch(Exception e)
-		{
+		catch(Exception e){
 			throw new ValidateException(String.format(INVALID_PARAMETER, "portName"));
 		}
 
-		//Check PortNumber
+		/*
+		 * Check PortNumber
+		 */
 		try{
 			System.out.println(portInfoJson.getPortNumber());
 			if(portInfoJson.getPortNumber()==0){
@@ -88,7 +94,9 @@ public class PortInfoCreateJsonInValidate extends BaseValidate {
 			throw new ValidateException(String.format(INVALID_PARAMETER, "portNumber"));
 		}
 
-		//Check Band
+		/*
+		 * Check Band
+		 */
 		try{
 			if (portInfoJson.getBand()==0) {
 				throw new ValidateException(String.format(IS_BLANK, "band"));

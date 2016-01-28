@@ -70,18 +70,19 @@ public class DeviceInfoCreateJsonInValidate extends BaseValidate {
 		
 		String datapathId = "";
 		try	{
-			if(!deviceInfo.getDatapathId().isEmpty())
-			{
+			if(!deviceInfo.getDatapathId().isEmpty()){
+				/*
+				 * Check DatapathId
+				 * REGEX_DATAPATH_ID = "0x[0-9a-fA-F]{1,16}"
+				 */
 				datapathId = deviceInfo.getDatapathId();
 				match = Pattern.matches(REGEX_DATAPATH_ID, datapathId);
-				if(match==false)
-				{
+				if(match==false){
 					throw new ValidateException(String.format(INVALID_PARAMETER, "datapathID"+datapathId));
 				}
 			}
 		}
-		catch(Exception e)
-		{
+		catch(Exception e){
 			datapathId = "";
 		}
 
@@ -90,100 +91,115 @@ public class DeviceInfoCreateJsonInValidate extends BaseValidate {
 			throw new ValidateException(String.format(IS_BLANK, "TenantName"));
 		}
 
-		//Check DeviceType
-		if (! ArrayUtils.contains(ENABLE_DEVICE_TYPES, deviceType))
-		{
+		/* 
+		 * Check DeviceType
+		 * ENABLE_DEVICE_TYPES = {"Server", "Switch", "Leaf", "Spine", "Aggregate_Switch", "Sites_Switch"}
+		 */
+		if (! ArrayUtils.contains(ENABLE_DEVICE_TYPES, deviceType)){
 			throw new ValidateException(String.format(INVALID_PARAMETER, "deviceType:" + deviceType));
 		}
 
-		//length check(Device Name)
+		/*
+		 * length check(Device Name)
+		 * DEVICE_NAME_MAX_LENGTH = 30
+		 */
 		if (deviceInfo.getDeviceName().length()>DEVICE_NAME_MAX_LENGTH) {
 			throw new ValidateException(String.format(INVALID_PARAMETER, "deviceName"));
 		}
 
-		//length check(Location Name)
+		/*
+		 * length check(Location Name)
+		 * DEVICE_LOCATION_MAX_LENGTH = 30
+		 */
 		if (deviceInfo.getLocation().length()>DEVICE_LOCATION_MAX_LENGTH) {
 			throw new ValidateException(String.format(INVALID_PARAMETER, "location"));
 		}
 
-		//length check(Tenant Name)
+		/*
+		 * length check(Tenant Name)
+		 * DEVICE_TENANT_MAX_LENGTH = 50
+		 */
 		if (deviceInfo.getTenant().length()>DEVICE_TENANT_MAX_LENGTH) {
 			throw new ValidateException(String.format(INVALID_PARAMETER, "TenantName"));
 		}
 
-		//chack datapathid
-		if (ArrayUtils.contains(LEGACY_DEVICE_TYPES, deviceType) && datapathId.length() != 0)
-		{
+		/*
+		 * Chehck containing datapathid.
+		 * LEGACY_DEVICE_TYPES("Server", "Switch", "Aggregate_Switch", "Sites_Switch") don't need datapathid,
+		 * OPEN_FLOW_DEVICE_TYPES("Leaf", "Spine") need datapathid.
+		 */
+		if (ArrayUtils.contains(LEGACY_DEVICE_TYPES, deviceType) && datapathId.length() != 0){
 			throw new ValidateException(String.format(INVALID_PARAMETER, "datapathID"));
 		}
 
-		if (ArrayUtils.contains(OPEN_FLOW_DEVICE_TYPES, deviceType) && datapathId.length() != DEVICE_DATAPATHID_LENGTH)
-		{
+		if (ArrayUtils.contains(OPEN_FLOW_DEVICE_TYPES, deviceType) && datapathId.length() != DEVICE_DATAPATHID_LENGTH){
 			throw new ValidateException(String.format(INVALID_PARAMETER, "datapathID"));
 		}
-
 		
 		String getofcip = "";
 		try	{
-			if(!deviceInfo.getOfcIp().isEmpty())
-			{
+			if(!deviceInfo.getOfcIp().isEmpty()){
+				/*
+				 * Check Ip address.
+				 * REGEX_IPADDRESS = "[0-9,\\.,:]+"
+				 */
 				getofcip = deviceInfo.getOfcIp();
 				String[] port = getofcip.split(":",0);
 				match = Pattern.matches(REGEX_IPADDRESS, getofcip);
-				if(match==true)
-				{
+				if(match==true){
 					String[] getip = getofcip.split("\\.",0);
 					if(getip.length != 4)
 					{
 						throw new ValidateException(String.format(INVALID_PARAMETER, "OFC_ip"));
 					}
 
-					for(int i=0;i<getip.length;i++)
-					{
-						if(i==getip.length-1)
-						{
+					for(int i=0;i<getip.length;i++){
+						if(i==getip.length-1){
 							port = getip[i].split(":",0);
 							getip[i] = port[0];
 						}
-
-						//check value (IPv4)
-						if(Integer.parseInt(getip[i]) > MAX_IPADDRESS_VALUE)
-						{
+						/*
+						 * Check value (IPv4)
+						 * MAX_IPADDRESS_VALUE = 255
+						 */
+						if(Integer.parseInt(getip[i]) > MAX_IPADDRESS_VALUE){
 							throw new ValidateException(String.format(INVALID_PARAMETER, "OFC_ip"));
 						}
 					}
 				}
-				else if(port[0].equals("localhost"))
-				{
+				else if(port[0].equals("localhost")){
 					System.out.println("localhost");
 				}
-				else
-				{
+				else{
 					throw new ValidateException(String.format(INVALID_PARAMETER, "OFC_ip"));					
 				}
-				
-				match = Pattern.matches(REGEX_NUMBER, port[1]);
 
-				if(match==false || Integer.parseInt(port[1])<MIN_PORT_VALUE || MAX_PORT_VALUE < Integer.parseInt(port[1]))
-				{
+				/*
+				 * Check port number
+				 * REGEX_NUMBER = "[0-9]+",
+				 * MIN_PORT_VALUE = 1024, MAX_PORT_VALUE = 65535
+				 */
+				match = Pattern.matches(REGEX_NUMBER, port[1]);
+				if(match==false || Integer.parseInt(port[1])<MIN_PORT_VALUE || MAX_PORT_VALUE < Integer.parseInt(port[1])){
 					throw new ValidateException(String.format(INVALID_PARAMETER, "OFC_ip"));
 				}
 			}
 
 		}
-		catch(Exception e)
-		{
+		catch(Exception e){
 			getofcip = "";
 		}
 
-		//chack include ofc ip
-		if (ArrayUtils.contains(LEGACY_DEVICE_TYPES, deviceType) && !getofcip.equals(""))
-		{
+		/*
+		 * Chehck containing ofcip.
+		 * LEGACY_DEVICE_TYPES("Server", "Switch", "Aggregate_Switch", "Sites_Switch") don't need ofcip,
+		 * OPEN_FLOW_DEVICE_TYPES("Leaf", "Spine") need ofcip.
+		 */
+		if (ArrayUtils.contains(LEGACY_DEVICE_TYPES, deviceType) && !getofcip.equals("")){
 			throw new ValidateException(String.format(INVALID_PARAMETER, "OFC_ip"));
 		}
 
-		if (ArrayUtils.contains(OPEN_FLOW_DEVICE_TYPES, deviceType) && getofcip.equals(""))
-		{
+		if (ArrayUtils.contains(OPEN_FLOW_DEVICE_TYPES, deviceType) && getofcip.equals("")){
 			throw new ValidateException(String.format(INVALID_PARAMETER, "OFC_ip"));
 		}
 
