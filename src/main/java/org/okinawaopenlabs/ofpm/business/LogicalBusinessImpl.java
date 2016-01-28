@@ -66,7 +66,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 
 	public LogicalBusinessImpl() {
 		if (logger.isDebugEnabled()) {
-			logger.debug("LogicalBusinessImpl");
+			logger.trace("LogicalBusinessImpl");
 		}
 	}
 
@@ -80,7 +80,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	private void normalizeLogicalNode(Connection conn, Collection<OfpConDeviceInfo> nodes) throws SQLException {
 		final String fname = "normalizeLogicalNode";
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(conn=%s, nodes=%s) - start", fname, conn, nodes));
+			logger.trace(String.format("%s(conn=%s, nodes=%s) - start", fname, conn, nodes));
 		}
 		Map<String, Boolean> devTypeMap = new HashMap<String, Boolean>();
 		List<OfpConDeviceInfo> removalNodeList = new ArrayList<OfpConDeviceInfo>();
@@ -116,7 +116,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		}
 		nodes.removeAll(removalNodeList);
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s() - end", fname));
+			logger.trace(String.format("%s() - end", fname));
 		}
 	}
 
@@ -130,7 +130,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	private OfpConDeviceInfo getLogicalNode(Connection conn, String devName) throws SQLException {
 		final String fname = "getLogicalNode";
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(conn=%s, devName=%s) - start", fname, conn, devName));
+			logger.trace(String.format("%s(conn=%s, devName=%s) - start", fname, conn, devName));
 		}
 		Map<String, Object> devDoc = dao.getNodeInfoFromDeviceName(conn, devName);
 		if (devDoc == null) {
@@ -168,7 +168,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		}
 		node.setPorts(portList);
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(ret=%s) - end", fname, node));
+			logger.trace(String.format("%s(ret=%s) - end", fname, node));
 		}
 		return node;
 	}
@@ -182,7 +182,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	private void normalizeLogicalLink(Collection<OfpConDeviceInfo> nodes, Collection<LogicalLink> links) {
 		final String fname = "normalizeLogicalLink";
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(nodes=%s, links=%s) - start", fname, nodes, links));
+			logger.trace(String.format("%s(nodes=%s, links=%s) - start", fname, nodes, links));
 		}
 
 		List<LogicalLink> removalLinks = new ArrayList<LogicalLink>();
@@ -196,7 +196,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		}
 		links.removeAll(removalLinks);
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s() - end", fname));
+			logger.trace(String.format("%s() - end", fname));
 		}
 	}
 
@@ -211,7 +211,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	private Set<LogicalLink> getLogicalLink(Connection conn, String devName, boolean setPortNumber) throws SQLException {
 		final String fname = "getLogicalLink";
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(conn=%s, devName=%s, setPortNumber=%s) - start", fname, conn, devName, setPortNumber));
+			logger.trace(String.format("%s(conn=%s, devName=%s, setPortNumber=%s) - start", fname, conn, devName, setPortNumber));
 		}
 		Set<LogicalLink> linkSet = new HashSet<LogicalLink>();
 		List<Map<String, Object>> patchDocList = dao.getLogicalLinksFromDeviceName(conn, devName);
@@ -257,7 +257,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			}
 		}
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(ret=%s) - end", fname, linkSet));
+			logger.trace(String.format("%s(ret=%s) - end", fname, linkSet));
 		}
 		return linkSet;
 	}
@@ -265,7 +265,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	public String getLogicalTopology(String deviceNamesCSV) {
 		final String fname = "getLogicalTopology";
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(deviceNames=%s) - start", fname, deviceNamesCSV));
+			logger.trace(String.format("%s(deviceNames=%s) - start", fname, deviceNamesCSV));
 		}
 		LogicalTopologyGetJsonOut res = new LogicalTopologyGetJsonOut();
 
@@ -282,7 +282,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			res.setStatus(STATUS_BAD_REQUEST);
 			res.setMessage(e.getMessage());
 			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+				logger.trace(String.format("%s(ret=%s) - end", fname, res));
 			}
 			return res.toJson();
 		}
@@ -332,7 +332,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 
 		String ret = res.toJson();
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			logger.trace(String.format("%s(ret=%s) - end", fname, ret));
 		}
 		return ret;
 	}
@@ -340,7 +340,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	public String updateLogicalTopology(String requestedTopologyJson) {
 		final String fname = "updateLogicalTopology";
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(requestedTopology=%s) - start", fname, requestedTopologyJson));
+			logger.trace(String.format("%s(requestedTopology=%s) - start", fname, requestedTopologyJson));
 		}
 		LogicalTopologyUpdateJsonOut res = new LogicalTopologyUpdateJsonOut();
 		res.setStatus(STATUS_SUCCESS);
@@ -355,7 +355,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			res.setMessage(INVALID_JSON);
 			String ret = res.toString();
 			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+				logger.trace(String.format("%s(ret=%s) - end", fname, ret));
 			}
 			return ret;
 		}
@@ -369,7 +369,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			res.setStatus(STATUS_BAD_REQUEST);
 			res.setMessage(ve.getMessage());
 			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+				logger.trace(String.format("%s(ret=%s) - end", fname, res));
 			}
 			return res.toJson();
 		}
@@ -500,7 +500,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		} finally {
 			utilsJdbc.close(conn);
 			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+				logger.trace(String.format("%s(ret=%s) - end", fname, res));
 			}
 		}
 
@@ -525,14 +525,14 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			res.setStatus(STATUS_INTERNAL_ERROR);
 			res.setMessage(e.getMessage());
 			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+				logger.trace(String.format("%s(ret=%s) - end", fname, res));
 			}
 			return res.toJson();
 		}
 
 		String ret = res.toJson();
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+			logger.trace(String.format("%s(ret=%s) - end", fname, ret));
 		}
 		return ret;
 	}
@@ -541,7 +541,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	public String initFlow(String requestedData) {
 		final String fname = "initFlow";
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(requestedData=%s)", fname, requestedData));
+			logger.trace(String.format("%s(requestedData=%s)", fname, requestedData));
 		}
 		BaseResponse res = new BaseResponse();
 		res.setStatus(STATUS_SUCCESS);
@@ -567,7 +567,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 				}
 			}
 			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("%s(ret=%s)", fname, res));
+				logger.trace(String.format("%s(ret=%s)", fname, res));
 			}
 			return res.toJson();
 		}
@@ -676,7 +676,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			utils.close(conn);
 			String ret = res.toJson();
 			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("%s(ret=%s)", fname, ret));
+				logger.trace(String.format("%s(ret=%s)", fname, ret));
 			}
 		}
 
@@ -696,7 +696,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	private long calcReduceCableLinkUsed(Connection conn, Map<String, Object> link, long band) throws SQLException {
 		final String fname = "updateCableLinkUsed";
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(conn=%s, link=%s, band=%d) - start", fname, conn, link, band));
+			logger.trace(String.format("%s(conn=%s, link=%s, band=%d) - start", fname, conn, link, band));
 		}
 		long used = (Integer)link.get("used");
 		long inBand = this.getBandWidth(conn, (String)link.get("inDeviceName"), (String)link.get("inPortName"));
@@ -712,7 +712,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			logger.warn(String.format("Used value was been under than zero, and the value modify zero. %s", link));
 		}
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("%s(ret=%s) - end", fname, used));
+			logger.trace(String.format("%s(ret=%s) - end", fname, used));
 		}
 		return used;
 	}
