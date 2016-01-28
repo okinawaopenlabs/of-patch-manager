@@ -108,6 +108,13 @@ public class DeviceInfoCreateJsonInValidate extends BaseValidate {
 		}
 
 		/*
+		 * 2 byte character check(Device Name)
+		 */
+		if (deviceInfo.getDeviceName().length() != deviceInfo.getDeviceName().getBytes().length) {
+			throw new ValidateException(String.format(INVALID_PARAMETER, "deviceName"));
+		}
+		
+		/*
 		 * length check(Location Name)
 		 * DEVICE_LOCATION_MAX_LENGTH = 30
 		 */
@@ -116,10 +123,24 @@ public class DeviceInfoCreateJsonInValidate extends BaseValidate {
 		}
 
 		/*
+		 * 2 byte character check(Location Name)
+		 */
+		if (deviceInfo.getLocation().length() != deviceInfo.getLocation().getBytes().length) {
+			throw new ValidateException(String.format(INVALID_PARAMETER, "location"));
+		}
+		
+		/*
 		 * length check(Tenant Name)
 		 * DEVICE_TENANT_MAX_LENGTH = 50
 		 */
 		if (deviceInfo.getTenant().length()>DEVICE_TENANT_MAX_LENGTH) {
+			throw new ValidateException(String.format(INVALID_PARAMETER, "TenantName"));
+		}
+
+		/*
+		 * 2 byte character check(Tenant Name)
+		 */
+		if (deviceInfo.getTenant().length() != deviceInfo.getTenant().getBytes().length) {
 			throw new ValidateException(String.format(INVALID_PARAMETER, "TenantName"));
 		}
 

@@ -81,6 +81,13 @@ public class PortInfoCreateJsonInValidate extends BaseValidate {
 		}
 
 		/*
+		 * 2 byte character check(Port Name)
+		 */
+		if (portInfoJson.getPortName().length() != portInfoJson.getPortName().getBytes().length) {
+			throw new ValidateException(String.format(INVALID_PARAMETER, "portName"));
+		}		
+		
+		/*
 		 * Check PortNumber
 		 */
 		try{

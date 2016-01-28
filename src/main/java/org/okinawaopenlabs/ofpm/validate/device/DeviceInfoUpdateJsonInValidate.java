@@ -77,6 +77,14 @@ public class DeviceInfoUpdateJsonInValidate extends BaseValidate {
 		}
 
 		/*
+		 * 2 byte character check(Location Name)
+		 */
+		if (location.length() != location.getBytes().length) {
+			throw new ValidateException(String.format(INVALID_PARAMETER, "location"));
+		}
+	
+		
+		/*
 		 * Chehck containing datapathid.
 		 * LEGACY_DEVICE_TYPES("Server", "Switch", "Aggregate_Switch", "Sites_Switch") don't need datapathid,
 		 * OPEN_FLOW_DEVICE_TYPES("Leaf", "Spine") need datapathid.
@@ -114,6 +122,13 @@ public class DeviceInfoUpdateJsonInValidate extends BaseValidate {
 		}
 
 		/*
+		 * 2 byte character check(Tenant Name)
+		 */
+		if (tenant.length() != tenant.getBytes().length) {
+			throw new ValidateException(String.format(INVALID_PARAMETER, "TenantName"));
+		}
+		
+		/*
 		 * length check(Device Name)
 		 * DEVICE_NAME_MAX_LENGTH = 30
 		 */
@@ -127,6 +142,13 @@ public class DeviceInfoUpdateJsonInValidate extends BaseValidate {
 		}
 
 		if(deviceNames.length()>DEVICE_NAME_MAX_LENGTH) {
+			throw new ValidateException(String.format(INVALID_PARAMETER, "deviceName"));
+		}
+
+		/*
+		 * 2 byte character check(DeviceName)
+		 */
+		if (deviceNames.length() != deviceNames.getBytes().length) {
 			throw new ValidateException(String.format(INVALID_PARAMETER, "deviceName"));
 		}
 
@@ -147,8 +169,6 @@ public class DeviceInfoUpdateJsonInValidate extends BaseValidate {
 			throw new ValidateException(String.format(INVALID_PARAMETER, "datapathID"));
 		}
 
-		
-		
 		String getofcip = "";
 		getofcip = newDeviceInfo.getOfcIp();
 		if(getofcip == null){
