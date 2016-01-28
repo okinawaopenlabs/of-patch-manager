@@ -78,7 +78,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	 * @throws SQLException
 	 */
 	private void normalizeLogicalNode(Connection conn, Collection<OfpConDeviceInfo> nodes) throws SQLException {
-		String fname = "normalizeLogicalNode";
+		final String fname = "normalizeLogicalNode";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(conn=%s, nodes=%s) - start", fname, conn, nodes));
 		}
@@ -128,7 +128,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	 * @throws SQLException
 	 */
 	private OfpConDeviceInfo getLogicalNode(Connection conn, String devName) throws SQLException {
-		String fname = "getLogicalNode";
+		final String fname = "getLogicalNode";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(conn=%s, devName=%s) - start", fname, conn, devName));
 		}
@@ -180,7 +180,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	 * @param links
 	 */
 	private void normalizeLogicalLink(Collection<OfpConDeviceInfo> nodes, Collection<LogicalLink> links) {
-		String fname = "normalizeLogicalLink";
+		final String fname = "normalizeLogicalLink";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(nodes=%s, links=%s) - start", fname, nodes, links));
 		}
@@ -209,7 +209,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	 * @throws SQLException
 	 */
 	private Set<LogicalLink> getLogicalLink(Connection conn, String devName, boolean setPortNumber) throws SQLException {
-		String fname = "getLogicalLink";
+		final String fname = "getLogicalLink";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(conn=%s, devName=%s, setPortNumber=%s) - start", fname, conn, devName, setPortNumber));
 		}
@@ -263,7 +263,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	}
 
 	public String getLogicalTopology(String deviceNamesCSV) {
-		String fname = "getLogicalTopology";
+		final String fname = "getLogicalTopology";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceNames=%s) - start", fname, deviceNamesCSV));
 		}
@@ -338,7 +338,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	}
 
 	public String updateLogicalTopology(String requestedTopologyJson) {
-		String fname = "updateLogicalTopology";
+		final String fname = "updateLogicalTopology";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(requestedTopology=%s) - start", fname, requestedTopologyJson));
 		}
