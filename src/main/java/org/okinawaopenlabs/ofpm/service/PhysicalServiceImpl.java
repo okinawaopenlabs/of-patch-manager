@@ -69,7 +69,7 @@ public class PhysicalServiceImpl implements PhysicalService {
 
 	@Override
 	public Response connectPhysicalLink(String physicalLinkJson) {
-		String fname = "connectPhysicalLink";
+		final String fname = "connectPhysicalLink";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(req=%s) - start", fname, physicalLinkJson));
 		}
@@ -91,7 +91,7 @@ public class PhysicalServiceImpl implements PhysicalService {
 
 	@Override
 	public Response disconnectPhysicalLink(String physicalLinkJson) {
-		String fname = "disconnectPhysicalLink";
+		final String fname = "disconnectPhysicalLink";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(req=%s) - start", fname, physicalLinkJson));
 		}

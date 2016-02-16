@@ -18,9 +18,7 @@ package org.okinawaopenlabs.constants;
 
 public class OfpmDefinition {
 	/* Define version */
-	public static final int MAJOR_VERSION         = 0;
-	public static final int MINOR_VERSION         = 1;
-	public static final int BUILD_VERSION         = 1;
+	public static final String CONFIG_KEY_VERSION = "version";
 
 	/* Define static http code */
 	public static final int STATUS_SUCCESS        = 200;

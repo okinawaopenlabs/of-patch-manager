@@ -74,7 +74,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 	Config conf = new ConfigImpl();
 
 	public String createDevice(String newDeviceInfoJson) {
-		String fname = "createDevice";
+		final String fname = "createDevice";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(newDeviceInfoJson=%s) - start", fname, newDeviceInfoJson));
 		}
@@ -160,7 +160,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 	}
 
 	public String deleteDevice(String deviceName) {
-		String fname = "deleteDevice";
+		final String fname = "deleteDevice";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s) - start", fname, deviceName));
 		}
@@ -230,7 +230,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 
 	public String updateDevice(String deviceName, String updateDeviceInfoJson) {
 
-		String fname = "updateDevice";
+		final String fname = "updateDevice";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s, newDeviceInfoJson=%s) - start", fname, deviceName, updateDeviceInfoJson));
 		}
@@ -319,7 +319,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 	}
 
 	public String readDevice(String deviceName) {
-		String fname = "readDevice";
+		final String fname = "readDevice";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s) - start", fname, deviceName));
 		}
@@ -383,10 +383,11 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 	}
 
 	public String readDeviceList() {
-		String fname = "readDeviceList";
+		final String fname = "readDeviceList";
+		String ofpm_version = conf.getString(CONFIG_KEY_VERSION);
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s() - start", fname));
-			logger.debug(String.format("OF-Patch manager version = " + MAJOR_VERSION + "." + MINOR_VERSION + "." + BUILD_VERSION));
+			logger.debug(String.format("OF-Patch manager version = " + ofpm_version));
 		}
 		DeviceInfoListReadJsonOut res = new DeviceInfoListReadJsonOut();
 		res.setStatus(STATUS_SUCCESS);
@@ -432,7 +433,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 	}
 
 	public String createPort(String deviceName, String newPortInfoJson) {
-		String fname = "createPort";
+		final String fname = "createPort";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(newPortInfoJson=%s) - start", fname, newPortInfoJson));
 		}
@@ -512,7 +513,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 
 	@Override
 	public String readPortList(String deviceName) {
-		String fname = "readPortList";
+		final String fname = "readPortList";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s) - start", fname, deviceName));
 		}
@@ -578,7 +579,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 	}
 
 	public String deletePort(String deviceName, String portName) {
-		String fname = "deletePort";
+		final String fname = "deletePort";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s, portName=%s) - start", fname, deviceName, portName));
 		}
@@ -646,7 +647,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 	}
 
 	public String updatePort(String deviceName, String portName, String updatePortInfoJson) {
-		String fname = "updatePort";
+		final String fname = "updatePort";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(deviceName=%s, portName=%s, updatePortInfoJson=%s) - start", fname, deviceName, portName, updatePortInfoJson));
 		}
@@ -831,7 +832,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 
 	@Override
 	public String createOfc(String newOfcInfoJson) {
-		String fname = "createOfc";
+		final String fname = "createOfc";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(newOfcInfoJson=%s) - start", fname, newOfcInfoJson));
 		}
@@ -917,7 +918,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 
 	@Override
 	public String deleteOfc(String ofcIpPort) {
-		String fname = "deleteOfc";
+		final String fname = "deleteOfc";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ofcIpPort=%s) - start", fname, ofcIpPort));
 		}
@@ -998,7 +999,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 
 	@Override
 	public String updateOfc(String ofcIpPort, String updateOfcInfoJson) {
-	String fname = "updateOfc";
+	    final String fname = "updateOfc";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(OfcPort=%s, updateOfcInfoJson=%s) - start", fname, ofcIpPort, updateOfcInfoJson));
 		}
@@ -1081,7 +1082,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 
 	@Override
 	public String readOfcList() {
-		String fname = "readOfcList";
+		final String fname = "readOfcList";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s() - start", fname));
 		}
@@ -1122,7 +1123,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 
 	@Override
 	public String readOfc(String ofcIpPort) {
-		String fname = "readOfc";
+		final String fname = "readOfc";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s() - start", fname));
 		}

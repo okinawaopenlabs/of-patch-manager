@@ -132,12 +132,12 @@ public class ConnectionUtilsJdbcImpl implements ConnectionUtilsJdbc {
     public <T> T query(Connection conn, String sql,
             ResultSetHandler<T> handler, Object... params) throws SQLException {
         if (logger.isDebugEnabled()) {
-            logger.debug(String.format("query(conn=%s, sql=%s, handler=%s, params=%s) - start ", conn, sql, handler, params.toString()));
+            logger.trace(String.format("query(conn=%s, sql=%s, handler=%s, params=%s) - start ", conn, sql, handler, params.toString()));
         }
         QueryRunner qRunner = new QueryRunner();
         T records = qRunner.query(conn, sql, handler, params);
         if (logger.isDebugEnabled()) {
-            logger.debug(String.format("query(records=%s) - end ", records));
+            logger.trace(String.format("query(records=%s) - end ", records));
         }
         return records;
     }
@@ -146,12 +146,12 @@ public class ConnectionUtilsJdbcImpl implements ConnectionUtilsJdbc {
     public <T> T query(Connection conn, String sql,
             ResultSetHandler<T> handler) throws SQLException {
         if (logger.isDebugEnabled()) {
-            logger.debug(String.format("query(conn=%s, sql=%s, handler=%s) - start ", conn, sql, handler));
+            logger.trace(String.format("query(conn=%s, sql=%s, handler=%s) - start ", conn, sql, handler));
         }
         QueryRunner qRunner = new QueryRunner();
         T records = qRunner.query(conn, sql, handler);
         if (logger.isDebugEnabled()) {
-            logger.debug(String.format("query(records=%s) - end ", records));
+            logger.trace(String.format("query(records=%s) - end ", records));
         }
         return records;
     }

@@ -52,6 +52,10 @@ public class OfcInfoUpdateJsonInValidate extends BaseValidate {
 		Integer getofcport = 0;
 		
 		if(!updateOfcInfo.getIp().isEmpty()){
+			/*
+			 * Check value (IPv4)
+			 * MAX_IPADDRESS_VALUE = 255
+			 */
 			getofcip = updateOfcInfo.getIp();
 			match = Pattern.matches(REGEX_IPADDRESS, getofcip);
 			if(match==true){
@@ -60,7 +64,10 @@ public class OfcInfoUpdateJsonInValidate extends BaseValidate {
 					throw new ValidateException(String.format(INVALID_PARAMETER, "OFC_ip"));
 				}
 				for(int i=0;i<getip.length;i++){
-					//check value (IPv4)
+					/*
+					 * Check value (IPv4)
+					 * MAX_IPADDRESS_VALUE = 255
+					 */
 					if(Integer.parseInt(getip[i]) > MAX_IPADDRESS_VALUE){
 						throw new ValidateException(String.format(INVALID_PARAMETER, "OFC_ip"));
 					}
@@ -71,6 +78,11 @@ public class OfcInfoUpdateJsonInValidate extends BaseValidate {
 		}
 		
 		if(updateOfcInfo.getPort() != null){
+			/*
+			 * Check port number
+			 * REGEX_NUMBER = "[0-9]+",
+			 * MIN_PORT_VALUE = 1024, MAX_PORT_VALUE = 65535
+			 */
 			getofcport = updateOfcInfo.getPort();
 			match = Pattern.matches(REGEX_NUMBER, getofcport.toString());
 			if(match==false || getofcport < MIN_PORT_VALUE || MAX_PORT_VALUE < getofcport){

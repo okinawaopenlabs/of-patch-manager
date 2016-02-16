@@ -62,7 +62,7 @@ public class PhysicalBusinessImpl implements PhysicalBusiness {
 
 	@Override
 	public String getPhysicalTopology() {
-		String fname = "getLogicalTopology";
+		final String fname = "getLogicalTopology";
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s() - start", fname));
 		}
