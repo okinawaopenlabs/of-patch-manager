@@ -14,29 +14,45 @@
  *   limitations under the License.
  */
 
-package org.okinawaopenlabs.ofpm.json.device;
+package org.okinawaopenlabs.ofpm.json.topology.physical;
 
 import java.lang.reflect.Type;
+import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import org.okinawaopenlabs.ofpm.json.common.GenericsRestResultResponse;
-import org.okinawaopenlabs.ofpm.json.common.GraphDevicePort;
+public class AddNetworkId {
+	int start,end;
+	String type;
 
-public class ConnectedPortGetJsonOut extends GenericsRestResultResponse<GenericsLink<GraphDevicePort>> {
-	public static ConnectedPortGetJsonOut fromJson(String json) {
+	public static AddNetworkId fromJson(String json) {
 		Gson gson = new Gson();
-		Type type = new TypeToken<ConnectedPortGetJsonOut>(){}.getType();
+		Type type = new TypeToken<AddNetworkId>() {}.getType();
 		return gson.fromJson(json, type);
 	}
 	public String toJson() {
 		Gson gson = new Gson();
-		Type type = new TypeToken<ConnectedPortGetJsonOut>(){}.getType();
+		Type type = new TypeToken<AddNetworkId>() {}.getType();
 		return gson.toJson(this, type);
 	}
 	@Override
 	public String toString() {
 		return this.toJson();
+	}
+
+
+	/* Setters and Getters */
+	public int GetStart()
+	{
+		return start;
+	}
+	public int GetEnd()
+	{
+		return end;
+	}
+	public String GetType()
+	{
+		return type;
 	}
 }

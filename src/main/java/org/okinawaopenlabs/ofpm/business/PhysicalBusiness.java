@@ -23,4 +23,11 @@ public interface PhysicalBusiness {
 	public String connectPhysicalLink(String physicalLinkJson);
 
 	public String disconnectPhysicalLink(String physicalLinkJson);
+	
+	public String addnetworkid(String physicalLinkJson);
+
+	public String delnetworkid(String physicalLinkJson);
+
+	public String getNetworkId();
+
 }

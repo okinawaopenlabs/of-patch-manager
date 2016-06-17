@@ -46,8 +46,8 @@ public class PortInfoUpdateJsonInValidate extends BaseValidate {
 
 		/*
 		 * Chack PortName
-		 * System.out.println(updatePortInfo.getPortName().length() + "," + PORT_NAME_MAX_LENGTH);
-		 */
+		 */ System.out.println(updatePortInfo.getPortName().length() + "," + PORT_NAME_MAX_LENGTH);
+		 /*/
 		if (updatePortInfo.getPortName().length() > PORT_NAME_MAX_LENGTH){
 			throw new ValidateException(String.format(INVALID_PARAMETER, "portName"));				
 		}

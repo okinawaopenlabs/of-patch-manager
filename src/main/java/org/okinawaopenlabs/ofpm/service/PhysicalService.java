@@ -44,4 +44,22 @@ public interface PhysicalService {
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Response disconnectPhysicalLink(@RequestBody String physicalLinkJson);
+
+	@POST
+	@Path("/addnetwork")
+	@Consumes({ MediaType.APPLICATION_JSON })
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Response addnetworkid(@RequestBody String physicalLinkJson);
+
+	@POST
+	@Path("/delnetwork")
+	@Consumes({ MediaType.APPLICATION_JSON })
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Response delnetworkid(@RequestBody String physicalLinkJson);
+
+	@GET
+	@Path("/getnetwork")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Response getnetworkid();
+
 }

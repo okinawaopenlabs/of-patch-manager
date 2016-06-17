@@ -23,12 +23,14 @@ public class OfpmDefinition {
 	/* Define static http code */
 	public static final int STATUS_SUCCESS        = 200;
 	public static final int STATUS_CREATED        = 201;
+	public static final int STATUS_USED           = 220;
 	public static final int STATUS_BAD_REQUEST    = 400;
 	public static final int STATUS_UNAUTHORIZED   = 401;
 	public static final int STATUS_FORBIDDEN      = 403;
 	public static final int STATUS_NOTFOUND       = 404;
 	public static final int STATUS_CONFLICT       = 409;
 	public static final int STATUS_INTERNAL_ERROR = 500;
+	public static final int STATUS_NOW_USED       = 550;
 
 	public static final String HTTP_METHOD_GET    = "GET";
 	public static final String HTTP_METHOD_PUT    = "PUT";
@@ -64,8 +66,8 @@ public class OfpmDefinition {
 	public static final String[] ENABLE_OFP_FLAGS    = {"true", "false"};
 	public static final String[] ENABLE_DEVICE_TYPES = {"Server", "Switch", "Leaf", "Spine", "Aggregate_Switch", "Sites_Switch"};
 
-	public static final String[] LEGACY_DEVICE_TYPES = {"Server", "Switch", "Aggregate_Switch", "Sites_Switch"};
-	public static final String[] OPEN_FLOW_DEVICE_TYPES = {"Leaf", "Spine"};
+	public static final String[] LEGACY_DEVICE_TYPES = {"Server", "Switch","Sites_Switch"};
+	public static final String[] OPEN_FLOW_DEVICE_TYPES = {"Leaf", "Spine","Aggregate_Switch"};
 
 	public static final String CSV_SPLIT_REGEX = ",";
 	public static final String REGEX_NUMBER = "[0-9]+";

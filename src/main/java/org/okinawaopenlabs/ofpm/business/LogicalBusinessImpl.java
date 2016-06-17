@@ -218,6 +218,8 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		if (patchDocList == null) {
 			return null;
 		}
+
+		/*check src->dst*/
 		for (Map<String, Object> patchDoc : patchDocList) {
 			String inDevName  = (String)patchDoc.get("inDeviceName");
 			String inPortName = (String)patchDoc.get("inPortName");
@@ -239,7 +241,26 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			link.setLink(ports);
 
 			linkSet.add(link);
+
+
+			PortData inPort_2 = new PortData();
+			inPort_2.setDeviceName(outDevName);
+			inPort_2.setPortName(outPortName);
+			PortData outPort_2 = new PortData();
+			outPort_2.setDeviceName(inDevName);
+			outPort_2.setPortName(inPortName);
+
+			List<PortData> ports_2 = new ArrayList<PortData>();
+			ports_2.add(inPort_2);
+			ports_2.add(outPort_2);
+
+			LogicalLink link_2 = new LogicalLink();
+			link_2.setLink(ports_2);
+
+			linkSet.add(link_2);
+
 		}
+
 		if (linkSet.isEmpty()) {
 			return null;
 		}
@@ -578,7 +599,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		try {
 			utils = new ConnectionUtilsJdbcImpl();
 			conn  = utils.getConnection(true);
-			
+
 			Dao dao = new DaoImpl(utils);
 			String devName = dao.getDeviceNameFromDatapathId(conn, (String)req.getDatapathId());
 			if (null == devName) {
@@ -599,8 +620,8 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			/* set all drop flow */
 			SetFlowToOFC reqData = client.createRequestData(datapathId, OPENFLOW_FLOWENTRY_PRIORITY_DROP, null, null);
 			client.addFlows(ofcIp, reqData);
-			
 			List<Map<String, Object>> routeList = dao.getRouteFromNodeRid(conn, (String) devInfo.get("rid"));
+
 			for (Map<String, Object> route : routeList) {
 				Integer sequence = (Integer)route.get("sequence_num");
 				Integer inPortNumber = (Integer)route.get("in_port_number");
@@ -616,7 +637,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 					client.createMatchForInPort(requestData, inPortNumber.longValue());
 					client.createActionsForOutputPort(requestData, outPortNumber.longValue());
 					client.addFlows(ofcIp, requestData);
-					
+
 					requestData = client.createRequestData(datapathId, OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
 					client.createMatchForInPort(requestData, outPortNumber.longValue());
 					client.createActionsForOutputPort(requestData, inPortNumber.longValue());
@@ -624,10 +645,10 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 
 					continue;
 				}
-
 				/* not port 2 port flow */
+
 				if (sequence == 1) {
-					/* first patch switch */					
+					/* first patch switch */
 					SetFlowToOFC requestData = client.createRequestData(datapathId, OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
 					client.createMatchForInPort(requestData, inPortNumber.longValue());
 					client.createActionsForPushVlan(requestData, outPortNumber.longValue(), nwInstanceId);
@@ -643,22 +664,54 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 					client.createMatchForInPort(requestData, outPortNumber.longValue());
 					client.createActionsForPushVlan(requestData, inPortNumber.longValue(), nwInstanceId);
 					client.addFlows(ofcIp, requestData);
-					
+
 					requestData = client.createRequestData(datapathId, OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
 					client.createMatchForInPortDlVlan(requestData, inPortNumber.longValue(), nwInstanceId);
 					client.createActionsForPopVlan(requestData, outPortNumber.longValue());
 					client.addFlows(ofcIp, requestData);
 				} else {
-					/* relay patch swtich */
-					SetFlowToOFC requestData = client.createRequestData(datapathId, OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
-					client.createMatchForInPortDlVlan(requestData, inPortNumber.longValue(), nwInstanceId);
-					client.createActionsForOutputPort(requestData, outPortNumber.longValue());
-					client.addFlows(ofcIp, requestData);
+					Map<String, Object> ofpNodeDataMap = dao.getNodeInfoFromDeviceName(conn, route.get("node_name").toString());
+						if(ofpNodeDataMap.get("type").equals(NODE_TYPE_SPINE))
+						{
+							SetFlowToOFC requestData = client.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
+							client.createMatchForInPortDlVlan(requestData, inPortNumber.longValue(), nwInstanceId);
+							client.createActionsForOutputPort(requestData, outPortNumber.longValue());
+							client.addFlows(ofcIp, requestData);
 
-					requestData = client.createRequestData(datapathId, OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
-					client.createMatchForInPortDlVlan(requestData, outPortNumber.longValue(), nwInstanceId);
-					client.createActionsForOutputPort(requestData, inPortNumber.longValue());
-					client.addFlows(ofcIp, requestData);
+							requestData = client.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
+							client.createMatchForInPortDlVlan(requestData, outPortNumber.longValue(), nwInstanceId);
+							client.createActionsForOutputPort(requestData, inPortNumber.longValue());
+							client.addFlows(ofcIp, requestData);
+						}
+						else if(ofpNodeDataMap.get("type").equals(NODE_TYPE_AGGREGATE_SW))
+						{
+
+							List<Map<String,Object>> flows = null;
+							flows = dao.getOutertagflows(conn,(String)ofpNodeDataMap.get("datapathId"));
+							for(int i=0 ;i<flows.size();++i)
+							{
+								Map<String, Object> a = flows.get(i);
+
+								Long ag_inport = Long.parseLong(a.get("ag_inport").toString());
+								Long ag_outport = Long.parseLong(a.get("ag_outport").toString());
+								Long localvlan = Long.parseLong(a.get("localvlan").toString());
+								Long outer_tag = Long.parseLong(a.get("outer_tag").toString());
+
+								SetFlowToOFC requestData = client.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
+								if(a.get("type").equals("push"))
+								{
+									client.createMatchForInPortDlVlan(requestData, ag_inport,localvlan);
+									client.createActionsForPushOuter_tag(requestData, ag_outport, outer_tag,localvlan);
+									client.addFlows(ofcIp, requestData);
+								}
+								else
+								{
+									client.createMatchForInPortDlVlan(requestData, ag_inport, outer_tag);
+									client.createActionsForPopOuter_tag(requestData, ag_outport);
+									client.addFlows(ofcIp, requestData);
+								}
+							}
+						}
 				}
 			}
 
@@ -745,7 +798,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		long maxEthFrameNum = bandBps / MIN_ETHER_FRAME_SIZE_BIT;
 		long vlanTagOverheadBpsPerSec = maxEthFrameNum * VLAN_FEALD_SIZE_BIT;
 		long ret = vlanTagOverheadBpsPerSec / CONVERT_MBPS_BPS;
-		
+
 		return ret;
 	}
 
@@ -761,6 +814,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		/* get route */
 		Map<String, Object> logicalLinkMap = dao.getLogicalLinkFromNodeNamePortName(conn, inPort.getDeviceName(), inPort.getPortName());
 		List<Map<String, Object>> routeMapList = dao.getRouteFromLogicalLinkId(conn, (String)logicalLinkMap.get("rid"));
+
 		if (routeMapList == null || routeMapList.isEmpty()) {
 			throw new RuntimeException(String.format(NOT_FOUND, "route=" + link));
 		}
@@ -789,11 +843,11 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		for (Map<String, Object> routeMap : routeMapList) {
 			Map<String, Object> OfpsMap = dao.getNodeInfoFromDeviceName(conn, (String) routeMap.get("node_name"));
 			long used = band + bandOverHead;
-
 			String inPortRid  = (String)routeMap.get("in_port_id");
 			Map<String, Object> inLink = dao.getCableLinkFromInPortRid(conn, inPortRid);
 			String inCableRid = (String)inLink.get("rid");
-			if (!alreadyProcCable.contains(inCableRid)) {
+
+			if (!alreadyProcCable.contains(inCableRid) && (OfpsMap.get("type").equals("Spine") || OfpsMap.get("type").equals("Leaf"))) {
 				long newUsed = this.calcReduceCableLinkUsed(conn, inLink, used);
 				dao.updateCableLinkUsedFromPortRid(conn, inPortRid, newUsed);
 				alreadyProcCable.add(inCableRid);
@@ -802,13 +856,12 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			String outPortRid = (String)routeMap.get("out_port_id");
 			Map<String, Object> outLink = dao.getCableLinkFromOutPortRid(conn, outPortRid);
 			String outCableRid = (String)outLink.get("rid");
-			if (!alreadyProcCable.contains(outCableRid)) {
+			if (!alreadyProcCable.contains(outCableRid) && (OfpsMap.get("type").equals("Spine") || OfpsMap.get("type").equals("Leaf"))) {
 				long newUsed = this.calcReduceCableLinkUsed(conn, outLink, used);
 				dao.updateCableLinkUsedFromPortRid(conn, outPortRid, newUsed);
 				alreadyProcCable.add(outCableRid);
 			}
 		}
-
 		Map<String, Object> txOfpsMap = dao.getNodeInfoFromDeviceName(conn, (String) txRouteMap.get("node_name"));
 		Map<String, Object> txInPortMap = dao.getPortInfoFromPortName(conn, (String) txRouteMap.get("node_name"), (String) txRouteMap.get("in_port_name"));
 		Map<String, Object> txOutPortMap = dao.getPortInfoFromPortName(conn, (String) txRouteMap.get("node_name"), (String) txRouteMap.get("out_port_name"));
@@ -817,10 +870,10 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		Map<String, Object> rxOutPortMap = dao.getPortInfoFromPortName(conn, (String) rxRouteMap.get("node_name"), (String) rxRouteMap.get("out_port_name"));
 
 		OFCClient client = new OFCClientImpl();
-		
+
 		if (routeMapList.size() == 1 ) {
 			String ofcIp = (String)txOfpsMap.get("ip") + ":" + Integer.toString((Integer)txOfpsMap.get("port"));
-			
+
 			SetFlowToOFC requestData = client.createRequestData(Long.decode((String)txOfpsMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
 			Integer inPortNumber = (Integer)txInPortMap.get("number");
 			client.createMatchForInPort(requestData, inPortNumber.longValue());
@@ -831,20 +884,20 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			client.createMatchForInPort(requestData, outPortNumber.longValue());
 			reducedFlows.add(ofcIp, requestData);
 
-			
+
 			/* delete route */
 			dao.deleteRouteFromLogicalLinkRid(conn, (String)logicalLinkMap.get("rid"));
-			
+
 			/* delete logical link */
 			dao.deleteLogicalLinkFromNodeNamePortName(conn, inPort.getDeviceName(), inPort.getPortName());
-			
+
 			return;
 		}
-		
+
 		/* make flow edge-switch tx side */
 		{
 			String ofcIp = (String)txOfpsMap.get("ip") + ":" + Integer.toString((Integer)txOfpsMap.get("port"));
-			
+
 			SetFlowToOFC requestData = client.createRequestData(Long.decode((String)txOfpsMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
 			Integer inPortNumber = (Integer)txInPortMap.get("number");
 			client.createMatchForInPort(requestData, inPortNumber.longValue());
@@ -858,7 +911,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		/* make flow edge-switch rx side */
 		{
 			String ofcIp = (String)rxOfpsMap.get("ip") + ":" + Integer.toString((Integer)rxOfpsMap.get("port"));
-			
+
 			SetFlowToOFC requestData = client.createRequestData(Long.decode((String)rxOfpsMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
 			Integer inPortNumber = (Integer)rxOutPortMap.get("number");
 			client.createMatchForInPort(requestData, inPortNumber.longValue());
@@ -873,21 +926,38 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		{
 			for (int i = 1; i < routeMapList.size() - 1; i++) {
 				String node_name = (String)routeMapList.get(i).get("node_name");
+
 				Map<String, Object> ofpsMap = dao.getNodeInfoFromDeviceName(conn, node_name);
-				String ofcIp = (String)ofpsMap.get("ip") + ":" + Integer.toString((Integer)ofpsMap.get("port"));
-				
-				SetFlowToOFC requestData = client.createRequestData(Long.decode((String)ofpsMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
-				client.createMatchForDlVlan(requestData, (Long)logicalLinkMap.get("nw_instance_id"));
-				reducedFlows.add(ofcIp, requestData);				
+
+				if(ofpsMap.get("type").equals(NODE_TYPE_SPINE))
+				{
+					String ofcIp = (String)ofpsMap.get("ip") + ":" + Integer.toString((Integer)ofpsMap.get("port"));
+
+					SetFlowToOFC requestData = client.createRequestData(Long.decode((String)ofpsMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
+					client.createMatchForDlVlan(requestData, (Long)logicalLinkMap.get("nw_instance_id"));
+					reducedFlows.add(ofcIp, requestData);
+				}
+				else if(ofpsMap.get("type").equals(NODE_TYPE_AGGREGATE_SW))
+				{
+					String ofcIp = (String)ofpsMap.get("ip") + ":" + Integer.toString((Integer)ofpsMap.get("port"));
+
+					SetFlowToOFC requestData = client.createRequestData(Long.decode((String)ofpsMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
+					client.createMatchForDlVlan(requestData, (Long)logicalLinkMap.get("nw_instance_id"));
+					reducedFlows.add(ofcIp, requestData);
+				}
 			}
 		}
 
 		/* delete route */
 		dao.deleteRouteFromLogicalLinkRid(conn, (String)logicalLinkMap.get("rid"));
-		
+
 		/* delete logical link */
 		dao.deleteLogicalLinkFromNodeNamePortName(conn, inPort.getDeviceName(), inPort.getPortName());
-		
+
+		/* delete Outer_tag table */
+		//dao.DeleteOutertagflows(conn,(Long)logicalLinkMap.get("nw_instance_id"));
+
+
 		return;
 	}
 
@@ -907,6 +977,8 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		/* get rid of txPort/rxPort */
 		String txRid = null;
 		String rxRid = null;
+		String nwid = null;
+
 		{
 			Map<String, Object> txMap =
 					(StringUtils.isBlank(tx.getPortName()))
@@ -921,10 +993,82 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		}
 
 		Map<String, Object> txDeviceMap = dao.getNodeInfoFromDeviceName(conn, tx.getDeviceName());
-		Map<String, Object> rxDeviceMap = dao.getNodeInfoFromDeviceName(conn, rx.getDeviceName());		
+		Map<String, Object> rxDeviceMap = dao.getNodeInfoFromDeviceName(conn, rx.getDeviceName());
 
 		/* get shortest path */
 		List<Map<String, Object>> path = dao.getShortestPath(conn, txRid, rxRid);
+		String path_route = "";
+		for(int i=0;i<path.size();i++)
+		{
+			if(path.get(i).get("node_name")!=null)
+			{
+				path_route += path.get(i).get("node_name")+"("+path.get(i).get("name")+")";
+				if(i+1!=path.size())
+				{
+					path_route += "<->";
+				}
+			}
+		}
+		System.out.println(path_route);
+
+		//search interpoint route
+		String before_rid = "";
+		String in_spine_id = "";
+		String out_spine_id = "";
+		List<String> network = new ArrayList<String>();
+
+		for(int i=0;i<path.size();i++)
+		{
+			if(path.get(i).get("node_name")!=null)
+			{
+				Map<String,Object> route = dao.getNodeInfoFromDeviceName(conn, path.get(i).get("node_name").toString());
+				if(!before_rid.equals(route.get("rid").toString()))
+				{
+					if(route.get("type").toString().equals("Spine") && in_spine_id.equals(""))
+					{
+						in_spine_id = route.get("rid").toString();
+					}
+					if(route.get("type").toString().equals("Aggregate_Switch"))
+					{
+						Map<String, Object> search_network = dao.getPortInfoFromPortName(conn,path.get(i).get("node_name").toString(),path.get(i).get("name").toString());
+						if(search_network.get("network")!=null && !search_network.get("network").equals(""))
+						{
+							network.add(search_network.get("network").toString());
+						}
+					}
+					if(route.get("type").toString().equals("Spine") && !network.isEmpty())
+					{
+						out_spine_id = route.get("rid").toString();
+					}
+				}
+				before_rid=route.get("rid").toString();
+			}
+		}
+
+		//catch of nwid.  make use of spineID from outer_tag class
+		if(!network.isEmpty())
+		{
+			//search of Vlanid from path.
+			List<Map<String, Object>> nwid1 = dao.getNetworkidFromSpineid(conn, in_spine_id, out_spine_id,network.get(0).toString());
+			List<Map<String, Object>> nwid2 = dao.getNetworkidFromSpineid(conn, out_spine_id, in_spine_id,network.get(0).toString());
+
+			//not asigned to vlanid from estimate path, asigned to vlanid.
+			if((nwid1.isEmpty() && nwid2.isEmpty()))
+			{
+					String a = network.get(0);
+					nwid = dao.payoutNetworkid(conn, in_spine_id, out_spine_id,a);
+			}
+			else if(!nwid1.isEmpty())
+			{
+				Map<String, Object> networkid = nwid1.get(0);
+				nwid = networkid.get("outer_tag").toString();
+			}
+			else if(!nwid2.isEmpty())
+			{
+				Map<String, Object> networkid = nwid2.get(0);
+				nwid = networkid.get("outer_tag").toString();
+			}
+		}
 
 		/* search first/last port */
 		int txPortIndex = (StringUtils.isBlank(tx.getPortName()))? 1: 0;
@@ -934,7 +1078,6 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 		Map<String, Object> txPortMap = dao.getPortInfoFromPortName(conn, (String)txPort.get("node_name"), (String)txPort.get("name"));
 		Map<String, Object> rxPortMap = dao.getPortInfoFromPortName(conn, (String)rxPort.get("node_name"), (String)rxPort.get("name"));
 
-		
 		/* check patch wiring exist */
 		{
 			boolean isTxPatch = dao.isContainsLogicalLinkFromDeviceNamePortName(conn, (String)txPort.get("node_name"), (String)txPort.get("name"));
@@ -980,33 +1123,30 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			String nowPortRid = (String)nowV.get("rid");
 			String nowVparentDevType = (String)nowV.get("type");
 			String prvVparentDevType = (String)prvV.get("type");
+
 			Map<String, Object> cableLink = dao.getCableLinkFromInPortRid(conn, nowPortRid);
 			long nowUsed = (Integer)cableLink.get("used");
 			long  inBand = portBandMap.get(nowV);
 			long outBand = portBandMap.get(prvV);
 			long maxBand = (inBand < outBand)? inBand: outBand;
 			long newUsed = 0;
-			if((StringUtils.equals(nowVparentDevType, NODE_TYPE_LEAF) && ArrayUtils.contains(RENT_RESOURCE_TYPES, prvVparentDevType)) ||
-			   (ArrayUtils.contains(RENT_RESOURCE_TYPES, nowVparentDevType) && StringUtils.equals(prvVparentDevType, NODE_TYPE_LEAF))){
-				newUsed = nowUsed + needBand;
-				if (newUsed > maxBand) {
-					throw new NoRouteException(String.format(NOT_FOUND, "Path"));
-				}
-				else if (newUsed == maxBand) {
-					newUsed = maxBand * LINK_MAXIMUM_USED_RATIO;
-				}				
-			} else if((StringUtils.equals(nowVparentDevType, NODE_TYPE_LEAF) && StringUtils.equals(prvVparentDevType, NODE_TYPE_SPINE)) ||
+
+			if((StringUtils.equals(nowVparentDevType, NODE_TYPE_LEAF) && StringUtils.equals(prvVparentDevType, NODE_TYPE_SPINE)) ||
 					  (StringUtils.equals(nowVparentDevType, NODE_TYPE_SPINE) && StringUtils.equals(prvVparentDevType, NODE_TYPE_LEAF))){
-				newUsed = nowUsed + needBand +needBandOverHead;
+				//newUsed = nowUsed + needBand +needBandOverHead;
+				newUsed = nowUsed + needBand;
+
 				if (newUsed > maxBand) {
 					throw new NoRouteException(String.format(NOT_FOUND, "Path"));
 				}
-			} else {
+				dao.updateCableLinkUsedFromPortRid(conn, nowPortRid, newUsed);
+			  //Add balancing to AG - Sites_SW. Balancing is Used weight only.(not check of maxBand)
+			} else if((StringUtils.equals(nowVparentDevType, NODE_TYPE_SITES_SW) && StringUtils.equals(prvVparentDevType, NODE_TYPE_AGGREGATE_SW)) ||
+					  (StringUtils.equals(nowVparentDevType, NODE_TYPE_AGGREGATE_SW) && StringUtils.equals(prvVparentDevType, NODE_TYPE_SITES_SW))){
+				newUsed = nowUsed + needBand +needBandOverHead;
+			}else {
 				continue;
 			}
-			
-
-			dao.updateCableLinkUsedFromPortRid(conn, nowPortRid, newUsed);
 		}
 
 		/* Make ofpatch index list */
@@ -1019,18 +1159,18 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			if (!StringUtils.equals(nowClass, "node")) {
 				continue;
 			}
-			if (!StringUtils.equals(devType, NODE_TYPE_LEAF) && !StringUtils.equals(devType, NODE_TYPE_SPINE)) {
+			if (!StringUtils.equals(devType, NODE_TYPE_LEAF) && !StringUtils.equals(devType, NODE_TYPE_SPINE) && !StringUtils.equals(devType, NODE_TYPE_AGGREGATE_SW)) {
 				continue;
 			}
 			ofpIndexList.add(new Integer(i));
 		}
-		
+
 		String nw_instance_type = NETWORK_INSTANCE_TYPE;
 		Long nw_instance_id = dao.getNwInstanceId(conn);
 		if (nw_instance_id < 0) {
 			throw new NoRouteException(String.format(IS_FULL, "network instance id"));
 		}
-		
+
 		/* insert logical link */
 		dao.insertLogicalLink(conn,
 				(String)txDeviceMap.get("rid"),
@@ -1043,7 +1183,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 				(String)rxPortMap.get("name"),
 				nw_instance_id,
 				nw_instance_type);
-		
+
 		Map<String, Object> logicalLinkMap = dao.getLogicalLinkFromNodeNamePortName(conn, (String)txDeviceMap.get("name"), (String)txPortMap.get("name"));
 
 		for (int seq = 0; seq < ofpIndexList.size(); seq++) {
@@ -1052,7 +1192,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			Map<String, Object>  inPortDataMap = path.get(i-1);
 			Map<String, Object> ofpPortDataMap = path.get(i);
 			Map<String, Object> outPortDataMap = path.get(i+1);
-			
+
 			dao.insertRoute(
 					conn,
 					seq + 1,
@@ -1064,7 +1204,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 					(Integer)inPortDataMap.get("number"),
 					(String)outPortDataMap.get("rid"),
 					(String)outPortDataMap.get("name"),
-					(Integer)outPortDataMap.get("number")); 
+					(Integer)outPortDataMap.get("number"));
 
 		}
 
@@ -1103,11 +1243,11 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			Map<String, Object> ofpNodeData = path.get(i);
 			Map<String, Object> ofpNodeDataMap = dao.getNodeInfoFromDeviceName(conn, (String)ofpNodeData.get("name"));
 			Map<String, Object> outPortDataMap = path.get(i + 1);
-			
+
 			String ofcIp = (String)ofpNodeDataMap.get("ip") + ":" + Integer.toString((Integer)ofpNodeDataMap.get("port"));
 			Integer inPortNumber = (Integer)inPortDataMap.get("number");
 			Integer outPortNumber = (Integer)outPortDataMap.get("number");
-			
+
 			SetFlowToOFC requestData = client.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
 			client.createMatchForInPort(requestData, inPortNumber.longValue());
 			client.createActionsForPushVlan(requestData, outPortNumber.longValue(), nw_instance_id);
@@ -1118,8 +1258,8 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			client.createActionsForPopVlan(requestData, inPortNumber.longValue());
 			augmentedFlows.add(ofcIp, requestData);
 		}
-
-		/* spine ofs flow */		
+		Boolean beforespinecheck = false;
+		/* spine ofs flow */
 		for (int i = 1; i < ofpIndexList.size() - 1; i++) {
 			/* insert frowarding patch wiring */
 			int index = ofpIndexList.get(i);
@@ -1128,21 +1268,62 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			Map<String, Object> ofpNodeDataMap = dao.getNodeInfoFromDeviceName(conn, (String)ofpNodeData.get("name"));
 			Map<String, Object> outPortDataMap = path.get(index+1);
 
-			String ofcIp = (String)ofpNodeDataMap.get("ip") + ":" + Integer.toString((Integer)ofpNodeDataMap.get("port"));
-			Integer inPortNumber = (Integer)inPortDataMap.get("number");
-			Integer outPortNumber = (Integer)outPortDataMap.get("number");
-			
-			SetFlowToOFC requestData = client.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
-			client.createMatchForInPortDlVlan(requestData, inPortNumber.longValue(), nw_instance_id);
-			client.createActionsForOutputPort(requestData, outPortNumber.longValue());
-			augmentedFlows.add(ofcIp, requestData);
+			if(ofpNodeDataMap.get("type").equals("Spine"))
+			{
+				String ofcIp = (String)ofpNodeDataMap.get("ip") + ":" + Integer.toString((Integer)ofpNodeDataMap.get("port"));
+				Integer inPortNumber = (Integer)inPortDataMap.get("number");
+				Integer outPortNumber = (Integer)outPortDataMap.get("number");
 
-			requestData = client.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
-			client.createMatchForInPortDlVlan(requestData, outPortNumber.longValue(), nw_instance_id);
-			client.createActionsForOutputPort(requestData, inPortNumber.longValue());
-			augmentedFlows.add(ofcIp, requestData);
+				SetFlowToOFC requestData = client.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
+				client.createMatchForInPortDlVlan(requestData, inPortNumber.longValue(), nw_instance_id);
+				client.createActionsForOutputPort(requestData, outPortNumber.longValue());
+				augmentedFlows.add(ofcIp, requestData);
+
+				requestData = client.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
+				client.createMatchForInPortDlVlan(requestData, outPortNumber.longValue(), nw_instance_id);
+				client.createActionsForOutputPort(requestData, inPortNumber.longValue());
+				augmentedFlows.add(ofcIp, requestData);
+				beforespinecheck = true;
+			}
+			else if(ofpNodeDataMap.get("type").equals("Aggregate_Switch"))
+			{
+				String ofcIp = (String)ofpNodeDataMap.get("ip") + ":" + Integer.toString((Integer)ofpNodeDataMap.get("port"));
+
+				Integer inPortNumber = (Integer)inPortDataMap.get("number");
+				Integer outPortNumber = (Integer)outPortDataMap.get("number");
+
+				SetFlowToOFC requestData = client.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
+				if(beforespinecheck.equals(true))
+				{
+					client.createMatchForInPortDlVlan(requestData, inPortNumber.longValue(),nw_instance_id);
+					client.createActionsForPushOuter_tag(requestData, outPortNumber.longValue(),Long.parseLong(nwid),nw_instance_id);
+					augmentedFlows.add(ofcIp, requestData);
+
+					dao.insertOutertag(conn,nw_instance_id.toString(),nwid,(String)ofpNodeDataMap.get("datapathId"),inPortNumber.toString(),outPortNumber.toString(),"push",network.get(0).toString());
+
+					requestData = client.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
+					client.createMatchForInPortDlVlan(requestData, outPortNumber.longValue(), Long.parseLong(nwid));
+					client.createActionsForPopOuter_tag(requestData, inPortNumber.longValue());
+					augmentedFlows.add(ofcIp, requestData);
+					beforespinecheck = false;
+
+					dao.insertOutertag(conn,nw_instance_id.toString(),nwid,(String)ofpNodeDataMap.get("datapathId"),outPortNumber.toString(),inPortNumber.toString(),"pop",network.get(0).toString());
+				}
+				else
+				{
+					client.createMatchForInPortDlVlan(requestData, outPortNumber.longValue(),nw_instance_id);
+					client.createActionsForPushOuter_tag(requestData, inPortNumber.longValue(), Long.parseLong(nwid),nw_instance_id);
+					augmentedFlows.add(ofcIp, requestData);
+					dao.insertOutertag(conn,nw_instance_id.toString(),nwid,(String)ofpNodeDataMap.get("datapathId"),outPortNumber.toString(),inPortNumber.toString(),"push",network.get(0).toString());
+					requestData = client.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
+					client.createMatchForInPortDlVlan(requestData, inPortNumber.longValue(), Long.parseLong(nwid));
+					client.createActionsForPopOuter_tag(requestData, outPortNumber.longValue());
+					augmentedFlows.add(ofcIp, requestData);
+					dao.insertOutertag(conn,nw_instance_id.toString(),nwid,(String)ofpNodeDataMap.get("datapathId"),inPortNumber.toString(),outPortNumber.toString(),"pop",network.get(0).toString());
+				}
+			}
 		}
-		
+
 		/* the final ofps flow */
 		{
 			int i = ofpIndexList.get(ofpIndexList.size() - 1);
@@ -1150,16 +1331,15 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			Map<String, Object> ofpNodeData = path.get(i);
 			Map<String, Object> ofpNodeDataMap = dao.getNodeInfoFromDeviceName(conn, (String)ofpNodeData.get("name"));
 			Map<String, Object> outPortDataMap = path.get(i - 1);
-
 			String ofcIp = (String)ofpNodeDataMap.get("ip") + ":" + Integer.toString((Integer)ofpNodeDataMap.get("port"));
 			Integer inPortNumber = (Integer)inPortDataMap.get("number");
 			Integer outPortNumber = (Integer)outPortDataMap.get("number");
-			
+
 			SetFlowToOFC requestData = client.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
 			client.createMatchForInPort(requestData, inPortNumber.longValue());
 			client.createActionsForPushVlan(requestData, outPortNumber.longValue(), nw_instance_id);
 			augmentedFlows.add(ofcIp, requestData);
-			
+
 			requestData = client.createRequestData(Long.decode((String)ofpNodeDataMap.get("datapathId")), OPENFLOW_FLOWENTRY_PRIORITY_NORMAL, null, null);
 			client.createMatchForInPortDlVlan(requestData, outPortNumber.longValue(), nw_instance_id);
 			client.createActionsForPopVlan(requestData, inPortNumber.longValue());

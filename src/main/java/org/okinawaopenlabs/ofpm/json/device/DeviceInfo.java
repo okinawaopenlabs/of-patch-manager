@@ -33,7 +33,7 @@ public class DeviceInfo extends Node implements Cloneable {
 	public void setDatapathId(String datapathId) {
 		this.datapathId = datapathId;
 	}
-
+	
 	public String getOfcIp() {
 		return ofcIp;
 	}

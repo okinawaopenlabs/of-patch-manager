@@ -124,7 +124,7 @@ public interface Dao {
 	 * @throws SQLException
 	 */
 	List<Map<String, Object>> getLogicalLinksFromDeviceName(Connection conn, String deviceName) throws SQLException;
-	
+
 	/**
 	 * Check if contains pair of deviceName and portName into patchWiring .
 	 * @param conn
@@ -145,7 +145,7 @@ public interface Dao {
 	 */
 	boolean isContainsLogicalLinkFromDeviceNamePortName(Connection conn, String deviceName, String portName) throws SQLException;
 
-	
+
 	/**
 	 * Check if contains device name into patchWirings inDeviceName or outDeviceName
 	 * @param conn
@@ -230,7 +230,7 @@ public interface Dao {
 	 * @throws SQLException
 	 */
 	int deleteLogicalLinkFromNodeNamePortName(Connection conn, String deviceName, String portName) throws SQLException;
-	
+
 	/**
 	 * Get route list.
 	 * @param Connection conn
@@ -257,7 +257,7 @@ public interface Dao {
 	 * @throws SQLException
 	 */
 	int deleteRouteFromLogicalLinkRid(Connection conn, String logical_link_id) throws SQLException;
-	
+
 	/**
 	 * Insert route data into db.
 	 * @param Connection conn
@@ -467,9 +467,10 @@ public interface Dao {
 	 * @param portNumber
 	 * @param band
 	 * @param deviceName
+	 * @param network
 	 * @return
 	 */
-	int createPortInfo(Connection conn, String portName, Integer portNumber, Integer band, String deviceName) throws SQLException;
+	int createPortInfo(Connection conn, String portName, Integer portNumber, Integer band, String deviceName, String network) throws SQLException;
 
 	/**
 	 * Update PortInfo
@@ -482,7 +483,7 @@ public interface Dao {
 	 * @return
 	 * @throws SQLException
 	 */
-	int updatePortInfo(Connection conn, String keyPortName, String keyDeviceName, String portName, Integer portNumber, Integer band) throws SQLException;
+	int updatePortInfo(Connection conn, String keyPortName, String keyDeviceName, String portName, Integer portNumber, Integer band,String network) throws SQLException;
 
 	/**
 	 * Delete PortInfo
@@ -575,7 +576,7 @@ public interface Dao {
 	 * @param conn
 	 * @return
 	 * @throws SQLException
-	 */	
+	 */
 	List<Map<String, Object>> getOfcInfoList(Connection conn) throws SQLException;
 
 	/**
@@ -583,7 +584,7 @@ public interface Dao {
 	 * @param conn
 	 * @return
 	 * @throws SQLException
-	 */		
+	 */
 	Map<String, Object> getOfcInfo(Connection conn, String ofcIpPort) throws SQLException;
 
     /**
@@ -591,9 +592,9 @@ public interface Dao {
      * @param conn, ip, port
      * @return
      * @throws SQLException
-     */             
+     */
     Map<String, Object> getOfcRidInfo(Connection conn, String ofcIpPort) throws SQLException;
-	
+
 	/**
      * Update OfcInfo.
      * @param conn
@@ -602,8 +603,8 @@ public interface Dao {
      * @return
      * @throws SQLException
      */
-    int updateOfcInfo(Connection conn, String ofcIpPort, String ip, Integer port) throws SQLException;	
-	
+    int updateOfcInfo(Connection conn, String ofcIpPort, String ip, Integer port) throws SQLException;
+
 	/**
 	 * Create OfcInfo.
 	 * @param conn
@@ -611,7 +612,7 @@ public interface Dao {
 	 * @param port
 	 * @return
 	 * @throws SQLException
-	 */	
+	 */
 	int createOfcInfo(Connection conn, String ip, Integer port) throws SQLException;
 
 	/**
@@ -624,4 +625,14 @@ public interface Dao {
 	int deleteOfcInfo(Connection conn, String ofcIpPort) throws SQLException;
 
 	public List<Map<String, Object>> getCableList(Connection conn) throws SQLException;
+	public List<Map<String, Object>> getNetworkidFromSpineid(Connection conn, String in_spine_id,String out_spine_id,String network_type) throws SQLException;
+	public String payoutNetworkid(Connection conn, String in_spine_id,String out_spine_id,String network_type) throws SQLException;
+	public int returnNetworkid(Connection conn, String spine_id,String network_type) throws SQLException;
+	public int insertOutertag(Connection conn, String localvlan, String outer_tag, String agid, String ag_inport,String ag_outport,String type,String network_type) throws SQLException;
+	public List<Map<String,Object>> getOutertagflows(Connection conn, String agid) throws SQLException;
+	public int DeleteOutertagflows(Connection conn,Long localvlan) throws SQLException;
+	public int AddNetworkId(Connection conn,int networkid, String type) throws SQLException;
+	public int delNetworkId(Connection conn,int networkid, String type) throws SQLException;
+    public List<Map<String, Object>> getNetworkId(Connection conn) throws SQLException;
+
 }

@@ -88,20 +88,6 @@ public class PortInfoCreateJsonInValidate extends BaseValidate {
 		}		
 		
 		/*
-		 * Check PortNumber
-		 */
-		try{
-			System.out.println(portInfoJson.getPortNumber());
-			if(portInfoJson.getPortNumber()==0){
-				throw new ValidateException(String.format(IS_BLANK, "portNumber"));
-			}
-		}
-		catch(Exception e)
-		{
-			throw new ValidateException(String.format(INVALID_PARAMETER, "portNumber"));
-		}
-
-		/*
 		 * Check Band
 		 */
 		try{

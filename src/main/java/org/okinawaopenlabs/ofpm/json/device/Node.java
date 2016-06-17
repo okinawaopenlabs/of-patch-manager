@@ -51,6 +51,7 @@ public class Node implements Cloneable {
 	public String getTenant() {
 		return tenant;
 	}
+
 	public void setTenant(String tenant) {
 		this.tenant = tenant;
 	}

@@ -39,8 +39,10 @@ public interface OFCClient {
 	public SetFlowToOFC createMatchForDlVlan(SetFlowToOFC requestData, Long vlanId);
 	
 	public SetFlowToOFC createActionsForPushVlan(SetFlowToOFC requestData, Long outPort, Long vlanId);
+	public SetFlowToOFC createActionsForPushOuter_tag(SetFlowToOFC requestData, Long outPort, Long vlanId, Long dfvlanId);
 	
 	public SetFlowToOFC createActionsForPopVlan(SetFlowToOFC requestData, Long outPort);
+	public SetFlowToOFC createActionsForPopOuter_tag(SetFlowToOFC requestData, Long outPort);
 	
 	public SetFlowToOFC createActionsForOutputPort(SetFlowToOFC requestData, Long outPort);
 }

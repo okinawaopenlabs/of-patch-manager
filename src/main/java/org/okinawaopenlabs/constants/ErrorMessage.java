@@ -39,6 +39,7 @@ public class ErrorMessage {
 	public static final String IS_FULL = "%s is full.";
 	public static final String UNEXPECTED_ERROR = "Unexpected error.";
 	public static final String RETURNED_NULL = "%s returned null.";
+	public static final String NOW_USED	= "%s is now assigned.";
 
 	public static final String IS_PATCHED = "%s is patched";
 	public static final String IS_NO_ROUTE = "There is no route between %s and %s.";

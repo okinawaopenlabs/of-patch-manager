@@ -25,7 +25,8 @@ public class PortInfo implements Cloneable {
 	private String portName;
 	private Integer portNumber;
 	private Integer band;
-
+	private String network;
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) return true;
@@ -87,6 +88,9 @@ public class PortInfo implements Cloneable {
 	}
 	public Integer getBand() {
 		return band;
+	}
+	public String getNetwork(){
+		return network;
 	}
 	public void setBand(Integer band) {
 		this.band = band;

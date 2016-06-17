@@ -41,15 +41,19 @@ import org.okinawaopenlabs.ofpm.json.topology.logical.LogicalTopology;
 import org.okinawaopenlabs.ofpm.json.topology.logical.LogicalTopologyGetJsonOut;
 import org.okinawaopenlabs.ofpm.json.topology.logical.LogicalTopology.OfpConDeviceInfo;
 import org.okinawaopenlabs.ofpm.json.topology.logical.LogicalTopology.OfpConPortInfo;
+import org.okinawaopenlabs.ofpm.json.topology.logical.LogicalTopology.getnetwork;
+
 import org.okinawaopenlabs.ofpm.json.topology.physical.ConnectPhysicalLinksJsonIn;
 import org.okinawaopenlabs.ofpm.json.topology.physical.DisconnectPhysicalLinksJsonIn;
 import org.okinawaopenlabs.ofpm.json.topology.physical.PhysicalLink;
+import org.okinawaopenlabs.ofpm.json.topology.physical.AddNetworkId;
 import org.okinawaopenlabs.ofpm.utils.Config;
 import org.okinawaopenlabs.ofpm.utils.ConfigImpl;
 import org.okinawaopenlabs.ofpm.utils.OFPMUtils;
 import org.okinawaopenlabs.ofpm.validate.common.BaseValidate;
 import org.okinawaopenlabs.ofpm.validate.topology.physical.ConnectPhysicalLinksJsonInValidate;
 import org.okinawaopenlabs.ofpm.validate.topology.physical.DisconnectPhysicalLinksJsonInValidate;
+import org.okinawaopenlabs.ofpm.validate.topology.physical.AddNetworkIdJsonInValidate;
 import org.okinawaopenlabs.orientdb.client.ConnectionUtilsJdbc;
 import org.okinawaopenlabs.orientdb.client.ConnectionUtilsJdbcImpl;
 import org.okinawaopenlabs.orientdb.client.Dao;
@@ -201,6 +205,8 @@ public class PhysicalBusinessImpl implements PhysicalBusiness {
 		/* PHASE 2: Create cable-link */
 		ConnectionUtilsJdbc utils = null;
 		Connection          conn  = null;
+		Map<String, Object> port0_info,port1_info;
+		
 		try {
 			utils = new ConnectionUtilsJdbcImpl();
 			conn  = utils.getConnection(false);
@@ -250,6 +256,7 @@ public class PhysicalBusinessImpl implements PhysicalBusiness {
 			res.setMessage(e.getMessage());
 			return res.toJson();
 		} finally {
+			System.out.println("added to spine switch");
 			utils.close(conn);
 			if (logger.isDebugEnabled()) {
 				logger.debug(String.format("%s(ret=%s) - end", fname, res));
@@ -292,6 +299,8 @@ public class PhysicalBusinessImpl implements PhysicalBusiness {
 		/* PHASE 2: Delete cable-link */
 		ConnectionUtilsJdbc utils = null;
 		Connection          conn  = null;
+		Map<String, Object> port0_info,port1_info;
+
 		try {
 			utils = new ConnectionUtilsJdbcImpl();
 			conn  = utils.getConnection(false);
@@ -310,6 +319,32 @@ public class PhysicalBusinessImpl implements PhysicalBusiness {
 
 				switch (status) {
 					case DB_RESPONSE_STATUS_OK:
+						port0_info = dao.getNodeInfoFromDeviceName(
+								conn,
+								port0.getDeviceName());
+
+						port1_info = dao.getNodeInfoFromDeviceName(
+								conn,
+								port1.getDeviceName());
+						
+						String port0_type = port0_info.get("type").toString();						
+						String port1_type = port1_info.get("type").toString();
+						
+						if((port0_type.equals("Aggregate_Switch") && port1_type.equals("Spine")) || 
+								(port0_type.equals("Spine") && port1_type.equals("Aggregate_Switch")))
+						{
+							String rid="";
+							if(port0_type.equals("Spine"))
+							{
+								rid = port0_info.get("rid").toString();
+							}
+							else
+							{
+								rid = port1_info.get("rid").toString();								
+							}
+							//int nwid = dao.returnNetworkid(conn, rid);
+							//System.out.println(nwid);
+						}
 						continue;
 
 					case DB_RESPONSE_STATUS_NOT_FOUND:
@@ -348,10 +383,242 @@ public class PhysicalBusinessImpl implements PhysicalBusiness {
 			res.setMessage(e.getMessage());
 			return res.toJson();
 		} finally {
+			System.out.println("delete to spine switch");
 			utils.close(conn);
 			if (logger.isDebugEnabled()) {
 				logger.debug(String.format("%s(ret=%s) - end", fname, res));
 			}
 		}
+	}
+	
+	@Override
+	public String addnetworkid(String physicalLinkJson) {
+		final String fname = "addnetworkid";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(physicalLinkJson=%s) - start", fname, physicalLinkJson));
+		}
+		BaseResponse res = new BaseResponse();
+
+		/* PHASE 1: json -> obj and validation check */
+
+		AddNetworkId inParam = null;
+
+		try {
+			inParam = AddNetworkId.fromJson(physicalLinkJson);
+			AddNetworkIdJsonInValidate validator = new AddNetworkIdJsonInValidate();
+			validator.checkValidation(inParam);
+		} catch (JsonSyntaxException jse) {
+			OFPMUtils.logErrorStackTrace(logger, jse);			
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(INVALID_JSON);
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+			return res.toJson();
+		} catch (ValidateException ve) {
+			OFPMUtils.logErrorStackTrace(logger, ve);
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(ve.getMessage());
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+			return res.toJson();
+		}
+
+		/* PHASE 2: Create cable-link */
+		ConnectionUtilsJdbc utils = null;
+		Connection          conn  = null;
+		
+		try {
+			utils = new ConnectionUtilsJdbcImpl();
+			conn  = utils.getConnection(false);
+
+			Dao dao = new DaoImpl(utils);
+			System.out.println(inParam);
+			int status = 201;
+			for(int i=inParam.GetStart();i<=inParam.GetEnd();i++)
+			{
+				status = dao.AddNetworkId(
+						conn,
+						i,
+						inParam.GetType());
+
+				if(status == 1)
+				{
+					status = DB_RESPONSE_STATUS_OK;
+				}
+				else
+				{
+					break;
+				}
+			}
+			System.out.println(status);
+			switch (status) {
+					case DB_RESPONSE_STATUS_OK:
+						utils.commit(conn);
+						res.setStatus(STATUS_CREATED);
+						return res.toJson();
+
+					case DB_RESPONSE_STATUS_EXIST:
+						utils.rollback(conn);
+						res.setStatus(STATUS_CONFLICT);
+						res.setMessage(String.format(ALREADY_EXIST, "" + "<-->" + ""));
+						return res.toJson();
+
+					default:
+						utils.rollback(conn);
+						res.setStatus(STATUS_INTERNAL_ERROR);
+						return res.toJson();
+				}
+		} catch (SQLException | RuntimeException e) {
+			utils.rollback(conn);
+			OFPMUtils.logErrorStackTrace(logger, e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+			return res.toJson();
+		} finally {
+			utils.close(conn);
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+		}
+	}
+	
+	@Override
+	public String delnetworkid(String physicalLinkJson) {
+		final String fname = "addnetworkid";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(physicalLinkJson=%s) - start", fname, physicalLinkJson));
+		}
+		BaseResponse res = new BaseResponse();
+
+		/* PHASE 1: json -> obj and validation check */
+
+		AddNetworkId inParam = null;
+
+		try {
+			inParam = AddNetworkId.fromJson(physicalLinkJson);
+			AddNetworkIdJsonInValidate validator = new AddNetworkIdJsonInValidate();
+			validator.checkValidation(inParam);
+		} catch (JsonSyntaxException jse) {
+			OFPMUtils.logErrorStackTrace(logger, jse);			
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(INVALID_JSON);
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+			return res.toJson();
+		} catch (ValidateException ve) {
+			OFPMUtils.logErrorStackTrace(logger, ve);
+			res.setStatus(STATUS_BAD_REQUEST);
+			res.setMessage(ve.getMessage());
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+			return res.toJson();
+		}
+
+		/* PHASE 2: Create cable-link */
+		ConnectionUtilsJdbc utils = null;
+		Connection          conn  = null;
+		
+		try {
+			utils = new ConnectionUtilsJdbcImpl();
+			conn  = utils.getConnection(false);
+
+			Dao dao = new DaoImpl(utils);
+			System.out.println(inParam);
+			int status = 201;
+			int vlanid;
+			for(vlanid=inParam.GetStart();vlanid<=inParam.GetEnd();++vlanid)
+			{
+				status = dao.delNetworkId(
+						conn,
+						vlanid,
+						inParam.GetType());
+				if(status == 1)
+				{
+					status = DB_RESPONSE_STATUS_OK;
+				}
+				else
+				{
+					break;
+				}
+			}
+			switch (status) {
+					case DB_RESPONSE_STATUS_OK:
+						utils.commit(conn);
+						res.setStatus(STATUS_CREATED);
+						return res.toJson();
+
+					case DB_RESPONSE_STATUS_NOW_USED:
+						utils.rollback(conn);
+						res.setStatus(STATUS_NOW_USED);
+						res.setMessage(String.format(NOW_USED,vlanid));
+						return res.toJson();
+
+					default:
+						utils.rollback(conn);
+						res.setStatus(STATUS_INTERNAL_ERROR);
+						return res.toJson();
+			}
+		} catch (SQLException | RuntimeException e) {
+			utils.rollback(conn);
+			OFPMUtils.logErrorStackTrace(logger, e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			return res.toJson();
+		} finally {
+			utils.close(conn);
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s(ret=%s) - end", fname, res));
+			}
+		}
+	}
+
+	@Override
+	public String getNetworkId() {
+		final String fname = "getNetworkId";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s() - start", fname));
+		}
+		LogicalTopologyGetJsonOut res = new LogicalTopologyGetJsonOut();
+
+		ConnectionUtilsJdbc utilsJdbc = null;
+		Connection conn = null;
+		try {
+			utilsJdbc = new ConnectionUtilsJdbcImpl();
+			conn = utilsJdbc.getConnection(true);
+			Dao dao = new DaoImpl(utilsJdbc);
+
+			List<Map<String, Object>> infoMapList = dao.getNetworkId(conn);
+			System.out.println(infoMapList);
+
+			/* Make nodes and links */
+			List<getnetwork> outer_tag_list = new ArrayList<getnetwork>();
+			for (Map<String, Object> infoMap : infoMapList) {
+				getnetwork NetworkId = new getnetwork();
+				NetworkId.setnetworkId((int) infoMap.get("outer_tag"));
+				NetworkId.setnetworkType((String) infoMap.get("name"));
+				NetworkId.setUseRoute((String) infoMap.get("spine1")+"<=>"+(String) infoMap.get("spine2"));
+				outer_tag_list.add(NetworkId);
+			}
+			LogicalTopology topology = new LogicalTopology();
+			topology.setNetwork(outer_tag_list);
+			// create response data
+			res.setResult(topology);
+			res.setStatus(STATUS_SUCCESS);
+		} catch (Exception e) {
+			OFPMUtils.logErrorStackTrace(logger, e);
+			res.setStatus(STATUS_INTERNAL_ERROR);
+			res.setMessage(e.getMessage());
+		} finally {
+			utilsJdbc.close(conn);
+		}
+
+		String ret = res.toJson();
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, ret));
+		}
+		return ret;
 	}
 }

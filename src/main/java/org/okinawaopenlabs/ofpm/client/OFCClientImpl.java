@@ -239,13 +239,59 @@ public class OFCClientImpl implements OFCClient {
 		pushOutputAction.setType(OfcClientDefinition.ACTION_TYPE_OUTPUT);
 		pushOutputAction.setPort(outPort);
 		retActions.add(pushOutputAction);
-		
+				
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("%s(ret=%s) - end", fname, requestData.toJson()));
 		}
 		return requestData;
 	}
 
+	public SetFlowToOFC createActionsForPushOuter_tag(SetFlowToOFC requestData, Long outPort, Long vlanId, Long dfvlanId) {
+		final String fname = "createActionsForPushVlan";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(requestData=%s, outPort=%s, vlanId=%s) - start", fname, requestData, outPort, vlanId));
+		}
+
+		List<SetFlowToOFC.Action> retActions = requestData.getActions();
+		
+		Action popVlanAction = requestData.new Action();
+		popVlanAction.setType(OfcClientDefinition.ACTION_TYPE_POP_VLAN);
+		retActions.add(popVlanAction);
+
+		Action pushVlanAction = requestData.new Action();
+		pushVlanAction.setType(OfcClientDefinition.ACTION_TYPE_PUSH_VLAN);
+		pushVlanAction.setEthertype(OfcClientDefinition.ACTION_TYPE_PUSH_Outer_ETH_TYPE);
+		retActions.add(pushVlanAction);
+		
+		Action pushSetFieldAction = requestData.new Action();
+		pushSetFieldAction.setType(OfcClientDefinition.ACTION_TYPE_SET_FIELD);
+		pushSetFieldAction.setField(OfcClientDefinition.ACTION_TYPE_SET_FIELD_VLAN_VID);
+		pushSetFieldAction.setValue(dfvlanId);
+		retActions.add(pushSetFieldAction);
+
+		Action pushVlanAction_outer = requestData.new Action();
+		pushVlanAction_outer.setType(OfcClientDefinition.ACTION_TYPE_PUSH_VLAN);
+		pushVlanAction_outer.setEthertype(OfcClientDefinition.ACTION_TYPE_PUSH_VLAN_ETH_TYPE);
+		retActions.add(pushVlanAction_outer);
+		
+		Action pushSetFieldAction_outer = requestData.new Action();
+		pushSetFieldAction_outer.setType(OfcClientDefinition.ACTION_TYPE_SET_FIELD);
+		pushSetFieldAction_outer.setField(OfcClientDefinition.ACTION_TYPE_SET_FIELD_VLAN_VID);
+		pushSetFieldAction_outer.setValue(vlanId);
+		retActions.add(pushSetFieldAction_outer);
+		
+		Action pushOutputAction = requestData.new Action();
+		pushOutputAction.setType(OfcClientDefinition.ACTION_TYPE_OUTPUT);
+		pushOutputAction.setPort(outPort);
+		retActions.add(pushOutputAction);
+				
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, requestData.toJson()));
+		}
+		return requestData;
+	}
+	
+	
 	public SetFlowToOFC createActionsForPopVlan(SetFlowToOFC requestData, Long outPort) {
 		final String fname = "createActionsForPopVlan";
 		if (logger.isDebugEnabled()) {
@@ -268,6 +314,36 @@ public class OFCClientImpl implements OFCClient {
 		}
 		return requestData;
 	}
+	
+	public SetFlowToOFC createActionsForPopOuter_tag(SetFlowToOFC requestData, Long outPort) {
+		final String fname = "createActionsForPopVlan";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(requestData=%s, outPort=%s) - start", fname, requestData, outPort));
+		}
+
+		List<SetFlowToOFC.Action> retActions = requestData.getActions();
+		
+		Action popVlanAction = requestData.new Action();
+		popVlanAction.setType(OfcClientDefinition.ACTION_TYPE_POP_VLAN);
+		retActions.add(popVlanAction);
+
+		Action rename_ethtype = requestData.new Action();
+		rename_ethtype.setType(OfcClientDefinition.ACTION_TYPE_SET_FIELD);
+		rename_ethtype.setField(OfcClientDefinition.ACTION_TYPE_SET_FIELD_ETH_TYPE);
+		rename_ethtype.setValue(OfcClientDefinition.ACTION_TYPE_PUSH_VLAN_ETH_TYPE);
+		retActions.add(rename_ethtype);
+		
+		Action pushOutputAction = requestData.new Action();
+		pushOutputAction.setType(OfcClientDefinition.ACTION_TYPE_OUTPUT);
+		pushOutputAction.setPort(outPort);
+		retActions.add(pushOutputAction);
+
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, requestData.toJson()));
+		}
+		return requestData;
+	}
+
 
 	public SetFlowToOFC createActionsForOutputPort(SetFlowToOFC requestData, Long outPort) {
 		final String fname = "createActionsForPopVlan";

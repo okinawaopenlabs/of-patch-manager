@@ -111,6 +111,10 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		/* PHASE 2: Add node info to ofpdb */
 		ConnectionUtilsJdbc utils = null;
 		Connection           conn = null;
+
+		
+		
+		
 		try {
 			utils = new ConnectionUtilsJdbcImpl();
 			conn = utils.getConnection(false);
@@ -237,11 +241,12 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		BaseResponse res = new BaseResponse();
 
 		/* PHASE 1: json -> DeviceInfoUpdateJosnIn and check validation */
+
 		DeviceInfoUpdateJsonIn newDeviceInfo = null;
 		try {
 			newDeviceInfo = DeviceInfoUpdateJsonIn.fromJson(updateDeviceInfoJson);
 			DeviceInfoUpdateJsonInValidate validator = new DeviceInfoUpdateJsonInValidate();
-			validator.checkValidation(deviceName, newDeviceInfo);
+			//validator.checkValidation(deviceName, newDeviceInfo);
 		} catch (JsonSyntaxException jse) {
 			logger.error(jse);
 			res.setStatus(STATUS_BAD_REQUEST);
@@ -251,6 +256,8 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
 			}
 			return ret;
+		}
+/*
 		} catch (ValidateException ve) {
 			logger.error(ve);
 			res.setStatus(STATUS_BAD_REQUEST);
@@ -261,7 +268,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 			}
 			return ret;
 		}
-
+*/
 		ConnectionUtilsJdbc utils = null;
 		Connection           conn = null;
 		try {
@@ -326,6 +333,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		DeviceInfoReadJsonOut res = new DeviceInfoReadJsonOut();
 
 		/* PHASE 1: check validation */
+
 		try {
 			BaseValidate.checkStringBlank(deviceName);
 		} catch (ValidateException e) {
@@ -478,8 +486,9 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 					portInfo.getPortName(),
 					portInfo.getPortNumber(),
 					portInfo.getBand(),
-					deviceName);
-
+					deviceName,
+					portInfo.getNetwork()
+					);
 			switch (status) {
 				case DB_RESPONSE_STATUS_EXIST:
 					utils.rollback(conn);
@@ -658,7 +667,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 		try {
 			portInfo = PortInfoUpdateJsonIn.fromJson(updatePortInfoJson);
 			PortInfoUpdateJsonInValidate validator = new PortInfoUpdateJsonInValidate();
-			validator.checkValidation(deviceName, portName, portInfo);
+			//validator.checkValidation(deviceName, portName, portInfo);
 		} catch (JsonSyntaxException e) {
 			OFPMUtils.logErrorStackTrace(logger, e);
 			res.setStatus(STATUS_BAD_REQUEST);
@@ -668,7 +677,9 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 				logger.debug(String.format("%s(ret=%s) - end", fname, ret));
 			}
 			return ret;
-		} catch (ValidateException e) {
+		} 
+/*
+		catch (ValidateException e) {
 			OFPMUtils.logErrorStackTrace(logger, e);
 			res.setStatus(STATUS_BAD_REQUEST);
 			res.setMessage(e.getMessage());
@@ -678,7 +689,7 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 			}
 			return ret;
 		}
-
+*/
 		/* PHASE 2: update port info */
 		ConnectionUtilsJdbc utils = null;
 		Connection           conn = null;
@@ -693,7 +704,11 @@ public class DeviceBusinessImpl implements DeviceBusiness {
 					deviceName,
 					portInfo.getPortName(),
 					portInfo.getPortNumber(),
-					portInfo.getBand());
+					portInfo.getBand(),
+					portInfo.getNetwork());
+			
+			System.out.println(status);
+			System.out.println(portInfo.getNetwork());
 
 			switch (status) {
 				case DB_RESPONSE_STATUS_NOT_FOUND:

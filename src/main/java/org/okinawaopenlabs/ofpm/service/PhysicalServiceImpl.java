@@ -110,4 +110,88 @@ public class PhysicalServiceImpl implements PhysicalService {
 		}
 		return Response.ok(resPhysBiz).type(MediaType.APPLICATION_JSON_TYPE).build();
 	}
+
+	@Override
+	public Response addnetworkid(String physicalLinkJson) {
+		final String fname = "addnetworkid";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(req=%s) - start", fname, physicalLinkJson));
+		}
+		
+		this.injector = Guice.createInjector(new AbstractModule() {
+			@Override
+			protected void configure() {
+				bind(PhysicalBusiness.class).to(PhysicalBusinessImpl.class);
+			}
+		});
+		
+		System.out.println(physicalLinkJson);
+		
+		PhysicalServiceImpl main = this.injector.getInstance(PhysicalServiceImpl.class);
+		String resPhysBiz = main.physBiz.addnetworkid(physicalLinkJson);
+
+		System.out.println(resPhysBiz);
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, resPhysBiz));
+		}
+		return Response.ok(resPhysBiz).type(MediaType.APPLICATION_JSON_TYPE).build();
+	}
+
+	@Override
+	public Response delnetworkid(String physicalLinkJson) {
+		final String fname = "delnetworkid";
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(req=%s) - start", fname, physicalLinkJson));
+		}
+		
+		this.injector = Guice.createInjector(new AbstractModule() {
+			@Override
+			protected void configure() {
+				bind(PhysicalBusiness.class).to(PhysicalBusinessImpl.class);
+			}
+		});
+		
+		System.out.println(physicalLinkJson);
+		
+		PhysicalServiceImpl main = this.injector.getInstance(PhysicalServiceImpl.class);
+		String resPhysBiz = main.physBiz.delnetworkid(physicalLinkJson);
+
+		System.out.println(resPhysBiz);
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, resPhysBiz));
+		}
+		return Response.ok(resPhysBiz).type(MediaType.APPLICATION_JSON_TYPE).build();
+	}
+
+	@Override
+	public Response getnetworkid() {
+		final String fname = "getnetworkid";
+		long time = 0L;
+		if (logger.isInfoEnabled()) {
+			time = System.currentTimeMillis();
+			logger.info(String.format("%s", fname));
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s() - start", fname));
+		}
+
+		this.injector = Guice.createInjector(new AbstractModule() {
+			@Override
+			protected void configure() {
+				bind(PhysicalBusiness.class).to(PhysicalBusinessImpl.class);
+			}
+		});
+		PhysicalServiceImpl main = this.injector.getInstance(PhysicalServiceImpl.class);
+		String resPhysBiz = main.physBiz.getNetworkId();
+
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s(ret=%s) - end", fname, resPhysBiz));
+		}
+		if (logger.isInfoEnabled()) {
+			time = System.currentTimeMillis() - time;
+			logger.info(String.format("%s %s[ms]", fname, time));
+		}
+		return Response.ok(resPhysBiz).type(MediaType.APPLICATION_JSON_TYPE).build();
+	}
+
 }

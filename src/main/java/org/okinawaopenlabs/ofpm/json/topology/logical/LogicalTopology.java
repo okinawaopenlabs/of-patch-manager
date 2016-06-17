@@ -25,12 +25,14 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.ObjectUtils;
 
 import org.okinawaopenlabs.ofpm.json.device.Node;
+import org.okinawaopenlabs.ofpm.json.device.NetworkId;
 import org.okinawaopenlabs.ofpm.json.device.PortData;
 import org.okinawaopenlabs.ofpm.json.device.PortInfo;
 
 public class LogicalTopology implements Cloneable {
 	private List<OfpConDeviceInfo> nodes;
 	private List<LogicalLink> links;
+	private List<getnetwork> OuterTag_List;
 
 	/* Setters and Getters */
 	public List<OfpConDeviceInfo> getNodes() {
@@ -45,7 +47,9 @@ public class LogicalTopology implements Cloneable {
 	public void setLinks(List<LogicalLink> links) {
 		this.links = links;
 	}
-
+	public void setNetwork(List<getnetwork> OuterTag_List){
+		this.OuterTag_List = OuterTag_List;
+	}
 
 	public LogicalTopology sub(LogicalTopology other) {
 		LogicalTopology newObj = this.clone();
@@ -80,9 +84,6 @@ public class LogicalTopology implements Cloneable {
 		Type type = new TypeToken<LogicalTopology>() {}.getType();
 		return gson.toJson(this, type);
 	}
-
-
-
 
 
 
@@ -132,6 +133,23 @@ public class LogicalTopology implements Cloneable {
 			return gson.toJson(this, type);
 		}
 	}
+
+
+
+	public static class getnetwork extends NetworkId implements Cloneable {
+		@Override
+		public NetworkId clone() {
+			getnetwork newObj = (getnetwork)super.clone();
+			return newObj;
+		}
+		@Override
+		public String toString() {
+			Gson gson = new Gson();
+			Type type = new TypeToken<getnetwork>() {}.getType();
+			return gson.toJson(this, type);
+		}
+	}
+	
 	public static class OfpConPortInfo extends PortInfo implements Cloneable {
 		private PortData ofpPortLink;
 
