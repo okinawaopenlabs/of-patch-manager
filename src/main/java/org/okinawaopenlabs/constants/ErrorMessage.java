@@ -36,6 +36,7 @@ public class ErrorMessage {
 	public static final String ALREADY_EXIST = "%s is already exists";
 	public static final String FIND_NULL = "Find %s thats %s is null";
 	public static final String NOT_FOUND = "%s is not found.";
+	public static final String NOT_FOUND_DEVICE = "%s not found";
 	public static final String IS_FULL = "%s is full.";
 	public static final String UNEXPECTED_ERROR = "Unexpected error.";
 	public static final String RETURNED_NULL = "%s returned null.";

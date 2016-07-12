@@ -481,7 +481,15 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 				this.addDeclementLogicalLink(conn, link, reducedFlows);
 			}
 			for (LogicalLink link : incLinkList) {
-				this.addInclementLogicalLink(conn, link, augmentedFlows);
+//				this.addInclementLogicalLink(conn, link, augmentedFlows);
+				String result = this.addInclementLogicalLink(conn, link, augmentedFlows);
+				if(result!=null)
+				{
+					res.setStatus(STATUS_BAD_REQUEST);
+					res.setMessage(String.format(NOT_FOUND_DEVICE, result));
+					return res.toJson();
+				}
+
 			}
 
 			/* Make nodes and links */
@@ -971,14 +979,13 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 	 * @throws SQLException
 	 * @throws NoRouteException
 	 */
-	private void addInclementLogicalLink(Connection conn, LogicalLink link, MultivaluedMap<String, SetFlowToOFC> augmentedFlows) throws SQLException, NoRouteException {
+	private String addInclementLogicalLink(Connection conn, LogicalLink link, MultivaluedMap<String, SetFlowToOFC> augmentedFlows) throws SQLException, NoRouteException {
 		PortData tx = link.getLink().get(0);
 		PortData rx = link.getLink().get(1);
 		/* get rid of txPort/rxPort */
 		String txRid = null;
 		String rxRid = null;
 		String nwid = null;
-
 		{
 			Map<String, Object> txMap =
 					(StringUtils.isBlank(tx.getPortName()))
@@ -988,10 +995,31 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 					(StringUtils.isBlank(rx.getPortName()))
 					? dao.getNodeInfoFromDeviceName(conn, rx.getDeviceName())
 					: dao.getPortInfoFromPortName(conn, rx.getDeviceName(), rx.getPortName());
-			txRid = (String)txMap.get("rid");
-			rxRid = (String)rxMap.get("rid");
+					//txRid, rxRidの結果がnullではないことを確認．
+					
+					
+			if(txMap!=null && rxMap!=null)
+			{
+				txRid = (String)txMap.get("rid");
+				rxRid = (String)rxMap.get("rid");
+			}
+			else
+			{
+				if(txMap==null && rxMap!=null)
+				{
+					return tx.getDeviceName() + " is";
+				}
+				else if(txMap!=null && rxMap==null)
+				{
+					return rx.getDeviceName() + " is";
+				}
+				else
+				{
+					return tx.getDeviceName() + " and " + rx.getDeviceName() + " are";					
+				}
+			}
 		}
-
+		
 		Map<String, Object> txDeviceMap = dao.getNodeInfoFromDeviceName(conn, tx.getDeviceName());
 		Map<String, Object> rxDeviceMap = dao.getNodeInfoFromDeviceName(conn, rx.getDeviceName());
 
@@ -1233,7 +1261,7 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			client.createMatchForInPort(requestData, outPortNumber.longValue());
 			client.createActionsForOutputPort(requestData, inPortNumber.longValue());
 			augmentedFlows.add(ofcIp, requestData);
-			return;
+			return null;
 		}
 
 		/* the first ofps flow */
@@ -1345,6 +1373,6 @@ public class LogicalBusinessImpl implements LogicalBusiness {
 			client.createActionsForPopVlan(requestData, inPortNumber.longValue());
 			augmentedFlows.add(ofcIp, requestData);
 		}
-		return;
+		return null;
 	}
 }
